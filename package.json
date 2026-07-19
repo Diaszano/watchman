@@ -1,6 +1,6 @@
 {
   "name": "watchman",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Interactive browser screensaver to reduce OLED burn-in risk.",
   "type": "module",
   "license": "MIT",
