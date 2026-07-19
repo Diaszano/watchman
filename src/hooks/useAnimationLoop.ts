@@ -40,9 +40,14 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps }: Options): void =>
     let targetY = 0;
     let driftTimer = 0;
 
-    // Cached background image.
+    // Cached background image state.
     let bgImg: HTMLImageElement | null = null;
     let bgSrc = '';
+    let bgLoadError = false;
+
+    // Cached DOM style states to avoid per-frame DOM style recalculation.
+    let lastFilter = '';
+    let lastOpacity = '';
 
     let cssW = 0;
     let cssH = 0;
@@ -61,12 +66,19 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps }: Options): void =>
     ro.observe(canvas);
 
     const drawBackground = (s: ReturnType<typeof useSettings.getState>) => {
-      if (s.backgroundImage) {
+      if (s.backgroundImage && !bgLoadError) {
         if (s.backgroundImage !== bgSrc) {
           bgSrc = s.backgroundImage;
+          bgLoadError = false;
           const el = new Image();
+          el.onload = () => {
+            bgImg = el;
+          };
+          el.onerror = () => {
+            bgLoadError = true;
+            bgImg = null;
+          };
           el.src = bgSrc;
-          bgImg = el;
         }
         if (bgImg && bgImg.complete && bgImg.naturalWidth) {
           const scale = Math.max(cssW / bgImg.naturalWidth, cssH / bgImg.naturalHeight);
@@ -130,7 +142,7 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps }: Options): void =>
       }
 
       // Anti burn-in: slow global drift so nothing sits still, plus a faint
-      // brightness pulse. Both applied outside the animation so all modes benefit.
+      // brightness pulse.
       let brightness = s.brightness;
       if (s.antiBurnIn) {
         driftTimer += dt;
@@ -146,8 +158,18 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps }: Options): void =>
         offX = offY = 0;
       }
 
-      canvas.style.filter = `brightness(${brightness})`;
-      canvas.style.opacity = String(s.opacity);
+      // Only update DOM styles when the computed string actually changes.
+      const nextFilter = `brightness(${brightness})`;
+      if (nextFilter !== lastFilter) {
+        canvas.style.filter = nextFilter;
+        lastFilter = nextFilter;
+      }
+
+      const nextOpacity = String(s.opacity);
+      if (nextOpacity !== lastOpacity) {
+        canvas.style.opacity = nextOpacity;
+        lastOpacity = nextOpacity;
+      }
 
       ctx.setTransform(dpr, 0, 0, dpr, offX * dpr, offY * dpr);
       // Clear a margin larger than the viewport so drift never exposes edges.
