@@ -1,0 +1,9 @@
+# Default owner for everything in the repo
+* @diaszano
+
+# CI/CD and GitHub configuration
+.github/ @diaszano
+Dockerfile @diaszano
+Dockerfile.dev @diaszano
+docker-compose.yml @diaszano
+nginx.conf @diaszano
