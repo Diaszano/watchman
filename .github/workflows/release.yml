@@ -7,8 +7,6 @@ on:
         required: true
       DOCKERHUB_TOKEN:
         required: true
-      GITHUB_TOKEN:
-        required: false
 
 permissions:
   contents: write

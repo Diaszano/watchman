@@ -62,7 +62,6 @@ assert.deepEqual(Object.keys(releaseWorkflow.on), ['workflow_call']);
 assert.deepEqual(releaseWorkflow.on.workflow_call.secrets, {
   DOCKERHUB_USERNAME: { required: true },
   DOCKERHUB_TOKEN: { required: true },
-  GITHUB_TOKEN: { required: false },
 });
 assert.deepEqual(releaseWorkflow.permissions, { contents: 'write', packages: 'write' });
 
@@ -200,7 +199,6 @@ assert.equal(prTitleSteps[1].with['node-version'], 24);
 assert.deepEqual(ciWorkflow.jobs.release.secrets, {
   DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}',
   DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}',
-  GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
 });
 
 const resolver = resolve('.github/scripts/resolve-release-tag.sh');
