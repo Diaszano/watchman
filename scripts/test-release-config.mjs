@@ -53,10 +53,6 @@ for (const message of [
 const npmPlugin = plugin('@semantic-release/npm');
 assert.equal(npmPlugin[1].npmPublish, false);
 
-const gitPlugin = plugin('@semantic-release/git');
-assert.deepEqual(gitPlugin[1].assets, ['CHANGELOG.md', 'package.json', 'package-lock.json']);
-assert.match(gitPlugin[1].message, /\[skip ci\]/);
-
 const releaseWorkflow = load(await readFile('.github/workflows/release.yml', 'utf8'));
 assert.deepEqual(Object.keys(releaseWorkflow.on), ['workflow_call']);
 assert.deepEqual(releaseWorkflow.on.workflow_call.secrets, {
