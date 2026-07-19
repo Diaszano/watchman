@@ -6,6 +6,16 @@ import { join, resolve } from 'node:path';
 import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { load } from 'js-yaml';
 
+const ACTIONS = {
+  checkout: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10',
+  setupNode: 'actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38',
+  dockerLogin: 'docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0',
+  setupQemu: 'docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8',
+  setupBuildx: 'docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c',
+  buildPush: 'docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a',
+  trivy: 'aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25',
+};
+
 const config = JSON.parse(await readFile('.releaserc.json', 'utf8'));
 const plugin = (name) =>
   config.plugins.find((entry) => (Array.isArray(entry) ? entry[0] : entry) === name);
@@ -57,11 +67,12 @@ assert.deepEqual(releaseWorkflow.permissions, { contents: 'write' });
 
 const releaseSteps = releaseWorkflow.jobs.release.steps;
 const step = (name) => releaseSteps.find((entry) => entry.name === name);
-assert.equal(step('Checkout repository').uses, 'actions/checkout@v6');
-assert.equal(step('Set up Node.js').uses, 'actions/setup-node@v6');
-assert.equal(step('Log in to Docker Hub').uses, 'docker/login-action@v4');
-assert.equal(step('Set up QEMU').uses, 'docker/setup-qemu-action@v4');
-assert.equal(step('Set up Docker Buildx').uses, 'docker/setup-buildx-action@v4');
+assert.equal(step('Checkout repository').uses, ACTIONS.checkout);
+assert.equal(step('Set up Node.js').uses, ACTIONS.setupNode);
+assert.equal(step('Set up Node.js').with['node-version'], 24);
+assert.equal(step('Log in to Docker Hub').uses, ACTIONS.dockerLogin);
+assert.equal(step('Set up QEMU').uses, ACTIONS.setupQemu);
+assert.equal(step('Set up Docker Buildx').uses, ACTIONS.setupBuildx);
 
 const snapshotTags = step('Snapshot release tags');
 assert.ok(
@@ -119,11 +130,48 @@ assert.equal(
 );
 
 const buildPush = step('Build and push image');
-assert.equal(buildPush.uses, 'docker/build-push-action@v7');
+assert.equal(buildPush.uses, ACTIONS.buildPush);
 assert.equal(buildPush.with.push, true);
 assert.equal(buildPush.with.platforms, 'linux/amd64,linux/arm64');
 
 const ciWorkflow = load(await readFile('.github/workflows/ci.yml', 'utf8'));
+assert.equal(ciWorkflow.jobs.commitlint.steps[0].uses, ACTIONS.checkout);
+assert.equal(ciWorkflow.jobs.commitlint.steps[1].uses, ACTIONS.setupNode);
+assert.equal(ciWorkflow.jobs.commitlint.steps[1].with['node-version'], 24);
+assert.equal(ciWorkflow.jobs.quality.steps[0].uses, ACTIONS.checkout);
+assert.equal(ciWorkflow.jobs.quality.steps[1].uses, ACTIONS.setupNode);
+assert.equal(ciWorkflow.jobs.quality.steps[1].with['node-version'], 24);
+
+const containerJob = ciWorkflow.jobs.container;
+assert.equal(containerJob.needs, 'quality');
+assert.equal(containerJob.permissions.contents, 'read');
+const containerStep = (name) => containerJob.steps.find((entry) => entry.name === name);
+assert.equal(containerStep('Checkout repository').uses, ACTIONS.checkout);
+assert.equal(containerStep('Set up Node.js').uses, ACTIONS.setupNode);
+assert.equal(containerStep('Set up Node.js').with['node-version'], 24);
+assert.equal(
+  containerStep('Verify container configuration').run,
+  'node scripts/test-container-config.mjs',
+);
+assert.equal(containerStep('Build production image').run, 'docker build --pull --tag watchman:ci .');
+assert.equal(
+  containerStep('Verify production container').run,
+  '.github/scripts/verify-container.sh watchman:ci',
+);
+
+const trivy = containerStep('Scan production image');
+assert.equal(trivy.uses, ACTIONS.trivy);
+assert.equal(trivy.with['image-ref'], 'watchman:ci');
+assert.equal(trivy.with['exit-code'], '1');
+assert.equal(trivy.with['ignore-unfixed'], true);
+assert.equal(trivy.with.severity, 'CRITICAL,HIGH');
+assert.ok(ciWorkflow.jobs.release.needs.includes('container'));
+
+const prTitleWorkflow = load(await readFile('.github/workflows/pr-title.yml', 'utf8'));
+const prTitleSteps = prTitleWorkflow.jobs.commitlint.steps;
+assert.equal(prTitleSteps[0].uses, ACTIONS.checkout);
+assert.equal(prTitleSteps[1].uses, ACTIONS.setupNode);
+assert.equal(prTitleSteps[1].with['node-version'], 24);
 assert.deepEqual(ciWorkflow.jobs.release.secrets, {
   DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}',
   DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}',
