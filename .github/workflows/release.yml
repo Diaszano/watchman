@@ -59,6 +59,7 @@ jobs:
           RELEASE_PUBLISHED: ${{ steps.release.outputs.published }}
           VERSION: ${{ steps.release.outputs.version }}
         run: |
+          GHCR_IMAGE="${GHCR_IMAGE,,}"
           {
             echo 'tags<<EOF'
             echo "${DOCKER_IMAGE}:latest"
