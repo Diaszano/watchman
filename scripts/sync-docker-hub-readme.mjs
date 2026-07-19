@@ -3,12 +3,13 @@
 /**
  * Synchronizes DOCKER_HUB.md with the Docker Hub repository description.
  *
- * Reads the local DOCKER_HUB.md file and pushes its content as the
- * full_description of the Docker Hub repository via the Docker Hub API.
+ * Authenticates via Docker Hub API v2, then updates the repository's
+ * full_description. Docker Hub access tokens work with the login endpoint
+ * using username as username and the token as password.
  *
  * Required environment variables:
  *   DOCKERHUB_USERNAME - Docker Hub account or organization name
- *   DOCKERHUB_TOKEN    - Docker Hub access token with push permission
+ *   DOCKERHUB_TOKEN    - Docker Hub access token
  *
  * Optional:
  *   DOCKER_REPO        - Repository name (defaults to "watchman")
@@ -37,24 +38,40 @@ try {
   process.exit(1);
 }
 
-const url = `https://hub.docker.com/v2/repositories/${DOCKERHUB_USERNAME}/${DOCKER_REPO}/`;
-const credentials = Buffer.from(`${DOCKERHUB_USERNAME}:${DOCKERHUB_TOKEN}`).toString(
-  'base64',
-);
+// Authenticate with Docker Hub API v2 to get a JWT token
+const loginUrl = 'https://hub.docker.com/v2/users/login/';
+const loginResponse = await fetch(loginUrl, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ username: DOCKERHUB_USERNAME, password: DOCKERHUB_TOKEN }),
+});
 
-const response = await fetch(url, {
+if (!loginResponse.ok) {
+  const errorText = await loginResponse.text().catch(() => 'unknown error');
+  console.error(
+    `Docker Hub login failed (${loginResponse.status} ${loginResponse.statusText}): ${errorText}`,
+  );
+  process.exit(1);
+}
+
+const { token } = await loginResponse.json();
+
+// Update the repository description
+const repoUrl = `https://hub.docker.com/v2/repositories/${DOCKERHUB_USERNAME}/${DOCKER_REPO}/`;
+const updateResponse = await fetch(repoUrl, {
   method: 'PATCH',
   headers: {
     'Content-Type': 'application/json',
-    Authorization: `Basic ${credentials}`,
+    Authorization: `Bearer ${token}`,
+    'X-Requested-With': 'XMLHttpRequest',
   },
   body: JSON.stringify({ full_description: description }),
 });
 
-if (!response.ok) {
-  const errorText = await response.text().catch(() => 'unknown error');
+if (!updateResponse.ok) {
+  const errorText = await updateResponse.text().catch(() => 'unknown error');
   console.error(
-    `Docker Hub API returned ${response.status} ${response.statusText}: ${errorText}`,
+    `Docker Hub API returned ${updateResponse.status} ${updateResponse.statusText}: ${errorText}`,
   );
   process.exit(1);
 }
