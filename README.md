@@ -80,21 +80,35 @@ chore(ci): maintain automation
 
 ## Docker
 
-Production build served by Nginx — the only command you need:
+Run the hardened production image locally:
 
 ```bash
 docker compose up --build      # http://localhost:8080
 ```
 
-Dev server with hot reload inside a container:
+Run the Vite development server with HMR inside a container:
 
 ```bash
 docker compose --profile dev up --build   # http://localhost:5173
 ```
 
+Both Compose services bind to `127.0.0.1` by default, so they are not exposed
+to other devices on the network. Add an explicit reverse proxy or change the
+host binding when remote access is intentional.
+
 ## Production deployment
 
-`Dockerfile` is a multi-stage build: Node compiles the static bundle, then Nginx serves it (`nginx.conf` handles gzip, asset caching, SPA fallback, and no-cache for the service worker). Point any static host or reverse proxy at the `dist/` output, or ship the image.
+`Dockerfile` uses a reproducible multi-stage build: Node.js 24 LTS compiles the
+static bundle, then NGINX 1.30.3 Alpine Slim serves only `dist/`. The runtime
+runs as the non-root `nginx` user on port 8080, provides `/health`, uses a
+read-only root filesystem under Compose, and sends baseline browser security
+headers. `nginx.conf` also handles compression, immutable caching for
+fingerprinted assets, SPA fallback, and revalidation for the application shell
+and PWA metadata.
+
+Base image tags are pinned to immutable digests in `Dockerfile` and
+`Dockerfile.dev`. When updating a digest, rebuild the image and run the local
+container verification and Trivy scan before publishing it.
 
 ### Docker Hub publication
 
