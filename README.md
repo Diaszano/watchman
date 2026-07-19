@@ -109,7 +109,11 @@ Repository administrators must create these GitHub Actions secrets:
 | `DOCKERHUB_USERNAME` | Docker Hub account or organization that owns `watchman` |
 | `DOCKERHUB_TOKEN`    | Docker Hub access token with push permission            |
 
+Before the first publication, create the Docker Hub repository `watchman` under the account or organization named by `DOCKERHUB_USERNAME`.
+
 The repository must allow GitHub Actions to write repository contents so Semantic Release can push the release commit and tag to `main`.
+
+When protecting `main`, require the `Commit messages`, `Lint, test, and build`, and `Pull request title` checks, while allowing the GitHub Actions release identity to push the generated release commit and tag.
 
 ---
 
