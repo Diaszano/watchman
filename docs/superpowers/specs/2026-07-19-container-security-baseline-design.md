@@ -219,6 +219,10 @@ The phase is complete when:
 - Add a focused script under `.github/scripts/` for repeatable live-container
   verification.
 - Modify `.github/workflows/ci.yml` to run the container checks and scan.
+- Modify `.github/workflows/pr-title.yml` to use Node.js 24 and immutable
+  action references.
 - Modify `.github/workflows/release.yml` to use Node.js 24 and immutable action
   references without altering release behavior.
+- Modify `scripts/test-release-config.mjs` to enforce the new workflow runtime,
+  action pins, and container gate.
 - Modify `README.md` to document the container behavior and maintenance model.
