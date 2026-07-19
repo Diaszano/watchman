@@ -7,8 +7,8 @@ import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { load } from 'js-yaml';
 
 const ACTIONS = {
-  checkout: 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10',
-  setupNode: 'actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38',
+  checkout: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0',
+  setupNode: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
   dockerLogin: 'docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0',
   setupQemu: 'docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8',
   setupBuildx: 'docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c',
