@@ -67,8 +67,17 @@ base_url="http://127.0.0.1:${published_port}"
 curl --fail --silent --show-error "$base_url/player" | grep -q 'id="root"' ||
   fail "SPA fallback did not serve the application shell"
 
-missing_status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$base_url/missing.js")"
-[[ "$missing_status" == 404 ]] || fail "missing static asset returned $missing_status instead of 404"
+missing_asset_failures=()
+for missing_asset in \
+  /missing.js \
+  /missing.abcdefghijklmnopq \
+  /missing.some-extension; do
+  missing_status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$base_url$missing_asset")"
+  if [[ "$missing_status" != 404 ]]; then
+    missing_asset_failures+=("$missing_asset returned $missing_status instead of 404")
+  fi
+done
+[[ ${#missing_asset_failures[@]} -eq 0 ]] || fail "missing static assets: ${missing_asset_failures[*]}"
 
 headers="$(curl --silent --show-error --dump-header - --output /dev/null "$base_url/" |
   tr -d '\r' | tr '[:upper:]' '[:lower:]')"

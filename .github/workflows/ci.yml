@@ -90,7 +90,18 @@ jobs:
       - name: Verify production container
         run: .github/scripts/verify-container.sh watchman:ci
 
-      - name: Scan production image
+      - name: Report all HIGH/CRITICAL vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: watchman:ci
+          format: table
+          exit-code: '0'
+          ignore-unfixed: false
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Gate on fixable HIGH/CRITICAL vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: image

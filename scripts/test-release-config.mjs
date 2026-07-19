@@ -159,13 +159,32 @@ assert.equal(
   '.github/scripts/verify-container.sh watchman:ci',
 );
 
-const trivy = containerStep('Scan production image');
-assert.equal(trivy.uses, ACTIONS.trivy);
-assert.equal(trivy.with['image-ref'], 'watchman:ci');
-assert.equal(trivy.with['exit-code'], '1');
-assert.equal(trivy.with['ignore-unfixed'], true);
-assert.equal(trivy.with.severity, 'CRITICAL,HIGH');
-assert.ok(ciWorkflow.jobs.release.needs.includes('container'));
+const trivyReport = containerStep('Report all HIGH/CRITICAL vulnerabilities');
+assert.ok(trivyReport, 'Container job must report all HIGH/CRITICAL vulnerabilities');
+assert.equal(trivyReport.uses, ACTIONS.trivy);
+assert.deepEqual(trivyReport.with, {
+  'scan-type': 'image',
+  'image-ref': 'watchman:ci',
+  format: 'table',
+  'exit-code': '0',
+  'ignore-unfixed': false,
+  'vuln-type': 'os,library',
+  severity: 'CRITICAL,HIGH',
+});
+
+const trivyGate = containerStep('Gate on fixable HIGH/CRITICAL vulnerabilities');
+assert.ok(trivyGate, 'Container job must gate on fixable HIGH/CRITICAL vulnerabilities');
+assert.equal(trivyGate.uses, ACTIONS.trivy);
+assert.deepEqual(trivyGate.with, {
+  'scan-type': 'image',
+  'image-ref': 'watchman:ci',
+  format: 'table',
+  'exit-code': '1',
+  'ignore-unfixed': true,
+  'vuln-type': 'os,library',
+  severity: 'CRITICAL,HIGH',
+});
+assert.deepEqual(ciWorkflow.jobs.release.needs, ['commitlint', 'quality', 'container']);
 
 const prTitleWorkflow = load(await readFile('.github/workflows/pr-title.yml', 'utf8'));
 const prTitleSteps = prTitleWorkflow.jobs.commitlint.steps;

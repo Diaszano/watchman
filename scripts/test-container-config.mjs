@@ -30,6 +30,10 @@ const developmentDockerfile = await readFile('Dockerfile.dev', 'utf8');
 assert.match(developmentDockerfile, new RegExp(NODE_IMAGE.replaceAll('.', '\\.')));
 assert.match(developmentDockerfile, /^RUN npm ci$/m);
 assert.doesNotMatch(developmentDockerfile, /^RUN npm install$/m);
+assert.match(
+  developmentDockerfile,
+  /^CMD \["npm", "run", "dev", "--", "--host", "0\.0\.0\.0"\]$/m,
+);
 
 const production = composeConfig();
 const web = production.services.web;
@@ -39,7 +43,9 @@ assert.equal(webPort.host_ip, '127.0.0.1');
 assert.equal(webPort.published, '8080');
 assert.equal(web.read_only, true);
 assert.ok(web.security_opt.includes('no-new-privileges:true'));
-assert.ok(web.tmpfs.some((entry) => entry.startsWith('/tmp:')));
+assert.equal(web.tmpfs.length, 1);
+assert.equal(web.tmpfs[0].split(':', 1)[0], '/tmp');
+assert.deepEqual(web.volumes ?? [], []);
 
 const development = composeConfig('--profile', 'dev');
 const dev = development.services.dev;
