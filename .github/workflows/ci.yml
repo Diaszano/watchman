@@ -22,7 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Dependency Review
-        uses: actions/dependency-review-action@5a2ee3f3262075055743bea0b591632737651a44 # v4.5.0
+        uses: actions/dependency-review-action@3b139cfc5fae8b618d3eae3675e383bb1769c019 # v4.5.0
 
   commitlint:
     name: Commit messages
