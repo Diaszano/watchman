@@ -14,8 +14,9 @@ into an Nginx runtime image. The current ignore files only cover dependencies,
 basic build outputs, coverage, local files, and macOS metadata.
 
 The working tree also contains TypeScript incremental output and local agent
-configuration. The `.codex/`, `.claude/`, and `.agents/` directories are local
-tooling rather than shared project configuration and must remain untracked.
+configuration. The `.codex/`, `.claude/`, `.agents/`, and `.superpowers/`
+directories are local tooling rather than shared project configuration and
+must remain untracked.
 
 ## Design
 
@@ -31,7 +32,7 @@ Organize `.gitignore` into documented categories:
   allowed;
 - editor and operating-system metadata: common JetBrains, VS Code, Vim,
   macOS, and Windows artifacts;
-- local agent tooling: `.claude/`, `.codex/`, and `.agents/`.
+- local agent tooling: `.claude/`, `.codex/`, `.agents/`, and `.superpowers/`.
 
 Rules remain scoped to generated or machine-specific files. Source code,
 tests, lockfiles, documentation, Docker files, and shared configuration remain
