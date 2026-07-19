@@ -20,7 +20,7 @@ const config = JSON.parse(await readFile('.releaserc.json', 'utf8'));
 const plugin = (name) =>
   config.plugins.find((entry) => (Array.isArray(entry) ? entry[0] : entry) === name);
 
-assert.deepEqual(config.branches, ['main']);
+assert.deepEqual(config.branches, ['main', { name: 'dev', prerelease: 'dev' }]);
 assert.equal(config.tagFormat, 'v${version}');
 
 const analyzer = plugin('@semantic-release/commit-analyzer');
@@ -91,7 +91,7 @@ assert.equal(
 );
 
 const buildTags = step('Build Docker tags');
-const runBuildTags = async ({ published, version = '' }) => {
+const runBuildTags = async ({ published, version = '', refName = 'main' }) => {
   const outputDirectory = await mkdtemp(join(tmpdir(), 'watchman-docker-tags-'));
   const outputFile = join(outputDirectory, 'output');
   try {
@@ -104,6 +104,7 @@ const runBuildTags = async ({ published, version = '' }) => {
         GHCR_IMAGE: 'ghcr.io/example/watchman',
         RELEASE_PUBLISHED: published,
         VERSION: version,
+        REF_NAME: refName,
       },
     });
     assert.equal(result.status, 0, result.stderr);
@@ -114,11 +115,11 @@ const runBuildTags = async ({ published, version = '' }) => {
 };
 
 assert.equal(
-  await runBuildTags({ published: 'false' }),
+  await runBuildTags({ published: 'false', refName: 'main' }),
   'tags<<EOF\nexample/watchman:latest\nghcr.io/example/watchman:latest\nEOF\n',
 );
 assert.equal(
-  await runBuildTags({ published: 'true', version: '2.3.4' }),
+  await runBuildTags({ published: 'true', version: '2.3.4', refName: 'main' }),
   [
     'tags<<EOF',
     'example/watchman:latest',
@@ -129,6 +130,22 @@ assert.equal(
     'ghcr.io/example/watchman:2.3.4',
     'ghcr.io/example/watchman:2.3',
     'ghcr.io/example/watchman:2',
+    'EOF',
+    '',
+  ].join('\n'),
+);
+assert.equal(
+  await runBuildTags({ published: 'false', refName: 'dev' }),
+  'tags<<EOF\nexample/watchman:dev\nghcr.io/example/watchman:dev\nEOF\n',
+);
+assert.equal(
+  await runBuildTags({ published: 'true', version: '2.3.4-dev.1', refName: 'dev' }),
+  [
+    'tags<<EOF',
+    'example/watchman:dev',
+    'ghcr.io/example/watchman:dev',
+    'example/watchman:2.3.4-dev.1',
+    'ghcr.io/example/watchman:2.3.4-dev.1',
     'EOF',
     '',
   ].join('\n'),

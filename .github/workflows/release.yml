@@ -58,22 +58,32 @@ jobs:
           GHCR_IMAGE: ghcr.io/${{ github.repository }}
           RELEASE_PUBLISHED: ${{ steps.release.outputs.published }}
           VERSION: ${{ steps.release.outputs.version }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           GHCR_IMAGE="${GHCR_IMAGE,,}"
           {
             echo 'tags<<EOF'
-            echo "${DOCKER_IMAGE}:latest"
-            echo "${GHCR_IMAGE}:latest"
-            if [[ "$RELEASE_PUBLISHED" == "true" ]]; then
-              major="${VERSION%%.*}"
-              remainder="${VERSION#*.}"
-              minor="${remainder%%.*}"
-              echo "${DOCKER_IMAGE}:${VERSION}"
-              echo "${DOCKER_IMAGE}:${major}.${minor}"
-              echo "${DOCKER_IMAGE}:${major}"
-              echo "${GHCR_IMAGE}:${VERSION}"
-              echo "${GHCR_IMAGE}:${major}.${minor}"
-              echo "${GHCR_IMAGE}:${major}"
+            if [[ "$REF_NAME" == "main" ]]; then
+              echo "${DOCKER_IMAGE}:latest"
+              echo "${GHCR_IMAGE}:latest"
+              if [[ "$RELEASE_PUBLISHED" == "true" ]]; then
+                major="${VERSION%%.*}"
+                remainder="${VERSION#*.}"
+                minor="${remainder%%.*}"
+                echo "${DOCKER_IMAGE}:${VERSION}"
+                echo "${DOCKER_IMAGE}:${major}.${minor}"
+                echo "${DOCKER_IMAGE}:${major}"
+                echo "${GHCR_IMAGE}:${VERSION}"
+                echo "${GHCR_IMAGE}:${major}.${minor}"
+                echo "${GHCR_IMAGE}:${major}"
+              fi
+            else
+              echo "${DOCKER_IMAGE}:dev"
+              echo "${GHCR_IMAGE}:dev"
+              if [[ "$RELEASE_PUBLISHED" == "true" ]]; then
+                echo "${DOCKER_IMAGE}:${VERSION}"
+                echo "${GHCR_IMAGE}:${VERSION}"
+              fi
             fi
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"

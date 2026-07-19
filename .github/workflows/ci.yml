@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   push:
-    branches: [main]
+    branches: [main, dev]
 
 permissions:
   contents: read
@@ -35,6 +35,14 @@ jobs:
           FROM_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           TO_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: .github/scripts/validate-commits.sh "$FROM_SHA" "$TO_SHA"
+
+      - name: Validate PR target branch policy
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        run: |
+          if [[ "${{ github.head_ref }}" != "dev" && "${{ github.head_ref }}" != "development" ]]; then
+            echo "::error::Only pull requests coming from the 'dev' (or 'development') branch are allowed to be merged into 'main'."
+            exit 1
+          fi
 
   quality:
     name: Lint, test, and build
@@ -114,7 +122,7 @@ jobs:
 
   release:
     name: Release and publish
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
     needs: [commitlint, quality, container]
     permissions:
       contents: write
