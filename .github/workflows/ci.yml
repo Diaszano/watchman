@@ -67,4 +67,6 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/release.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
