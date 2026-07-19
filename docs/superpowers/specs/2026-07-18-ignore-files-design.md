@@ -28,8 +28,7 @@ Organize `.gitignore` into documented categories:
 - build and test output: `dist/`, `dev-dist/`, `coverage/`, and
   `*.tsbuildinfo`;
 - caches and logs: common Vite, ESLint, npm, Yarn, and pnpm artifacts;
-- environment overrides: `.env` and `.env.*`, with `.env.example` explicitly
-  allowed;
+- local environment overrides: `.env`, `.env.local`, and `.env.*.local`;
 - editor and operating-system metadata: common JetBrains, VS Code, Vim,
   macOS, and Windows artifacts;
 - local agent tooling: `.claude/`, `.codex/`, `.agents/`, and `.superpowers/`.
@@ -46,7 +45,7 @@ also removes repository-only data from the build context:
 - Git history and GitHub automation;
 - local agent, editor, and operating-system files;
 - host dependencies, previous builds, coverage, caches, and logs;
-- local environment files;
+- local environment overrides: `.env`, `.env.local`, and `.env.*.local`;
 - repository documentation and development metadata not consumed by either
   Docker stage.
 
@@ -57,7 +56,11 @@ build configuration may type-check them.
 
 ## Safety and Compatibility
 
-- Keep `.env.example` available to Git and Docker if it is added later.
+- Keep `.env.example`, `.env.production`, and `.env.development` available to
+  Git and Docker as potential shared build inputs.
+- Keep ordinary files ending in `.local`, such as `src/settings.local`,
+  available to Git and Docker; only Vite's explicit local environment override
+  names are excluded.
 - Do not ignore lockfiles or shared configuration.
 - Do not use broad source-extension patterns.
 - Do not depend on negating a file inside an ignored parent directory, because
@@ -69,10 +72,11 @@ build configuration may type-check them.
 The change is complete when:
 
 1. `git check-ignore` confirms representative dependencies, build artifacts,
-   logs, environment overrides, editor files, and local agent directories are
-   ignored.
+   logs, `.env`, `.env.local`, `.env.production.local`, editor files, and local
+   agent directories are ignored.
 2. `git check-ignore` confirms representative application, lockfile, Docker,
-   and shared configuration files are not ignored.
+   and shared configuration files are not ignored, including `.env.example`,
+   `.env.production`, `.env.development`, and `src/settings.local`.
 3. Docker's effective context still contains every file referenced by `COPY`
    instructions and every source/configuration input required by
    `npm run build`.
@@ -82,3 +86,5 @@ The change is complete when:
 
 - Modify `.gitignore`.
 - Modify `.dockerignore`.
+- Modify `docs/superpowers/specs/2026-07-18-ignore-files-design.md`.
+- Modify `docs/superpowers/plans/2026-07-18-ignore-files.md`.

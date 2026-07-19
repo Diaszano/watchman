@@ -30,9 +30,8 @@ pnpm-debug.log*
 
 # Environment overrides
 .env
-.env.*
-!.env.example
-*.local
+.env.local
+.env.*.local
 
 # Editors and operating systems
 .idea/

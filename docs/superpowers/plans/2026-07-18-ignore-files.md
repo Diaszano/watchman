@@ -14,7 +14,9 @@
 - Preserve `package-lock.json` and all shared project configuration in Git.
 - Preserve `package.json`, `package-lock.json`, `src/`, `public/`, `index.html`, TypeScript/Vite configuration, and `nginx.conf` in the Docker context.
 - Keep test files under `src/` in the Docker context because TypeScript may type-check them.
-- Keep `.env.example` eligible for Git and Docker if it is added later.
+- Ignore only the Vite local environment overrides `.env`, `.env.local`, and `.env.*.local`.
+- Keep `.env.example`, `.env.production`, and `.env.development` eligible for Git and Docker as potential shared build inputs.
+- Keep ordinary `.local` files, including `src/settings.local`, eligible for Git and Docker.
 - Do not add dependencies or change application behavior.
 
 ---
@@ -30,6 +32,8 @@
 
 - Modify: `.gitignore`
 - Modify: `.dockerignore`
+- Modify: `docs/superpowers/specs/2026-07-18-ignore-files-design.md`
+- Modify: `docs/superpowers/plans/2026-07-18-ignore-files.md`
 
 **Interfaces:**
 
@@ -77,9 +81,8 @@ pnpm-debug.log*
 
 # Environment overrides
 .env
-.env.*
-!.env.example
-*.local
+.env.local
+.env.*.local
 
 # Editors
 .idea/
@@ -110,24 +113,33 @@ git check-ignore -v -- \
   coverage/index.html \
   tsconfig.tsbuildinfo \
   debug.log \
+  .env \
   .env.local \
+  .env.production.local \
   .idea/workspace.xml \
   .codex/config.toml \
   .claude/settings.json \
   .agents/local.toml
 
-if git check-ignore -q -- package.json package-lock.json src/App.tsx Dockerfile nginx.conf; then
-  echo "A required project file is incorrectly ignored" >&2
-  exit 1
-fi
-
-if git check-ignore -q --no-index -- .env.example; then
-  echo ".env.example is incorrectly ignored" >&2
-  exit 1
-fi
+for preserved_path in \
+  package.json \
+  package-lock.json \
+  src/App.tsx \
+  Dockerfile \
+  nginx.conf \
+  .env.example \
+  .env.production \
+  .env.development \
+  src/settings.local
+do
+  if git check-ignore -q --no-index -- "$preserved_path"; then
+    echo "A required or shared project file is incorrectly ignored: $preserved_path" >&2
+    exit 1
+  fi
+done
 ```
 
-Expected: the first command prints a matching rule for every local/generated path; both guard checks exit zero without printing an error.
+Expected: the first command prints a matching rule for every local/generated path, including `.env`, `.env.local`, and `.env.production.local`. The per-path guard exits zero without printing an error, proving that `.env.example`, `.env.production`, `.env.development`, `src/settings.local`, and the other required project files remain eligible.
 
 - [ ] **Step 4: Replace `.dockerignore` with the narrowed build context**
 
@@ -166,9 +178,8 @@ pnpm-debug.log*
 
 # Environment overrides
 .env
-.env.*
-!.env.example
-*.local
+.env.local
+.env.*.local
 
 # Editors and operating systems
 .idea/
@@ -212,11 +223,23 @@ Expected: Vite completes the production build, BuildKit reports no Dockerfile va
 Run:
 
 ```bash
-git diff --check -- .gitignore .dockerignore
-git diff -- .gitignore .dockerignore
+git diff --check -- \
+  .gitignore \
+  .dockerignore \
+  docs/superpowers/specs/2026-07-18-ignore-files-design.md \
+  docs/superpowers/plans/2026-07-18-ignore-files.md
+git diff -- \
+  .gitignore \
+  .dockerignore \
+  docs/superpowers/specs/2026-07-18-ignore-files-design.md \
+  docs/superpowers/plans/2026-07-18-ignore-files.md
 git status --short
-git add .gitignore .dockerignore
-git commit -m "chore: improve git and docker ignores"
+git add \
+  .gitignore \
+  .dockerignore \
+  docs/superpowers/specs/2026-07-18-ignore-files-design.md \
+  docs/superpowers/plans/2026-07-18-ignore-files.md
+git commit -m "fix: preserve shared environment files"
 ```
 
-Expected: no whitespace errors are reported; the diff contains only the approved ignore categories; unrelated untracked application files remain unstaged; the commit contains exactly `.gitignore` and `.dockerignore`.
+Expected: no whitespace errors are reported; the diff contains only the approved environment-boundary correction and synchronized documentation; unrelated untracked application files remain unstaged; the commit contains exactly `.gitignore`, `.dockerignore`, the design document, and the implementation plan.
