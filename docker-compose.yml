@@ -1,0 +1,21 @@
+# Default: `docker compose up --build` -> production build on http://localhost:8080
+# Dev with HMR:  `docker compose --profile dev up --build` -> http://localhost:5173
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'
+    restart: unless-stopped
+
+  dev:
+    profiles: ['dev']
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app
+      - /app/node_modules
