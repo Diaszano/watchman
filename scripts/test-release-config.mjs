@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { load } from 'js-yaml';
 
 const config = JSON.parse(await readFile('.releaserc.json', 'utf8'));
@@ -21,6 +22,22 @@ assert.equal(rules.get('perf'), 'patch');
 assert.equal(rules.get('revert'), 'patch');
 for (const type of ['build', 'chore', 'ci', 'docs', 'refactor', 'style', 'test']) {
   assert.equal(rules.get(type), false);
+}
+
+const analyze = (message) =>
+  analyzeCommits(analyzer[1], {
+    commits: [{ hash: 'release-policy-test', message }],
+    cwd: process.cwd(),
+    logger: { log() {} },
+  });
+
+for (const message of [
+  'feat!: break the public API',
+  'chore!: break the maintenance API',
+  'feat: break the public API\n\nBREAKING CHANGE: callers must migrate',
+  'docs: document a breaking API\n\nBREAKING CHANGE: callers must migrate',
+]) {
+  assert.equal(await analyze(message), 'major', `Expected a major release for: ${message}`);
 }
 
 const npmPlugin = plugin('@semantic-release/npm');
