@@ -31,8 +31,11 @@ case "$configured_user" in
   ""|root|0|0:*) fail "image user must be explicitly non-root, got '${configured_user:-<empty>}'" ;;
 esac
 
-exposes_8080="$(docker image inspect --format '{{if index .Config.ExposedPorts "8080/tcp"}}yes{{end}}' "$image")"
-[[ "$exposes_8080" == yes ]] || fail "image does not expose 8080/tcp"
+exposes_8080="$(docker image inspect --format '{{json .Config.ExposedPorts}}' "$image")"
+case "$exposes_8080" in
+  *8080*) ;;
+  *) fail "image does not expose 8080/tcp" ;;
+esac
 
 container_id="$(docker run --detach \
   --read-only \
