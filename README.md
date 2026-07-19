@@ -1,5 +1,16 @@
 # Watchman
 
+<p align="center">
+  <a href="https://hub.docker.com/r/diaszano/watchman">
+    <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/diaszano/watchman?style=flat-square&logo=docker">
+    <img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/diaszano/watchman?style=flat-square&logo=docker">
+    <img alt="Docker Image Version" src="https://img.shields.io/docker/v/diaszano/watchman?style=flat-square&logo=docker">
+  </a>
+  <a href="https://github.com/diaszano/watchman/pkgs/container/watchman">
+    <img alt="GHCR" src="https://img.shields.io/badge/GHCR-available-blue?style=flat-square&logo=github">
+  </a>
+</p>
+
 An interactive, browser-based screensaver that keeps your display visually active to help reduce the risk of **OLED burn-in** — while looking good doing it. Fully written in TypeScript.
 
 Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, PWA/offline support, and one-command Docker deployment.
