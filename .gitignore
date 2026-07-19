@@ -43,3 +43,5 @@ Thumbs.db
 .agents/
 .superpowers/
 .worktrees/
+.serena/
+.goopspec/
