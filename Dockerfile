@@ -14,6 +14,12 @@ FROM ${NGINX_IMAGE} AS runtime
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=build /app/dist/ /usr/share/nginx/html/
 
+LABEL org.opencontainers.image.title="Watchman"
+LABEL org.opencontainers.image.description="Interactive browser screensaver to reduce OLED burn-in risk"
+LABEL org.opencontainers.image.url="https://github.com/diaszano/watchman"
+LABEL org.opencontainers.image.source="https://github.com/diaszano/watchman"
+LABEL org.opencontainers.image.licenses="MIT"
+
 USER nginx
 EXPOSE 8080
 STOPSIGNAL SIGQUIT
