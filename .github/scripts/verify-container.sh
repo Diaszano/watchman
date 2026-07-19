@@ -52,8 +52,8 @@ for _ in {1..30}; do
 done
 [[ "$health" == healthy ]] || fail "container did not become healthy within 30 seconds"
 
-docker top "$container_id" -eo user,comm | awk '
-  NR > 1 { count += 1; if ($1 == "root" || $1 == "0") bad = 1 }
+docker top "$container_id" -eo pid,user,comm | awk '
+  NR > 1 { count += 1; if ($2 == "root" || $2 == "0") bad = 1 }
   END { exit(count == 0 || bad) }
 ' || fail "a live container process is missing or running as root"
 
