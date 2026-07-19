@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -13,7 +14,6 @@ updates:
       - "npm"
     commit-message:
       prefix: "fix(deps)"
-      include: "scope"
     groups:
       npm-minor-patch:
         patterns:
@@ -24,6 +24,7 @@ updates:
 
   - package-ecosystem: "docker"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -35,7 +36,6 @@ updates:
       - "docker"
     commit-message:
       prefix: "fix(docker)"
-      include: "scope"
     groups:
       docker-minor-patch:
         patterns:
@@ -46,6 +46,7 @@ updates:
 
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -57,7 +58,6 @@ updates:
       - "github-actions"
     commit-message:
       prefix: "chore(ci)"
-      include: "scope"
     groups:
       github-actions-minor-patch:
         patterns:
