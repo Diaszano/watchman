@@ -87,6 +87,9 @@ jobs:
       - name: Build production image
         run: docker build --pull --tag watchman:ci .
 
+      - name: Debug image config
+        run: docker image inspect watchman:ci --format '{{json .Config.ExposedPorts}}'
+
       - name: Verify production container
         run: .github/scripts/verify-container.sh watchman:ci
 
