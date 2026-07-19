@@ -1,0 +1,103 @@
+name: Release and Docker
+
+on:
+  workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.repository }}-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Semantic release and Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Read current release tag
+        id: previous-release
+        shell: bash
+        run: echo "tag=$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Create semantic release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm exec semantic-release
+
+      - name: Resolve published version
+        id: release
+        shell: bash
+        env:
+          PREVIOUS_TAG: ${{ steps.previous-release.outputs.tag }}
+        run: |
+          current_tag="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n 1)"
+          if [[ -n "$current_tag" && "$current_tag" != "$PREVIOUS_TAG" ]]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "version=${current_tag#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Docker tags
+        id: docker-tags
+        shell: bash
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/watchman
+          RELEASE_PUBLISHED: ${{ steps.release.outputs.published }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          {
+            echo 'tags<<EOF'
+            echo "${IMAGE}:latest"
+            if [[ "$RELEASE_PUBLISHED" == "true" ]]; then
+              major="${VERSION%%.*}"
+              remainder="${VERSION#*.}"
+              minor="${remainder%%.*}"
+              echo "${IMAGE}:${VERSION}"
+              echo "${IMAGE}:${major}.${minor}"
+              echo "${IMAGE}:${major}"
+            fi
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.docker-tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

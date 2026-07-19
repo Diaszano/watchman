@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "husky",
-    "test:commits": "bash scripts/test-commitlint.sh"
+    "test:commits": "bash scripts/test-commitlint.sh",
+    "test:release": "node scripts/test-release-config.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
