@@ -7,9 +7,12 @@ on:
         required: true
       DOCKERHUB_TOKEN:
         required: true
+      GITHUB_TOKEN:
+        required: false
 
 permissions:
   contents: write
+  packages: write
 
 concurrency:
   group: release-${{ github.repository }}-main
@@ -53,20 +56,25 @@ jobs:
         id: docker-tags
         shell: bash
         env:
-          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/watchman
+          DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/watchman
+          GHCR_IMAGE: ghcr.io/${{ github.repository }}
           RELEASE_PUBLISHED: ${{ steps.release.outputs.published }}
           VERSION: ${{ steps.release.outputs.version }}
         run: |
           {
             echo 'tags<<EOF'
-            echo "${IMAGE}:latest"
+            echo "${DOCKER_IMAGE}:latest"
+            echo "${GHCR_IMAGE}:latest"
             if [[ "$RELEASE_PUBLISHED" == "true" ]]; then
               major="${VERSION%%.*}"
               remainder="${VERSION#*.}"
               minor="${remainder%%.*}"
-              echo "${IMAGE}:${VERSION}"
-              echo "${IMAGE}:${major}.${minor}"
-              echo "${IMAGE}:${major}"
+              echo "${DOCKER_IMAGE}:${VERSION}"
+              echo "${DOCKER_IMAGE}:${major}.${minor}"
+              echo "${DOCKER_IMAGE}:${major}"
+              echo "${GHCR_IMAGE}:${VERSION}"
+              echo "${GHCR_IMAGE}:${major}.${minor}"
+              echo "${GHCR_IMAGE}:${major}"
             fi
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
@@ -76,6 +84,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
@@ -92,3 +107,24 @@ jobs:
           tags: ${{ steps.docker-tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Sync Docker Hub README
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: node scripts/sync-docker-hub-readme.mjs
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@3efbd0e09c12cacd52c0739b61a9bd67fd8d4a5e # v0.18.0
+        with:
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/watchman:${{ steps.release.outputs.version || 'latest' }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM to release
+        if: steps.release.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v${{ steps.release.outputs.version }}"
+          gh release upload "$VERSION" sbom.spdx.json --clobber
