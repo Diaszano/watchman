@@ -156,12 +156,17 @@ const ciWorkflow = load(await readFile('.github/workflows/ci.yml', 'utf8'));
 assert.equal(ciWorkflow.jobs.commitlint.steps[0].uses, ACTIONS.checkout);
 assert.equal(ciWorkflow.jobs.commitlint.steps[1].uses, ACTIONS.setupNode);
 assert.equal(ciWorkflow.jobs.commitlint.steps[1].with['node-version'], 24);
-assert.equal(ciWorkflow.jobs.quality.steps[0].uses, ACTIONS.checkout);
-assert.equal(ciWorkflow.jobs.quality.steps[1].uses, ACTIONS.setupNode);
-assert.equal(ciWorkflow.jobs.quality.steps[1].with['node-version'], 24);
+
+for (const jobName of ['lint', 'test', 'test-release', 'build']) {
+  const job = ciWorkflow.jobs[jobName];
+  assert.ok(job, `Job ${jobName} should exist in ci.yml`);
+  assert.equal(job.steps[0].uses, ACTIONS.checkout);
+  assert.equal(job.steps[1].uses, ACTIONS.setupNode);
+  assert.equal(job.steps[1].with['node-version'], 24);
+}
 
 const containerJob = ciWorkflow.jobs.container;
-assert.equal(containerJob.needs, 'quality');
+assert.deepEqual(containerJob.needs, ['lint', 'test', 'test-release', 'build']);
 assert.equal(containerJob.permissions.contents, 'read');
 const containerStep = (name) => containerJob.steps.find((entry) => entry.name === name);
 assert.equal(containerStep('Checkout repository').uses, ACTIONS.checkout);
@@ -202,7 +207,14 @@ assert.deepEqual(trivyGate.with, {
   'vuln-type': 'os,library',
   severity: 'CRITICAL,HIGH',
 });
-assert.deepEqual(ciWorkflow.jobs.release.needs, ['commitlint', 'quality', 'container']);
+assert.deepEqual(ciWorkflow.jobs.release.needs, [
+  'commitlint',
+  'lint',
+  'test',
+  'test-release',
+  'build',
+  'container',
+]);
 
 const prTitleWorkflow = load(await readFile('.github/workflows/pr-title.yml', 'utf8'));
 const prTitleSteps = prTitleWorkflow.jobs.commitlint.steps;
