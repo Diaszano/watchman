@@ -173,6 +173,22 @@ jobs:
           vuln-type: os,library
           severity: CRITICAL,HIGH
 
+  lint-test-build:
+    name: Lint, test, and build
+    if: always()
+    needs: [lint, test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate required status check
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.build.result }}" != "success" ]; then
+            echo "One or more of lint, test, or build failed." >&2
+            exit 1
+          fi
+          echo "Lint, test, and build all passed."
+
   release:
     name: Release and publish
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
