@@ -58,4 +58,15 @@ describe('settings persistence', () => {
     expect(persisted.state).not.toHaveProperty('customImage');
     expect(payload).not.toContain('data:image');
   });
+
+  it('does not recreate settings after clearStorage cancels a pending write', () => {
+    useSettings.persist.clearStorage();
+    useSettings.getState().set('speed', 2);
+
+    useSettings.persist.clearStorage();
+    expect(localStorage.getItem('watchman-settings')).toBeNull();
+
+    vi.advanceTimersByTime(275);
+    expect(localStorage.getItem('watchman-settings')).toBeNull();
+  });
 });

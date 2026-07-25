@@ -62,7 +62,12 @@ const debouncedStorage: PersistStorage<PersistedSettings> = {
       writeTimers.delete(name);
     }, 250));
   },
-  removeItem: (name) => jsonStorage.removeItem(name),
+  removeItem: (name) => {
+    const pendingTimer = writeTimers.get(name);
+    if (pendingTimer) clearTimeout(pendingTimer);
+    writeTimers.delete(name);
+    return jsonStorage.removeItem(name);
+  },
 };
 
 const partialize = (state: SettingsState): PersistedSettings => ({
