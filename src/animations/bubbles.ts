@@ -11,10 +11,16 @@ interface B {
   alpha: number;
 }
 
+const densityCount = (raw: number, minimum: number, renderDensity: number) =>
+  Math.max(minimum, Math.round(raw * renderDensity));
+
 export const createBubbles = (): Animation => {
   const bs: B[] = [];
   let w = 0;
   let h = 0;
+  let cachedColor = '';
+  let cachedOpacity = -1;
+  let styles = new Map<number, { fill: string; stroke: string }>();
 
   const spawn = (base: number): B => ({
     x: rand(0, w),
@@ -26,12 +32,25 @@ export const createBubbles = (): Animation => {
   });
 
   return {
-    draw({ ctx, width, height, dt, time, settings }: AnimationFrame) {
+    draw({ ctx, width, height, dt, time, settings, renderDensity }: AnimationFrame) {
       w = width;
       h = height;
-      const count = Math.max(10, Math.round(settings.count / 4));
+      const count = densityCount(settings.count / 4, 10, renderDensity);
       while (bs.length < count) bs.push(spawn(settings.size));
       if (bs.length > count) bs.length = count;
+
+      if (settings.color !== cachedColor || settings.opacity !== cachedOpacity) {
+        cachedColor = settings.color;
+        cachedOpacity = settings.opacity;
+        styles = new Map();
+        for (let bucket = 0; bucket <= 100; bucket++) {
+          const alpha = bucket / 100;
+          styles.set(bucket, {
+            fill: rgba(cachedColor, alpha * cachedOpacity),
+            stroke: rgba(cachedColor, alpha * 0.9 * cachedOpacity),
+          });
+        }
+      }
 
       const speed = settings.speed;
       for (const b of bs) {
@@ -41,12 +60,13 @@ export const createBubbles = (): Animation => {
           b.y = h + b.r;
           b.x = rand(0, w);
         }
+        const style = styles.get(Math.round(b.alpha * 100))!;
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-        ctx.fillStyle = rgba(settings.color, b.alpha * settings.opacity);
+        ctx.fillStyle = style.fill;
         ctx.fill();
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = rgba(settings.color, b.alpha * 0.9 * settings.opacity);
+        ctx.strokeStyle = style.stroke;
         ctx.stroke();
       }
     },
