@@ -20,7 +20,7 @@ Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, P
 ## Features
 
 - **10 animation modes** — DVD Logo, Digital Clock, Particle System, Floating Bubbles, Starfield (parallax), Matrix Rain, Neon Lines, Geometric Shapes, Custom Logo (image upload), Custom Text.
-- **Anti burn-in engine** — global drift, brightness pulsing, and per-mode motion so nothing sits static.
+- **Anti burn-in engine** — global drift and per-mode motion so nothing sits static.
 - **Live configuration** — speed, object count, size, colors, background (solid / gradient / image), opacity, brightness, FPS cap. Every control updates in real time.
 - **Automatic playlist** — pick favorites, set a switch interval, sequential or random.
 - **Screen Wake Lock API** — keeps the display awake while protection runs; auto-reacquires; degrades gracefully with a notice when unsupported.
@@ -29,6 +29,10 @@ Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, P
 - **Light / dark themes** and **English / Português** i18n.
 - **PWA** — installable, offline-capable via service worker.
 - **High-DPI / 4K / ultrawide** aware (DPR-scaled canvas, capped for performance).
+
+## Rendering quality
+
+Watchman starts in **Auto** quality. It begins with a 12 MP canvas budget and reduces resolution and animation density only after sustained frame pressure. Use Economy for battery-sensitive or older devices; choose High for displays with sufficient GPU headroom. Uploaded background and logo images stay in this browser through IndexedDB and are limited to 5 MiB.
 
 ## Screenshots
 
@@ -144,9 +148,9 @@ When protecting `main`, require the `Commit messages`, `Lint, test, and build`, 
 
 ## Architecture
 
-The render pipeline is intentionally **canvas-first and React-light**: React owns the shell (routing, settings UI, overlays); a single `requestAnimationFrame` loop owns all pixels.
+The render pipeline is intentionally **canvas-first and React-light**: React owns the shell (routing, settings UI, overlays, and background); a single `requestAnimationFrame` loop drives animation pixels.
 
-- `useAnimationLoop` reads settings via `zustand`'s `getState()` **each frame**, so tuning is instant without React re-renders. It handles DPR sizing, the FPS cap, tab-visibility pause, background rendering, and the anti burn-in drift — in one place, so every animation benefits.
+- `useAnimationLoop` reads settings via `zustand`'s `getState()` **each frame**, so tuning is instant without React re-renders. It handles DPR sizing, the FPS cap, tab-visibility pause, and the anti burn-in drift — in one place, so every animation benefits.
 - Each **animation is an independent module** exposing a factory `() => { draw(frame) }`. State lives in the closure and resets on switch. Adding one is a new file plus a single line in `animations/index.ts` (open/closed).
 - **Settings** are one strongly-typed store persisted to LocalStorage via `zustand/middleware`.
 

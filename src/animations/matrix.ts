@@ -11,14 +11,19 @@ export const createMatrix = (): Animation => {
   let heads: number[] = [];
   let cols = 0;
   let font = 0;
+  let spacing = 0;
+  let styleColor = '';
+  let tailStyles: string[] = [];
 
   return {
-    draw({ ctx, width, height, dt, settings }: AnimationFrame) {
+    draw({ ctx, width, height, dt, settings, renderDensity }: AnimationFrame) {
       const f = Math.max(10, settings.size / 2);
-      const newCols = Math.ceil(width / f);
-      if (newCols !== cols || f !== font) {
+      const columnSpacing = f / renderDensity;
+      const newCols = Math.max(1, Math.ceil(width / columnSpacing));
+      if (newCols !== cols || f !== font || columnSpacing !== spacing) {
         cols = newCols;
         font = f;
+        spacing = columnSpacing;
         heads = Array.from({ length: cols }, () => rand(-40, 0));
       }
 
@@ -26,7 +31,13 @@ export const createMatrix = (): Animation => {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       const step = 12 * settings.speed;
-      const tail = 18;
+      const tail = Math.max(4, Math.round(18 * renderDensity));
+      if (settings.color !== styleColor || tailStyles.length !== tail) {
+        styleColor = settings.color;
+        tailStyles = Array.from({ length: tail }, (_, j) =>
+          j === 0 ? '#e6ffe6' : rgba(styleColor, (1 - j / tail) * 0.8),
+        );
+      }
 
       for (let i = 0; i < cols; i++) {
         const head = heads[i]!;
@@ -35,9 +46,8 @@ export const createMatrix = (): Animation => {
           if (row < 0) continue;
           const y = row * font;
           if (y > height) continue;
-          const alpha = j === 0 ? 1 : (1 - j / tail) * 0.8;
-          ctx.fillStyle = j === 0 ? '#e6ffe6' : rgba(settings.color, alpha);
-          ctx.fillText(glyph(), i * font, y);
+          ctx.fillStyle = tailStyles[j]!;
+          ctx.fillText(glyph(), i * columnSpacing, y);
         }
         heads[i]! += step * dt;
         if ((Math.floor(head) - tail) * font > height && Math.random() > 0.96) {
