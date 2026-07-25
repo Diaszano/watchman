@@ -69,4 +69,16 @@ describe('settings persistence', () => {
     vi.advanceTimersByTime(275);
     expect(localStorage.getItem('watchman-settings')).toBeNull();
   });
+
+  it('creates a fresh default playlist on reset', () => {
+    useSettings.getState().reset();
+    const firstResetPlaylist = useSettings.getState().playlist;
+
+    firstResetPlaylist.push('dvd');
+    useSettings.getState().reset();
+
+    expect(useSettings.getState().playlist).toEqual([]);
+    expect(useSettings.getState().playlist).not.toBe(firstResetPlaylist);
+    expect(defaultSettings.playlist).toEqual([]);
+  });
 });

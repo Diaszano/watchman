@@ -17,7 +17,7 @@ const toError = (error: unknown): Error =>
 const openDatabase = (): Promise<IDBDatabase> => {
   if (databasePromise) return databasePromise;
 
-  databasePromise = new Promise((resolve, reject) => {
+  const openingPromise = new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(STORE_NAME)) {
@@ -26,6 +26,10 @@ const openDatabase = (): Promise<IDBDatabase> => {
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(toError(request.error));
+  });
+  databasePromise = openingPromise.catch((error: unknown) => {
+    databasePromise = null;
+    throw error;
   });
 
   return databasePromise;

@@ -54,4 +54,24 @@ describe('imageStorage', () => {
       imageStorage.save(imageFile('pixel', 'pixel.png')),
     ).rejects.toBeInstanceOf(Error);
   });
+
+  it('retries opening IndexedDB after an opening failure', async () => {
+    vi.resetModules();
+    const originalOpen = indexedDB.open.bind(indexedDB);
+    const open = vi.spyOn(indexedDB, 'open');
+    open.mockImplementationOnce(() => {
+      const request = {} as IDBOpenDBRequest;
+      queueMicrotask(() => {
+        Object.defineProperty(request, 'error', { value: new Error('Open failed') });
+        request.onerror?.(new Event('error'));
+      });
+      return request;
+    });
+    open.mockImplementation((...args) => originalOpen(...args));
+    const { imageStorage: isolatedStorage } = await import('./imageStorage');
+
+    await expect(isolatedStorage.get('first-attempt')).rejects.toThrow('Open failed');
+    await expect(isolatedStorage.get('second-attempt')).resolves.toBeNull();
+    expect(open).toHaveBeenCalledTimes(2);
+  });
 });

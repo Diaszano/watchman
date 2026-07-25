@@ -32,12 +32,29 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
 
   const clearImage = async (key: 'backgroundImageId' | 'customImageId') => {
     const previousId = s[key];
+    setUploadError(null);
     s.set(key, null);
     if (!previousId) return;
     try {
       await imageStorage.remove(previousId);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : t('settings.imageSaveFailed'));
+    }
+  };
+
+  const resetSettings = async () => {
+    const imageIds = [s.backgroundImageId, s.customImageId].filter(
+      (id): id is string => id !== null,
+    );
+    setUploadError(null);
+    s.reset();
+
+    const results = await Promise.allSettled(imageIds.map((id) => imageStorage.remove(id)));
+    const failure = results.find((result) => result.status === 'rejected');
+    if (failure?.status === 'rejected') {
+      setUploadError(
+        failure.reason instanceof Error ? failure.reason.message : t('settings.imageSaveFailed'),
+      );
     }
   };
 
@@ -224,7 +241,7 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
         </div>
       </div>
 
-      <Button className="mt-4" onClick={s.reset}>
+      <Button className="mt-4" onClick={() => void resetSettings()}>
         {t('settings.reset')}
       </Button>
     </aside>

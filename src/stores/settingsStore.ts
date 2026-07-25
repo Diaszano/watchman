@@ -102,7 +102,7 @@ export const useSettings = create<SettingsState>()(
       ...defaultSettings,
       set: (key, value) => set({ [key]: value } as Partial<Settings>),
       patch: (partial) => set(partial),
-      reset: () => set({ ...defaultSettings }),
+      reset: () => set({ ...defaultSettings, playlist: [...defaultSettings.playlist] }),
     }),
     {
       name: 'watchman-settings',

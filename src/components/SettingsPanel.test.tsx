@@ -55,6 +55,61 @@ describe('SettingsPanel', () => {
     expect(remove).not.toHaveBeenCalled();
   });
 
+  it('removes both stored images when resetting settings', async () => {
+    useSettings.setState({
+      ...defaultSettings,
+      backgroundImageId: 'background-image',
+      customImageId: 'custom-image',
+      speed: 2,
+    });
+    const remove = vi.spyOn(imageStorage, 'remove').mockResolvedValue();
+
+    render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+
+    await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
+    expect(remove).toHaveBeenCalledWith('background-image');
+    expect(remove).toHaveBeenCalledWith('custom-image');
+    expect(useSettings.getState()).toMatchObject(defaultSettings);
+  });
+
+  it('keeps reset settings and reports cleanup failure after attempting both images', async () => {
+    useSettings.setState({
+      ...defaultSettings,
+      backgroundImageId: 'background-image',
+      customImageId: 'custom-image',
+      speed: 2,
+    });
+    const remove = vi.spyOn(imageStorage, 'remove')
+      .mockRejectedValueOnce(new Error('Cleanup unavailable'))
+      .mockResolvedValueOnce();
+
+    render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
+    expect(remove).toHaveBeenCalledTimes(2);
+    expect(useSettings.getState()).toMatchObject(defaultSettings);
+  });
+
+  it('clears an earlier image error after a successful removal', async () => {
+    useSettings.setState({
+      ...defaultSettings,
+      backgroundImageId: 'background-image',
+      customImageId: 'custom-image',
+    });
+    vi.spyOn(imageStorage, 'remove')
+      .mockRejectedValueOnce(new Error('Cleanup unavailable'))
+      .mockResolvedValueOnce();
+
+    render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Custom logo' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Background' }));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+  });
+
   it('switches rendering quality to High', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
 
