@@ -1,8 +1,4 @@
-import type {
-  RenderQualityDecision,
-  RenderQualityLevel,
-  RenderQualityState,
-} from '@/types';
+import type { RenderQualityDecision, RenderQualityLevel, RenderQualityState } from '@/types';
 
 export const QUALITY_PROFILES = {
   economy: { maxPixels: 6_000_000, density: 0.5 },

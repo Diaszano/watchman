@@ -41,7 +41,11 @@ export function migrateSettings(persistedState: unknown, version: number): Parti
   };
 
   if (version < 2) {
-    const { backgroundImage: _backgroundImage, customImage: _customImage, ...scalarSettings } = legacy;
+    const {
+      backgroundImage: _backgroundImage,
+      customImage: _customImage,
+      ...scalarSettings
+    } = legacy;
     void _backgroundImage;
     void _customImage;
     return { ...defaultSettings, ...scalarSettings, backgroundImageId: null, customImageId: null };
@@ -59,10 +63,13 @@ const debouncedStorage: PersistStorage<PersistedSettings> = {
     const previousTimer = writeTimers.get(name);
     if (previousTimer) clearTimeout(previousTimer);
 
-    writeTimers.set(name, setTimeout(() => {
-      jsonStorage.setItem(name, value);
-      writeTimers.delete(name);
-    }, 250));
+    writeTimers.set(
+      name,
+      setTimeout(() => {
+        jsonStorage.setItem(name, value);
+        writeTimers.delete(name);
+      }, 250),
+    );
   },
   removeItem: (name) => {
     const pendingTimer = writeTimers.get(name);
@@ -109,7 +116,8 @@ export const useSettings = create<SettingsState>()(
       storage: debouncedStorage,
       partialize,
       version: 2,
-      migrate: (persistedState, version) => migrateSettings(persistedState, version) as PersistedSettings,
+      migrate: (persistedState, version) =>
+        migrateSettings(persistedState, version) as PersistedSettings,
     },
   ),
 );

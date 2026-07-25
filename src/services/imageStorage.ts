@@ -51,10 +51,8 @@ const runTransaction = async <T>(
     };
     request.onerror = () => reject(toError(request.error));
     transaction.oncomplete = () => resolve(result);
-    transaction.onerror = () =>
-      reject(transaction.error ?? new Error('Image storage failed'));
-    transaction.onabort = () =>
-      reject(transaction.error ?? new Error('Image storage failed'));
+    transaction.onerror = () => reject(transaction.error ?? new Error('Image storage failed'));
+    transaction.onabort = () => reject(transaction.error ?? new Error('Image storage failed'));
   });
 };
 

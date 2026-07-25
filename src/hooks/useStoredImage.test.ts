@@ -45,10 +45,9 @@ describe('useStoredImage', () => {
       });
     });
     vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:first'), revokeObjectURL: vi.fn() });
-    const { result, rerender } = renderHook(
-      ({ id }: { id: string | null }) => useStoredImage(id),
-      { initialProps: { id: 'first' } },
-    );
+    const { result, rerender } = renderHook(({ id }: { id: string | null }) => useStoredImage(id), {
+      initialProps: { id: 'first' },
+    });
 
     await waitFor(() => expect(result.current.url).toBe('blob:first'));
 

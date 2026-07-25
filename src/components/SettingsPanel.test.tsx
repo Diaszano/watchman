@@ -80,7 +80,8 @@ describe('SettingsPanel', () => {
       customImageId: 'custom-image',
       speed: 2,
     });
-    const remove = vi.spyOn(imageStorage, 'remove')
+    const remove = vi
+      .spyOn(imageStorage, 'remove')
       .mockRejectedValueOnce(new Error('Cleanup unavailable'))
       .mockResolvedValueOnce();
 

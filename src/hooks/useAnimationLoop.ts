@@ -21,12 +21,7 @@ interface Options {
  * so tuning is live without triggering React re-renders. Handles DPR/4K sizing,
  * FPS cap, tab-visibility pause, anti-burn-in drift, and playlist auto-switch.
  */
-export const useAnimationLoop = ({
-  canvasRef,
-  paused,
-  onFps,
-  customImageUrl,
-}: Options): void => {
+export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: Options): void => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
