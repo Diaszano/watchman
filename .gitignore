@@ -4,7 +4,12 @@ node_modules/
 # Build and test output
 dist/
 dev-dist/
+out/
 coverage/
+.nyc_output/
+test-results/
+playwright-report/
+junit.xml
 *.tsbuildinfo
 
 # Tool caches and temporary files
@@ -21,10 +26,13 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment overrides
+# Environment files and local secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
 
 # Editors
 .idea/
@@ -41,8 +49,28 @@ Thumbs.db
 .claude/
 .codex/
 .agents/
+.agentmemory/
+.cursor/
+.continue/
+.gemini/
+.headroom/
+.mcp/
+.mcp.json
+mcp.json
 .superpowers/
 .worktrees/
 .serena/
 .goopspec/
 .opencode/
+.windsurf/
+
+# Additional editor state
+*.iml
+.history/
+
+# Additional operating-system metadata and temporary directories
+.AppleDouble
+.LSOverride
+Desktop.ini
+tmp/
+temp/

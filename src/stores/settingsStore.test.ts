@@ -14,13 +14,16 @@ describe('settings persistence', () => {
   });
 
   it('removes legacy Data URLs while preserving scalar settings', () => {
-    const migrated = migrateSettings({
-      ...defaultSettings,
-      animationId: 'matrix',
-      speed: 2,
-      backgroundImage: 'data:image/png;base64,abc',
-      customImage: 'data:image/jpeg;base64,def',
-    }, 1);
+    const migrated = migrateSettings(
+      {
+        ...defaultSettings,
+        animationId: 'matrix',
+        speed: 2,
+        backgroundImage: 'data:image/png;base64,abc',
+        customImage: 'data:image/jpeg;base64,def',
+      },
+      1,
+    );
 
     expect(migrated).toMatchObject({
       animationId: 'matrix',

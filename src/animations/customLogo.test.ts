@@ -43,10 +43,6 @@ describe('custom logo animation', () => {
 
     createCustomLogo().draw(currentFrame);
 
-    expect(currentFrame.ctx.fillText).toHaveBeenCalledWith(
-      'Upload a logo in Settings',
-      400,
-      300,
-    );
+    expect(currentFrame.ctx.fillText).toHaveBeenCalledWith('Upload a logo in Settings', 400, 300);
   });
 });

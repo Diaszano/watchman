@@ -7,13 +7,28 @@
 .claude/
 .codex/
 .agents/
+.agentmemory/
+.cursor/
+.continue/
+.gemini/
+.headroom/
+.mcp/
+.mcp.json
+mcp.json
 .superpowers/
+.worktrees/
+.windsurf/
 
 # Dependencies and generated output
 node_modules/
 dist/
 dev-dist/
+out/
 coverage/
+.nyc_output/
+test-results/
+playwright-report/
+junit.xml
 *.tsbuildinfo
 
 # Tool caches, temporary files, and logs
@@ -28,19 +43,29 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment overrides
+# Environment files and local secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
 
 # Editors and operating systems
 .idea/
 .vscode/
+*.iml
+.history/
 *.swp
 *.swo
 *~
 .DS_Store
+.AppleDouble
+.LSOverride
 Thumbs.db
+Desktop.ini
+tmp/
+temp/
 
 # Repository-only documentation and tooling
 docs/
@@ -56,4 +81,3 @@ docker-compose*.yml
 docker-compose*.yaml
 compose*.yml
 compose*.yaml
-

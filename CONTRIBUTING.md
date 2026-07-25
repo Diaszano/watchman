@@ -75,19 +75,19 @@ perf: reduce particle system memory allocations
 
 ### Types
 
-| Type       | When to use                                  |
-| ---------- | -------------------------------------------- |
-| `feat`     | A new feature                                |
-| `fix`      | A bug fix                                    |
-| `docs`     | Documentation only                           |
-| `style`    | Formatting, missing semicolons, etc.         |
-| `refactor` | Code change that neither fixes nor adds      |
-| `perf`     | Performance improvement                      |
-| `test`     | Adding or updating tests                     |
-| `build`    | Build system or external dependencies        |
-| `ci`       | CI configuration                             |
-| `chore`    | Maintenance tasks                            |
-| `revert`   | Reverting a previous commit                  |
+| Type       | When to use                             |
+| ---------- | --------------------------------------- |
+| `feat`     | A new feature                           |
+| `fix`      | A bug fix                               |
+| `docs`     | Documentation only                      |
+| `style`    | Formatting, missing semicolons, etc.    |
+| `refactor` | Code change that neither fixes nor adds |
+| `perf`     | Performance improvement                 |
+| `test`     | Adding or updating tests                |
+| `build`    | Build system or external dependencies   |
+| `ci`       | CI configuration                        |
+| `chore`    | Maintenance tasks                       |
+| `revert`   | Reverting a previous commit             |
 
 ## Branch Strategy
 

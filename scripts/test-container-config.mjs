@@ -8,11 +8,9 @@ const NGINX_IMAGE =
   'nginx:1.30.3-alpine-slim@sha256:d5b51cfc7d55fc7a7bcf4d1d577b9c3738331df56d68f0b1d8ac9795b9470a5a';
 
 const composeConfig = (...extraArgs) => {
-  const result = spawnSync(
-    'docker',
-    ['compose', ...extraArgs, 'config', '--format', 'json'],
-    { encoding: 'utf8' },
-  );
+  const result = spawnSync('docker', ['compose', ...extraArgs, 'config', '--format', 'json'], {
+    encoding: 'utf8',
+  });
   assert.equal(result.status, 0, result.stderr);
   return JSON.parse(result.stdout);
 };
@@ -30,10 +28,7 @@ const developmentDockerfile = await readFile('Dockerfile.dev', 'utf8');
 assert.match(developmentDockerfile, new RegExp(NODE_IMAGE.replaceAll('.', '\\.')));
 assert.match(developmentDockerfile, /^RUN npm ci$/m);
 assert.doesNotMatch(developmentDockerfile, /^RUN npm install$/m);
-assert.match(
-  developmentDockerfile,
-  /^CMD \["npm", "run", "dev", "--", "--host", "0\.0\.0\.0"\]$/m,
-);
+assert.match(developmentDockerfile, /^CMD \["npm", "run", "dev", "--", "--host", "0\.0\.0\.0"\]$/m);
 
 const production = composeConfig();
 const web = production.services.web;

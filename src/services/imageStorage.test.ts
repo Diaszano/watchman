@@ -50,9 +50,7 @@ describe('imageStorage', () => {
       return transaction;
     });
 
-    await expect(
-      imageStorage.save(imageFile('pixel', 'pixel.png')),
-    ).rejects.toBeInstanceOf(Error);
+    await expect(imageStorage.save(imageFile('pixel', 'pixel.png'))).rejects.toBeInstanceOf(Error);
   });
 
   it('retries opening IndexedDB after an opening failure', async () => {
