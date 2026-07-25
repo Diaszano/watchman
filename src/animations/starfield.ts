@@ -7,6 +7,9 @@ interface Star {
   z: number;
 }
 
+const densityCount = (raw: number, minimum: number, renderDensity: number) =>
+  Math.max(minimum, Math.round(raw * renderDensity));
+
 export const createStarfield = (): Animation => {
   const stars: Star[] = [];
   let w = 0;
@@ -15,10 +18,10 @@ export const createStarfield = (): Animation => {
   const spawn = (): Star => ({ x: rand(-w, w), y: rand(-h, h), z: rand(1, w) });
 
   return {
-    draw({ ctx, width, height, dt, settings }: AnimationFrame) {
+    draw({ ctx, width, height, dt, settings, renderDensity }: AnimationFrame) {
       w = width;
       h = height;
-      const count = settings.count * 2;
+      const count = densityCount(settings.count * 2, 1, renderDensity);
       while (stars.length < count) stars.push(spawn());
       if (stars.length > count) stars.length = count;
 
@@ -26,6 +29,7 @@ export const createStarfield = (): Animation => {
       const cy = height / 2;
       const speed = 300 * settings.speed;
       ctx.fillStyle = settings.color;
+      ctx.beginPath();
 
       for (const s of stars) {
         s.z -= speed * dt; // parallax: nearer stars sweep faster
@@ -39,10 +43,10 @@ export const createStarfield = (): Animation => {
         const py = cy + s.y * k;
         if (px < 0 || px > width || py < 0 || py > height) continue;
         const r = Math.max(0.4, (1 - s.z / w) * settings.size * 0.1);
-        ctx.beginPath();
+        ctx.moveTo(px + r, py);
         ctx.arc(px, py, r, 0, Math.PI * 2);
-        ctx.fill();
       }
+      ctx.fill();
     },
   };
 };

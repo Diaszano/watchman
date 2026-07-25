@@ -17,6 +17,9 @@ interface Shape {
   color: string;
 }
 
+const densityCount = (raw: number, minimum: number, renderDensity: number) =>
+  Math.max(minimum, Math.round(raw * renderDensity));
+
 const path = (ctx: CanvasRenderingContext2D, kind: Kind, s: number) => {
   ctx.beginPath();
   if (kind === 'circle') {
@@ -54,10 +57,10 @@ export const createShapes = (): Animation => {
   });
 
   return {
-    draw({ ctx, width, height, dt, settings }: AnimationFrame) {
+    draw({ ctx, width, height, dt, settings, renderDensity }: AnimationFrame) {
       w = width;
       h = height;
-      const count = Math.max(6, Math.round(settings.count / 8));
+      const count = densityCount(settings.count / 8, 6, renderDensity);
       while (shapes.length < count) shapes.push(spawn(settings.size));
       if (shapes.length > count) shapes.length = count;
 
