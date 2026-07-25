@@ -14,9 +14,9 @@ Open [http://localhost:8080](http://localhost:8080)
 
 ## Tags
 
-| Tag | Description |
-|-----|-------------|
-| `latest` | Latest stable release |
+| Tag                 | Description           |
+| ------------------- | --------------------- |
+| `latest`            | Latest stable release |
 | `X.Y.Z`, `X.Y`, `X` | Semantic version tags |
 
 ## Platforms

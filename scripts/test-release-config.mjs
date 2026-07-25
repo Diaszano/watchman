@@ -176,7 +176,10 @@ assert.equal(
   containerStep('Verify container configuration').run,
   'node scripts/test-container-config.mjs',
 );
-assert.equal(containerStep('Build production image').run, 'docker build --pull --tag watchman:ci .');
+assert.equal(
+  containerStep('Build production image').run,
+  'docker build --pull --tag watchman:ci .',
+);
 assert.equal(
   containerStep('Verify production container').run,
   '.github/scripts/verify-container.sh watchman:ci',

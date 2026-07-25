@@ -24,9 +24,7 @@ const DOCKER_REPO = process.env.DOCKER_REPO ?? 'watchman';
 const DOCKER_HUB_README = process.env.DOCKER_HUB_README ?? 'DOCKER_HUB.md';
 
 if (!DOCKERHUB_USERNAME || !DOCKERHUB_TOKEN) {
-  console.error(
-    'Missing required environment variables: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN',
-  );
+  console.error('Missing required environment variables: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN');
   process.exit(1);
 }
 

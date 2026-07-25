@@ -28,12 +28,12 @@ responsibly:
 
 ## Response Timeline
 
-| Action                          | Target    |
-| ------------------------------- | --------- |
-| Acknowledgement of report       | 48 hours  |
-| Initial assessment              | 72 hours  |
-| Resolution for critical issues  | 7 days    |
-| Resolution for non-critical     | 30 days   |
+| Action                         | Target   |
+| ------------------------------ | -------- |
+| Acknowledgement of report      | 48 hours |
+| Initial assessment             | 72 hours |
+| Resolution for critical issues | 7 days   |
+| Resolution for non-critical    | 30 days  |
 
 We will keep you informed of our progress throughout the process.
 

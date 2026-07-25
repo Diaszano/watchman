@@ -18,6 +18,7 @@ playwright-report/
 .headroom/
 .opencode/
 .superpowers/
+docs/superpowers/
 package-lock.json
 *.tsbuildinfo
 *.log

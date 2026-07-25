@@ -1,67 +1,67 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    target-branch: "dev"
+  - package-ecosystem: 'npm'
+    directory: '/'
+    target-branch: 'dev'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Sao_Paulo"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
     open-pull-requests-limit: 5
     labels:
-      - "dependencies"
-      - "npm"
+      - 'dependencies'
+      - 'npm'
     commit-message:
-      prefix: "fix(deps)"
+      prefix: 'fix(deps)'
     groups:
       npm-minor-patch:
         patterns:
-          - "*"
+          - '*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
 
-  - package-ecosystem: "docker"
-    directory: "/"
-    target-branch: "dev"
+  - package-ecosystem: 'docker'
+    directory: '/'
+    target-branch: 'dev'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Sao_Paulo"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
     open-pull-requests-limit: 3
     labels:
-      - "dependencies"
-      - "docker"
+      - 'dependencies'
+      - 'docker'
     commit-message:
-      prefix: "fix(docker)"
+      prefix: 'fix(docker)'
     groups:
       docker-minor-patch:
         patterns:
-          - "*"
+          - '*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    target-branch: "dev"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    target-branch: 'dev'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Sao_Paulo"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Sao_Paulo'
     open-pull-requests-limit: 3
     labels:
-      - "dependencies"
-      - "github-actions"
+      - 'dependencies'
+      - 'github-actions'
     commit-message:
-      prefix: "chore(ci)"
+      prefix: 'chore(ci)'
     groups:
       github-actions-minor-patch:
         patterns:
-          - "*"
+          - '*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
