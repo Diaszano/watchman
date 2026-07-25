@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
 import { animations } from '@/animations';
-import { readImageAsDataUrl } from '@/utils/file';
+import { imageStorage } from '@/services/imageStorage';
 import { Button } from './Button';
 import { ColorInput, Select, Slider, Toggle } from './controls';
 
@@ -13,8 +14,32 @@ interface Props {
 export const SettingsPanel = ({ open, onClose }: Props) => {
   const { t } = useI18n();
   const s = useSettings();
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   if (!open) return null;
+
+  const replaceImage = async (key: 'backgroundImageId' | 'customImageId', file: File) => {
+    const previousId = s[key];
+    setUploadError(null);
+    try {
+      const nextId = await imageStorage.save(file);
+      s.set(key, nextId);
+      if (previousId) await imageStorage.remove(previousId);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : t('settings.imageSaveFailed'));
+    }
+  };
+
+  const clearImage = async (key: 'backgroundImageId' | 'customImageId') => {
+    const previousId = s[key];
+    s.set(key, null);
+    if (!previousId) return;
+    try {
+      await imageStorage.remove(previousId);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : t('settings.imageSaveFailed'));
+    }
+  };
 
   const togglePlaylist = (id: string) => {
     const next = s.playlist.includes(id) ? s.playlist.filter((x) => x !== id) : [...s.playlist, id];
@@ -94,6 +119,17 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
         ]}
         onChange={(v) => s.set('fpsLimit', Number(v))}
       />
+      <Select
+        label={t('settings.quality')}
+        value={s.renderQuality}
+        options={[
+          { value: 'auto', label: t('settings.quality.auto') },
+          { value: 'economy', label: t('settings.quality.economy') },
+          { value: 'balanced', label: t('settings.quality.balanced') },
+          { value: 'high', label: t('settings.quality.high') },
+        ]}
+        onChange={(v) => s.set('renderQuality', v)}
+      />
       <Toggle
         label={t('settings.showFps')}
         value={s.showFps}
@@ -137,14 +173,19 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
 
       <FileField
         label={t('settings.customImage')}
-        onFile={(f) => readImageAsDataUrl(f).then((d) => s.set('customImage', d))}
-        onClear={s.customImage ? () => s.set('customImage', null) : undefined}
+        onFile={(file) => void replaceImage('customImageId', file)}
+        onClear={s.customImageId ? () => void clearImage('customImageId') : undefined}
       />
       <FileField
         label={t('settings.background')}
-        onFile={(f) => readImageAsDataUrl(f).then((d) => s.set('backgroundImage', d))}
-        onClear={s.backgroundImage ? () => s.set('backgroundImage', null) : undefined}
+        onFile={(file) => void replaceImage('backgroundImageId', file)}
+        onClear={s.backgroundImageId ? () => void clearImage('backgroundImageId') : undefined}
       />
+      {uploadError && (
+        <p role="alert" className="text-xs text-red-300">
+          {uploadError}
+        </p>
+      )}
 
       {/* Playlist */}
       <div className="mt-3 border-t border-white/10 pt-3">
