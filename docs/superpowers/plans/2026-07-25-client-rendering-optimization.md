@@ -444,7 +444,7 @@ For particles and starfield, move `ctx.beginPath()` before their loop, append ev
 - [ ] **Step 4: Implement module-specific allocation reductions**
 
 - Bubbles: rebuild a `Map<number, { fill: string; stroke: string }>` only when `settings.color` or `settings.opacity` changes; index it by each bubble's rounded alpha bucket instead of calling `rgba()` in the frame loop.
-- Matrix: compute `columns = Math.max(1, Math.floor((width / font) * renderDensity))` and `tail = Math.max(4, Math.round(18 * renderDensity))`; rebuild the tail alpha-style array when `settings.color` changes.
+- Matrix: compute `columnSpacing = font / renderDensity`, `columns = Math.max(1, Math.ceil(width / columnSpacing))`, and `tail = Math.max(4, Math.round(18 * renderDensity))`; draw each column at `i * columnSpacing`. This reduces the number of columns while retaining full-width coverage. Rebuild the tail alpha-style array when `settings.color` changes.
 - Neon: use density-adjusted node count and set `ctx.shadowBlur = renderDensity <= 0.5 ? 0 : 24`; only assign `shadowColor` when blur is nonzero.
 - Shapes: apply density to its existing `Math.round(settings.count / 8)` base and preserve `minimum = 6`.
 - Clock: create `const formatter = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })` once in `createClock` and use `formatter.format(now)` in `draw`.
