@@ -42,6 +42,8 @@ export function migrateSettings(persistedState: unknown, version: number): Parti
 
   if (version < 2) {
     const { backgroundImage: _backgroundImage, customImage: _customImage, ...scalarSettings } = legacy;
+    void _backgroundImage;
+    void _customImage;
     return { ...defaultSettings, ...scalarSettings, backgroundImageId: null, customImageId: null };
   }
 

@@ -30,6 +30,10 @@ Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, P
 - **PWA** — installable, offline-capable via service worker.
 - **High-DPI / 4K / ultrawide** aware (DPR-scaled canvas, capped for performance).
 
+## Rendering quality
+
+Watchman starts in **Auto** quality. It begins with a 12 MP canvas budget and reduces resolution and animation density only after sustained frame pressure. Use Economy for battery-sensitive or older devices; choose High for displays with sufficient GPU headroom. Uploaded background and logo images stay in this browser through IndexedDB and are limited to 5 MiB.
+
 ## Screenshots
 
 > _Placeholder — add screenshots or a GIF here._

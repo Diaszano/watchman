@@ -2,12 +2,13 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AnimationFrame } from '@/types';
 
-const { draw } = vi.hoisted(() => ({
+const { draw, getAnimation } = vi.hoisted(() => ({
   draw: vi.fn<(frame: AnimationFrame) => void>(),
+  getAnimation: vi.fn(() => ({ create: () => ({ draw }) })),
 }));
 
 vi.mock('@/animations/playlist', () => ({
-  getAnimation: () => ({ create: () => ({ draw }) }),
+  getAnimation,
   getNextInPlaylist: vi.fn(),
 }));
 
@@ -72,6 +73,7 @@ describe('useAnimationLoop', () => {
   beforeEach(() => {
     mockStorage.clear();
     draw.mockReset();
+    getAnimation.mockClear();
     useSettings.setState({ ...defaultSettings });
     vi.stubGlobal(
       'ResizeObserver',
@@ -132,6 +134,21 @@ describe('useAnimationLoop', () => {
     runFrame(17);
 
     expect(canvas.width * canvas.height).toBeLessThanOrEqual(6_000_000);
+    expect(draw.mock.calls[0]?.[0].renderDensity).toBe(0.5);
+    unmount();
+  });
+
+  it('runs Matrix in Economy with half-density animation work', () => {
+    const { canvas } = createCanvas();
+    const runFrame = installAnimationFrames();
+    useSettings.getState().patch({ animationId: 'matrix', renderQuality: 'economy' });
+
+    const { unmount } = renderHook(() =>
+      useAnimationLoop({ canvasRef: { current: canvas }, paused: false, customImageUrl: null }),
+    );
+    runFrame(17);
+
+    expect(getAnimation).toHaveBeenCalledWith('matrix');
     expect(draw.mock.calls[0]?.[0].renderDensity).toBe(0.5);
     unmount();
   });
