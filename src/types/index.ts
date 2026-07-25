@@ -25,7 +25,6 @@ export interface Settings {
   color: string; // primary color, hex
   background: string; // background color, hex
   gradientBackground: boolean;
-  backgroundImage: string | null; // data URL
   opacity: number; // 0..1
   brightness: number; // 0..1
   fpsLimit: number; // target FPS cap (30/60/120)
@@ -37,7 +36,6 @@ export interface Settings {
   playlist: string[]; // animation ids
   playlistMode: PlaylistMode;
   customText: string;
-  customImage: string | null; // data URL for Custom Logo
   renderQuality: RenderQuality;
   backgroundImageId: string | null;
   customImageId: string | null;
