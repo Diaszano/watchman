@@ -1,202 +1,194 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { act, renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AnimationFrame } from '@/types';
+
+const { draw } = vi.hoisted(() => ({
+  draw: vi.fn<(frame: AnimationFrame) => void>(),
+}));
+
+vi.mock('@/animations/playlist', () => ({
+  getAnimation: () => ({ create: () => ({ draw }) }),
+  getNextInPlaylist: vi.fn(),
+}));
 
 const mockStorage = vi.hoisted(() => {
-  const dummyStorage: Record<string, string> = {};
-  const mock = {
-    getItem: (key: string) => dummyStorage[key] ?? null,
-    setItem: (key: string, val: string) => { dummyStorage[key] = String(val); },
-    removeItem: (key: string) => { delete dummyStorage[key]; },
-    clear: () => { for (const k in dummyStorage) delete dummyStorage[k]; },
+  const values: Record<string, string> = {};
+  const storage = {
+    getItem: (key: string) => values[key] ?? null,
+    setItem: (key: string, value: string) => {
+      values[key] = String(value);
+    },
+    removeItem: (key: string) => {
+      delete values[key];
+    },
+    clear: () => {
+      for (const key in values) delete values[key];
+    },
     length: 0,
     key: () => null,
   };
   Object.defineProperty(globalThis, 'localStorage', {
-    value: mock,
+    value: storage,
     configurable: true,
     writable: true,
   });
-  if (typeof window !== 'undefined') {
-    Object.defineProperty(window, 'localStorage', {
-      value: mock,
-      configurable: true,
-      writable: true,
-    });
-  }
-  return mock;
+  return storage;
 });
 
-import { renderHook } from '@testing-library/react';
+import { defaultSettings, useSettings } from '@/stores/settingsStore';
 import { useAnimationLoop } from './useAnimationLoop';
-import { useSettings } from '@/stores/settingsStore';
+
+const createCanvas = (width = 800, height = 600) => {
+  const canvas = document.createElement('canvas');
+  Object.defineProperties(canvas, {
+    clientWidth: { value: width, configurable: true },
+    clientHeight: { value: height, configurable: true },
+  });
+  const context = {
+    clearRect: vi.fn(),
+    setTransform: vi.fn(),
+    fillRect: vi.fn(),
+    drawImage: vi.fn(),
+    createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+  } as unknown as CanvasRenderingContext2D;
+  vi.spyOn(canvas, 'getContext').mockReturnValue(context);
+  return { canvas, context };
+};
+
+const installAnimationFrames = () => {
+  let callback: FrameRequestCallback | undefined;
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation((next) => {
+    callback = next;
+    return 1;
+  });
+  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+  return (now: number) => {
+    if (!callback) throw new Error('animation frame callback was not scheduled');
+    act(() => callback?.(now));
+  };
+};
 
 describe('useAnimationLoop', () => {
   beforeEach(() => {
     mockStorage.clear();
-    vi.stubGlobal('ResizeObserver', class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    });
+    draw.mockReset();
+    useSettings.setState({ ...defaultSettings });
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    );
+    vi.spyOn(performance, 'now').mockReturnValue(0);
   });
 
-  const createMockContext = () => {
-    return new Proxy({}, {
-      get: (_target, prop) => {
-        if (prop === 'createLinearGradient') {
-          return () => ({ addColorStop: vi.fn() });
-        }
-        return vi.fn();
-      }
-    }) as unknown as CanvasRenderingContext2D;
-  };
+  it('preserves elapsed logical time while limiting rendering to 30 FPS', () => {
+    const { canvas } = createCanvas();
+    const runFrame = installAnimationFrames();
+    useSettings.getState().set('fpsLimit', 30);
 
-  it('initializes animation loop without crashing', () => {
-    const canvas = document.createElement('canvas');
-    const canvasRef = { current: canvas };
-    
     const { unmount } = renderHook(() =>
-      useAnimationLoop({ canvasRef, paused: true })
+      useAnimationLoop({ canvasRef: { current: canvas }, paused: false, customImageUrl: null }),
     );
-    
-    expect(canvas).toBeDefined();
+
+    for (let now = 0; now <= 1_000; now += 16) runFrame(now);
+    runFrame(1_000);
+
+    const elapsed = draw.mock.calls.reduce((sum, [frame]) => sum + frame.dt, 0);
+    expect(elapsed).toBeCloseTo(1, 2);
+    expect(draw.mock.calls.at(-1)?.[0].time).toBeCloseTo(1, 2);
+    expect(Math.max(...draw.mock.calls.map(([frame]) => frame.dt))).toBeLessThanOrEqual(0.1);
     unmount();
   });
 
-  it('updates canvas style filter and opacity on frame', () => {
-    const canvas = document.createElement('canvas');
-    const mockCtx = createMockContext();
-
-    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx);
-    const canvasRef = { current: canvas };
-
-    let animationFrameCallback: FrameRequestCallback | null = null;
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-      animationFrameCallback = cb;
-      return 1;
-    });
+  it('keeps default Auto canvas allocation within twelve million pixels', () => {
+    const { canvas } = createCanvas(3_840, 2_160);
+    const runFrame = installAnimationFrames();
+    Object.defineProperty(window, 'devicePixelRatio', { value: 3, configurable: true });
 
     const { unmount } = renderHook(() =>
-      useAnimationLoop({ canvasRef, paused: false })
+      useAnimationLoop({ canvasRef: { current: canvas }, paused: false, customImageUrl: null }),
     );
+    runFrame(17);
 
-    if (animationFrameCallback) {
-      const startTime = performance.now();
-      (animationFrameCallback as FrameRequestCallback)(startTime + 100);
-    }
-
-    expect(canvas.style.filter).toContain('brightness');
-    expect(canvas.style.opacity).toBe('1');
-
+    expect(canvas.width * canvas.height).toBeLessThanOrEqual(12_000_000);
+    expect(draw.mock.calls[0]?.[0].renderDensity).toBe(0.75);
     unmount();
   });
 
-  it('caches style updates when values do not change', () => {
-    const canvas = document.createElement('canvas');
-    const mockCtx = createMockContext();
+  it('resizes the canvas when the selected quality profile changes', () => {
+    const { canvas } = createCanvas(3_840, 2_160);
+    const runFrame = installAnimationFrames();
+    Object.defineProperty(window, 'devicePixelRatio', { value: 3, configurable: true });
+    useSettings.getState().set('renderQuality', 'high');
 
-    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx);
-    const canvasRef = { current: canvas };
+    const { unmount } = renderHook(() =>
+      useAnimationLoop({ canvasRef: { current: canvas }, paused: false, customImageUrl: null }),
+    );
+    expect(canvas.width * canvas.height).toBeGreaterThan(12_000_000);
 
-    useSettings.getState().set('antiBurnIn', false);
-    useSettings.getState().set('brightness', 1);
-    useSettings.getState().set('opacity', 1);
+    useSettings.getState().set('renderQuality', 'economy');
+    runFrame(17);
 
-    let filterSetCount = 0;
-    let opacitySetCount = 0;
-    let currentFilter = '';
-    let currentOpacity = '';
+    expect(canvas.width * canvas.height).toBeLessThanOrEqual(6_000_000);
+    expect(draw.mock.calls[0]?.[0].renderDensity).toBe(0.5);
+    unmount();
+  });
 
+  it('updates brightness and opacity styles only when their settings change', () => {
+    const { canvas } = createCanvas();
+    const runFrame = installAnimationFrames();
+    let filterWrites = 0;
+    let opacityWrites = 0;
     Object.defineProperty(canvas.style, 'filter', {
-      get: () => currentFilter,
-      set: (val) => {
-        filterSetCount++;
-        currentFilter = val;
+      get: () => '',
+      set: () => {
+        filterWrites += 1;
       },
       configurable: true,
     });
-
     Object.defineProperty(canvas.style, 'opacity', {
-      get: () => currentOpacity,
-      set: (val) => {
-        opacitySetCount++;
-        currentOpacity = val;
+      get: () => '',
+      set: () => {
+        opacityWrites += 1;
       },
       configurable: true,
-    });
-
-    let animationFrameCallback: FrameRequestCallback | null = null;
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-      animationFrameCallback = cb;
-      return 1;
     });
 
     const { unmount } = renderHook(() =>
-      useAnimationLoop({ canvasRef, paused: false })
+      useAnimationLoop({ canvasRef: { current: canvas }, paused: false, customImageUrl: null }),
     );
+    runFrame(17);
+    runFrame(34);
+    runFrame(51);
+    expect(filterWrites).toBe(1);
+    expect(opacityWrites).toBe(1);
 
-    const startTime = performance.now();
-    // Frame 1
-    if (animationFrameCallback) {
-      (animationFrameCallback as FrameRequestCallback)(startTime + 100);
-    }
-    expect(filterSetCount).toBe(1);
-    expect(opacitySetCount).toBe(1);
-
-    // Frame 2 with same settings
-    if (animationFrameCallback) {
-      (animationFrameCallback as FrameRequestCallback)(startTime + 200);
-    }
-    expect(filterSetCount).toBe(1);
-    expect(opacitySetCount).toBe(1);
-
+    useSettings.getState().set('brightness', 0.8);
+    runFrame(68);
+    expect(filterWrites).toBe(2);
+    expect(opacityWrites).toBe(1);
     unmount();
   });
 
-  it('handles background image loading errors and prevents retries for invalid source', () => {
-    const canvas = document.createElement('canvas');
-    const mockCtx = createMockContext();
-
-    vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx);
-    const canvasRef = { current: canvas };
-
-    useSettings.getState().set('backgroundImage', 'http://invalid-domain.test/broken.png');
-
-    const imageInstances: Array<{ onerror?: () => void; onload?: () => void; src?: string }> = [];
-    const MockImage = vi.fn().mockImplementation(() => {
-      const imgObj = { onerror: undefined, onload: undefined, src: '' };
-      imageInstances.push(imgObj);
-      return imgObj;
-    });
-    vi.stubGlobal('Image', MockImage);
-
-    let animationFrameCallback: FrameRequestCallback | null = null;
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-      animationFrameCallback = cb;
-      return 1;
-    });
+  it('clears transparently and forwards the resolved custom image URL', () => {
+    const { canvas, context } = createCanvas();
+    const runFrame = installAnimationFrames();
 
     const { unmount } = renderHook(() =>
-      useAnimationLoop({ canvasRef, paused: false })
+      useAnimationLoop({
+        canvasRef: { current: canvas },
+        paused: false,
+        customImageUrl: 'blob:custom-logo',
+      }),
     );
+    runFrame(17);
 
-    const startTime = performance.now();
-    // Frame 1: Triggers image load
-    if (animationFrameCallback) {
-      (animationFrameCallback as FrameRequestCallback)(startTime + 100);
-    }
-    expect(MockImage).toHaveBeenCalledTimes(1);
-
-    // Simulate image load error
-    if (imageInstances[0] && imageInstances[0].onerror) {
-      imageInstances[0].onerror();
-    }
-
-    // Frame 2: Should NOT trigger another Image creation because bgLoadError is set
-    if (animationFrameCallback) {
-      (animationFrameCallback as FrameRequestCallback)(startTime + 200);
-    }
-    expect(MockImage).toHaveBeenCalledTimes(1);
-
+    expect(context.clearRect).toHaveBeenCalledTimes(1);
+    expect(context.fillRect).not.toHaveBeenCalled();
+    expect(context.drawImage).not.toHaveBeenCalled();
+    expect(draw.mock.calls[0]?.[0].customImageUrl).toBe('blob:custom-logo');
     unmount();
   });
 });
