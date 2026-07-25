@@ -35,4 +35,26 @@ describe('useStoredImage', () => {
     act(() => unmount());
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:second');
   });
+
+  it('clears the previous image while a replacement is loading', async () => {
+    let resolveSecondImage: ((blob: Blob | null) => void) | undefined;
+    vi.spyOn(imageStorage, 'get').mockImplementation((id) => {
+      if (id === 'first') return Promise.resolve(new Blob(['first'], { type: 'image/png' }));
+      return new Promise((resolve) => {
+        resolveSecondImage = resolve;
+      });
+    });
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:first'), revokeObjectURL: vi.fn() });
+    const { result, rerender } = renderHook(
+      ({ id }: { id: string | null }) => useStoredImage(id),
+      { initialProps: { id: 'first' } },
+    );
+
+    await waitFor(() => expect(result.current.url).toBe('blob:first'));
+
+    rerender({ id: 'second' });
+
+    expect(result.current).toEqual({ url: null, error: null });
+    await act(async () => resolveSecondImage?.(null));
+  });
 });

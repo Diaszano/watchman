@@ -10,7 +10,7 @@ import {
 } from '@/utils/renderQuality';
 
 interface Options {
-  canvasRef: RefObject<HTMLCanvasElement>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   paused: boolean;
   onFps?: (fps: number) => void;
   customImageUrl: string | null;
