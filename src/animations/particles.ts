@@ -43,6 +43,7 @@ export const createParticles = (): Animation => {
         else if (p.x > w) p.x -= w;
         if (p.y < 0) p.y += h;
         else if (p.y > h) p.y -= h;
+        ctx.moveTo(p.x + rad, p.y);
         ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
       }
       ctx.fill();

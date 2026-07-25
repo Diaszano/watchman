@@ -12,6 +12,7 @@ type RecordedContext = CanvasRenderingContext2D & {
   arcs: unknown[][];
   fills: number;
   fillTexts: unknown[][];
+  moveTos: unknown[][];
   shadowBlurs: number[];
   strokes: number;
 };
@@ -21,6 +22,7 @@ const context = (): RecordedContext => {
     arcs: [] as unknown[][],
     fills: 0,
     fillTexts: [] as unknown[][],
+    moveTos: [] as unknown[][],
     shadowBlurs: [] as number[],
     strokes: 0,
     beginPath: vi.fn(),
@@ -33,7 +35,9 @@ const context = (): RecordedContext => {
     fillText(...args: unknown[]) {
       this.fillTexts.push(args);
     },
-    moveTo: vi.fn(),
+    moveTo(...args: unknown[]) {
+      this.moveTos.push(args);
+    },
     lineTo: vi.fn(),
     rect: vi.fn(),
     closePath: vi.fn(),
@@ -81,6 +85,7 @@ describe('animation rendering cost', () => {
     createParticles().draw(frame(ctx, 0.5, { count: 100 }));
 
     expect(ctx.arcs).toHaveLength(50);
+    expect(ctx.moveTos).toHaveLength(50);
     expect(ctx.fills).toBe(1);
   });
 
@@ -90,6 +95,7 @@ describe('animation rendering cost', () => {
     createStarfield().draw(frame(ctx, 0.5, { count: 100, speed: 0 }));
 
     expect(ctx.arcs).toHaveLength(100);
+    expect(ctx.moveTos).toHaveLength(100);
     expect(ctx.fills).toBe(1);
   });
 

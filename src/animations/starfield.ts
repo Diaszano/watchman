@@ -43,6 +43,7 @@ export const createStarfield = (): Animation => {
         const py = cy + s.y * k;
         if (px < 0 || px > width || py < 0 || py > height) continue;
         const r = Math.max(0.4, (1 - s.z / w) * settings.size * 0.1);
+        ctx.moveTo(px + r, py);
         ctx.arc(px, py, r, 0, Math.PI * 2);
       }
       ctx.fill();
