@@ -59,9 +59,13 @@ TypeScript · React 18 · Vite · Tailwind CSS v4 · React Router · Zustand · 
 
 ## Installation
 
+Requires Node.js 24 (run `nvm use` when nvm is installed).
+
 ```bash
-npm install
+npm ci
 ```
+
+Use `npm install` only when intentionally changing dependencies, because it updates `package-lock.json`.
 
 ### Development
 
@@ -76,6 +80,7 @@ npm run build      # type-check + production build to dist/
 npm run preview    # preview the production build
 npm run lint       # ESLint
 npm run format     # Prettier
+npm run format:check # verify Prettier formatting without modifying files
 npm test           # Vitest
 ```
 
@@ -89,7 +94,7 @@ fix(canvas): correct rendering behavior
 chore(ci): maintain automation
 ```
 
-`npm install` configures the Husky `commit-msg` hook. The same rules are checked against every pull request commit in CI.
+`npm ci` configures the Husky `commit-msg` hook. The same rules are checked against every pull request commit in CI.
 
 ---
 
