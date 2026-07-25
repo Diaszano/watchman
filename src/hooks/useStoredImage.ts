@@ -6,28 +6,32 @@ interface StoredImageState {
   error: Error | null;
 }
 
+interface LoadedImageState extends StoredImageState {
+  id: string | null;
+}
+
+const emptyState: StoredImageState = { url: null, error: null };
+
 export const useStoredImage = (id: string | null): StoredImageState => {
-  const [state, setState] = useState<StoredImageState>({ url: null, error: null });
+  const [state, setState] = useState<LoadedImageState>({ id: null, ...emptyState });
 
   useEffect(() => {
     let active = true;
     let url: string | null = null;
 
-    if (!id) {
-      setState({ url: null, error: null });
-      return;
-    }
+    if (!id) return;
 
     void imageStorage
       .get(id)
       .then((blob) => {
         if (!active) return;
         url = blob ? URL.createObjectURL(blob) : null;
-        setState({ url, error: null });
+        setState({ id, url, error: null });
       })
       .catch((error: unknown) => {
         if (active) {
           setState({
+            id,
             url: null,
             error: error instanceof Error ? error : new Error(String(error)),
           });
@@ -40,5 +44,5 @@ export const useStoredImage = (id: string | null): StoredImageState => {
     };
   }, [id]);
 
-  return state;
+  return state.id === id ? state : emptyState;
 };
