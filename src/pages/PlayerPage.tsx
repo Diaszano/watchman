@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScreensaverCanvas } from '@/components/ScreensaverCanvas';
+import { ScreensaverBackground } from '@/components/ScreensaverBackground';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { FpsMonitor } from '@/components/FpsMonitor';
 import { Button } from '@/components/Button';
@@ -10,6 +11,7 @@ import { useFullscreen } from '@/hooks/useFullscreen';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { useI18n } from '@/hooks/useI18n';
 import { useSettings } from '@/stores/settingsStore';
+import { useStoredImage } from '@/hooks/useStoredImage';
 import { animationIds } from '@/animations';
 
 export const PlayerPage = () => {
@@ -22,12 +24,14 @@ export const PlayerPage = () => {
   const [uiVisible, setUiVisible] = useState(true);
 
   const showFps = useSettings((s) => s.showFps);
+  const customImageId = useSettings((s) => s.customImageId);
+  const customImage = useStoredImage(customImageId);
   const setSetting = useSettings((s) => s.set);
   const { toggle } = useFullscreen();
   const wake = useWakeLock(!paused);
 
   const onFps = useCallback((v: number) => setFps(v), []);
-  useAnimationLoop({ canvasRef, paused, onFps });
+  useAnimationLoop({ canvasRef, paused, onFps, customImageUrl: customImage.url });
 
   const step = useCallback(
     (dir: 1 | -1) => {
@@ -72,6 +76,7 @@ export const PlayerPage = () => {
 
   return (
     <div className={`relative h-full w-full bg-black ${controlsShown ? '' : 'cursor-none'}`}>
+      <ScreensaverBackground />
       <ScreensaverCanvas ref={canvasRef} />
 
       {showFps && <FpsMonitor fps={fps} />}

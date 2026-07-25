@@ -10,15 +10,15 @@ export const createCustomLogo = (): Animation => {
   let vy = 1;
 
   return {
-    draw({ ctx, width, height, dt, settings }: AnimationFrame) {
-      if (settings.customImage && settings.customImage !== src) {
-        src = settings.customImage;
+    draw({ ctx, width, height, dt, settings, customImageUrl }: AnimationFrame) {
+      if (customImageUrl && customImageUrl !== src) {
+        src = customImageUrl;
         const el = new Image();
         el.src = src;
         img = el;
       }
 
-      if (!settings.customImage || !img || !img.complete || img.naturalWidth === 0) {
+      if (!customImageUrl || !img || !img.complete || img.naturalWidth === 0) {
         ctx.fillStyle = settings.color;
         ctx.font = `bold ${settings.size}px system-ui, sans-serif`;
         ctx.textAlign = 'center';

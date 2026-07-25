@@ -1,6 +1,12 @@
 import type { Animation, AnimationFrame } from '@/types';
 
 export const createClock = (): Animation => {
+  const formatter = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
   let x = -1;
   let y = 0;
   let vx = 1;
@@ -18,7 +24,7 @@ export const createClock = (): Animation => {
       y += Math.sin(time * 0.17) * speed * dt + vy * speed * 0.2 * dt;
 
       const now = new Date();
-      const label = now.toLocaleTimeString('en-GB', { hour12: false }); // HH:MM:SS 24h
+      const label = formatter.format(now);
 
       const fontSize = settings.size * 3;
       ctx.font = `600 ${fontSize}px ui-monospace, monospace`;

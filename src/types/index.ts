@@ -1,6 +1,20 @@
 export type Theme = 'light' | 'dark';
 export type Lang = 'en' | 'pt';
 export type PlaylistMode = 'sequential' | 'random';
+export type RenderQuality = 'auto' | 'economy' | 'balanced' | 'high';
+export type RenderQualityLevel = Exclude<RenderQuality, 'auto'>;
+
+export interface RenderQualityState {
+  level: RenderQualityLevel;
+  overBudgetFrames: number;
+  headroomFrames: number;
+}
+
+export interface RenderQualityDecision {
+  dpr: number;
+  width: number;
+  height: number;
+}
 
 /** User-tunable settings shared by all animations. Persisted to LocalStorage. */
 export interface Settings {
@@ -11,7 +25,6 @@ export interface Settings {
   color: string; // primary color, hex
   background: string; // background color, hex
   gradientBackground: boolean;
-  backgroundImage: string | null; // data URL
   opacity: number; // 0..1
   brightness: number; // 0..1
   fpsLimit: number; // target FPS cap (30/60/120)
@@ -23,7 +36,9 @@ export interface Settings {
   playlist: string[]; // animation ids
   playlistMode: PlaylistMode;
   customText: string;
-  customImage: string | null; // data URL for Custom Logo
+  renderQuality: RenderQuality;
+  backgroundImageId: string | null;
+  customImageId: string | null;
 }
 
 /** Per-frame context handed to every animation. Canvas-native, no React. */
@@ -34,6 +49,8 @@ export interface AnimationFrame {
   dt: number; // seconds since previous frame
   time: number; // total elapsed seconds
   settings: Settings;
+  renderDensity: number;
+  customImageUrl: string | null;
 }
 
 /**
