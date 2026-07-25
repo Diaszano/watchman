@@ -31,10 +31,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'router-vendor': ['react-router-dom'],
-          'store-vendor': ['zustand'],
+        manualChunks(id) {
+          if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/')) {
+            return 'react-vendor';
+          }
+          if (id.includes('/node_modules/react-router-dom/')) {
+            return 'router-vendor';
+          }
+          if (id.includes('/node_modules/zustand/')) {
+            return 'store-vendor';
+          }
         },
       },
     },
@@ -46,4 +52,3 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/dist/**', '**/.worktrees/**'],
   },
 });
-

@@ -161,12 +161,16 @@ describe('useAnimationLoop', () => {
 
     useSettings.getState().set('backgroundImage', 'http://invalid-domain.test/broken.png');
 
-    const imageInstances: Array<{ onerror?: () => void; onload?: () => void; src?: string }> = [];
-    const MockImage = vi.fn().mockImplementation(() => {
-      const imgObj = { onerror: undefined, onload: undefined, src: '' };
-      imageInstances.push(imgObj);
-      return imgObj;
-    });
+    class MockImage {
+      onerror?: () => void;
+      onload?: () => void;
+      src = '';
+
+      constructor() {
+        imageInstances.push(this);
+      }
+    }
+    const imageInstances: MockImage[] = [];
     vi.stubGlobal('Image', MockImage);
 
     let animationFrameCallback: FrameRequestCallback | null = null;
@@ -184,7 +188,7 @@ describe('useAnimationLoop', () => {
     if (animationFrameCallback) {
       (animationFrameCallback as FrameRequestCallback)(startTime + 100);
     }
-    expect(MockImage).toHaveBeenCalledTimes(1);
+    expect(imageInstances).toHaveLength(1);
 
     // Simulate image load error
     if (imageInstances[0] && imageInstances[0].onerror) {
@@ -195,7 +199,7 @@ describe('useAnimationLoop', () => {
     if (animationFrameCallback) {
       (animationFrameCallback as FrameRequestCallback)(startTime + 200);
     }
-    expect(MockImage).toHaveBeenCalledTimes(1);
+    expect(imageInstances).toHaveLength(1);
 
     unmount();
   });
