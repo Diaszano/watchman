@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { animations, getAnimation } from '@/animations';
 import { isRelevant } from '@/animations/relevantControls';
 import { imageStorage } from '@/services/imageStorage';
@@ -17,6 +18,8 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const { t } = useI18n();
   const s = useSettings();
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  useFocusTrap({ active: open, containerRef: panelRef, onEscape: onClose });
 
   if (!open) return null;
 
@@ -73,10 +76,16 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
 
   return (
     <aside
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-panel-title"
       className={`fixed right-0 top-0 z-40 flex h-full w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-l p-4 backdrop-blur-xl ${surface}`}
     >
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t('settings.title')}</h2>
+        <h2 id="settings-panel-title" className="text-lg font-semibold">
+          {t('settings.title')}
+        </h2>
         <button
           onClick={onClose}
           aria-label="Close"

@@ -130,15 +130,51 @@ describe('SettingsPanel', () => {
   it('renders a theme-aware light surface when not used as an overlay', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
 
-    expect(screen.getByRole('complementary')).toHaveClass('bg-white/90');
-    expect(screen.getByRole('complementary')).toHaveClass('dark:bg-neutral-900/80');
+    expect(screen.getByRole('dialog')).toHaveClass('bg-white/90');
+    expect(screen.getByRole('dialog')).toHaveClass('dark:bg-neutral-900/80');
   });
 
   it('keeps the dark glass look when rendered as an overlay', () => {
     render(<SettingsPanel open onClose={() => undefined} overlay />);
 
-    expect(screen.getByRole('complementary')).toHaveClass('bg-neutral-900/80');
-    expect(screen.getByRole('complementary')).toHaveClass('text-white');
+    expect(screen.getByRole('dialog')).toHaveClass('bg-neutral-900/80');
+    expect(screen.getByRole('dialog')).toHaveClass('text-white');
+  });
+
+  it('traps focus inside the dialog when opened', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveAttribute('aria-labelledby', 'settings-panel-title');
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it('calls onClose when Escape is pressed while open', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open onClose={onClose} />);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('wraps focus back to the first control when tabbing past the last one', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+
+    const dialog = screen.getByRole('dialog');
+    const focusables = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+      ),
+    );
+    const last = focusables[focusables.length - 1]!;
+    last.focus();
+    expect(document.activeElement).toBe(last);
+
+    fireEvent.keyDown(document, { key: 'Tab' });
+
+    expect(document.activeElement).toBe(focusables[0]);
   });
 
   it('persists image IDs without binary image content', () => {
