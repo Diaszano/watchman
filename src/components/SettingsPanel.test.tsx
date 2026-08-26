@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { imageStorage } from '@/services/imageStorage';
 import { defaultSettings, useSettings } from '@/stores/settingsStore';
@@ -117,6 +117,14 @@ describe('SettingsPanel', () => {
     fireEvent.change(screen.getByDisplayValue('Auto'), { target: { value: 'high' } });
 
     expect(useSettings.getState().renderQuality).toBe('high');
+  });
+
+  it('renders localized theme select options', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+
+    const options = within(screen.getByDisplayValue('Dark')).getAllByRole('option');
+
+    expect(options.map((option) => option.textContent)).toEqual(['Dark', 'Light']);
   });
 
   it('renders a theme-aware light surface when not used as an overlay', () => {

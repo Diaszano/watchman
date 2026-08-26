@@ -173,8 +173,8 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         label={t('settings.theme')}
         value={s.theme}
         options={[
-          { value: 'dark', label: 'Dark' },
-          { value: 'light', label: 'Light' },
+          { value: 'dark', label: t('settings.theme.dark') },
+          { value: 'light', label: t('settings.theme.light') },
         ]}
         onChange={(v) => s.set('theme', v)}
       />
@@ -201,22 +201,24 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
 
       <FileField
         label={t('settings.customImage')}
+        clearLabel={t('settings.clear')}
         onFile={(file) => void replaceImage('customImageId', file)}
         onClear={s.customImageId ? () => void clearImage('customImageId') : undefined}
       />
       <FileField
         label={t('settings.background')}
+        clearLabel={t('settings.clear')}
         onFile={(file) => void replaceImage('backgroundImageId', file)}
         onClear={s.backgroundImageId ? () => void clearImage('backgroundImageId') : undefined}
       />
       {uploadError && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-red-600 dark:text-red-300">
           {uploadError}
         </p>
       )}
 
       {/* Playlist */}
-      <div className="mt-3 border-t border-white/10 pt-3">
+      <div className="mt-3 border-t border-black/10 pt-3 dark:border-white/10">
         <p className="mb-1 text-sm font-medium text-neutral-700 dark:text-white/80">
           {t('settings.playlist')}
         </p>
@@ -246,8 +248,8 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
             label={t('settings.playlistMode')}
             value={s.playlistMode}
             options={[
-              { value: 'sequential', label: 'Sequential' },
-              { value: 'random', label: 'Random' },
+              { value: 'sequential', label: t('settings.playlistMode.sequential') },
+              { value: 'random', label: t('settings.playlistMode.random') },
             ]}
             onChange={(v) => s.set('playlistMode', v)}
           />
@@ -263,10 +265,12 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
 
 const FileField = ({
   label,
+  clearLabel,
   onFile,
   onClear,
 }: {
   label: string;
+  clearLabel?: string;
   onFile: (f: File) => void;
   onClear?: () => void;
 }) => (
@@ -278,7 +282,7 @@ const FileField = ({
           onClick={onClear}
           className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white"
         >
-          clear
+          {clearLabel ?? 'clear'}
         </button>
       )}
       <input
