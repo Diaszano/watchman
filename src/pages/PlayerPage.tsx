@@ -114,7 +114,7 @@ export const PlayerPage = () => {
         </Button>
       </div>
 
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} overlay />
     </div>
   );
 };

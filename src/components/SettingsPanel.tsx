@@ -9,9 +9,10 @@ import { ColorInput, Select, Slider, Toggle } from './controls';
 interface Props {
   open: boolean;
   onClose: () => void;
+  overlay?: boolean;
 }
 
-export const SettingsPanel = ({ open, onClose }: Props) => {
+export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const { t } = useI18n();
   const s = useSettings();
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -63,11 +64,21 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
     s.set('playlist', next);
   };
 
+  const surface = overlay
+    ? 'border-white/10 bg-neutral-900/80 text-white'
+    : 'border-black/10 bg-white/90 text-neutral-900 dark:border-white/10 dark:bg-neutral-900/80 dark:text-white';
+
   return (
-    <aside className="fixed right-0 top-0 z-40 flex h-full w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-l border-white/10 bg-neutral-900/80 p-4 text-white backdrop-blur-xl">
+    <aside
+      className={`fixed right-0 top-0 z-40 flex h-full w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-l p-4 backdrop-blur-xl ${surface}`}
+    >
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-lg font-semibold">{t('settings.title')}</h2>
-        <button onClick={onClose} aria-label="Close" className="text-white/60 hover:text-white">
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="text-neutral-500 hover:text-neutral-900 dark:text-white/60 dark:hover:text-white"
+        >
           ✕
         </button>
       </div>
@@ -179,12 +190,12 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
 
       {/* Custom text + uploads */}
       <label className="flex flex-col gap-1 py-1.5 text-sm">
-        <span className="text-white/80">{t('settings.customText')}</span>
+        <span className="text-neutral-700 dark:text-white/80">{t('settings.customText')}</span>
         <input
           type="text"
           value={s.customText}
           onChange={(e) => s.set('customText', e.target.value)}
-          className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 outline-none"
+          className="rounded-lg border border-black/10 bg-black/5 px-2 py-1 outline-none dark:border-white/10 dark:bg-white/10"
         />
       </label>
 
@@ -206,7 +217,9 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
 
       {/* Playlist */}
       <div className="mt-3 border-t border-white/10 pt-3">
-        <p className="mb-1 text-sm font-medium text-white/80">{t('settings.playlist')}</p>
+        <p className="mb-1 text-sm font-medium text-neutral-700 dark:text-white/80">
+          {t('settings.playlist')}
+        </p>
         <div className="grid grid-cols-2 gap-1">
           {animations.map((a) => (
             <label key={a.id} className="flex items-center gap-2 text-xs">
@@ -258,10 +271,13 @@ const FileField = ({
   onClear?: () => void;
 }) => (
   <label className="flex items-center justify-between gap-2 py-1.5 text-sm">
-    <span className="text-white/80">{label}</span>
+    <span className="text-neutral-700 dark:text-white/80">{label}</span>
     <span className="flex items-center gap-1">
       {onClear && (
-        <button onClick={onClear} className="text-xs text-white/50 hover:text-white">
+        <button
+          onClick={onClear}
+          className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white"
+        >
           clear
         </button>
       )}

@@ -119,6 +119,20 @@ describe('SettingsPanel', () => {
     expect(useSettings.getState().renderQuality).toBe('high');
   });
 
+  it('renders a theme-aware light surface when not used as an overlay', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+
+    expect(screen.getByRole('complementary')).toHaveClass('bg-white/90');
+    expect(screen.getByRole('complementary')).toHaveClass('dark:bg-neutral-900/80');
+  });
+
+  it('keeps the dark glass look when rendered as an overlay', () => {
+    render(<SettingsPanel open onClose={() => undefined} overlay />);
+
+    expect(screen.getByRole('complementary')).toHaveClass('bg-neutral-900/80');
+    expect(screen.getByRole('complementary')).toHaveClass('text-white');
+  });
+
   it('persists image IDs without binary image content', () => {
     useSettings.persist.clearStorage();
     useSettings.getState().patch({
