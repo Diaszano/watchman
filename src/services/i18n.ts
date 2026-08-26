@@ -55,6 +55,14 @@ const en: Dict = {
   'anim.shapes': 'Geometric Shapes',
   'anim.logo': 'Custom Logo',
   'anim.text': 'Custom Text',
+  'shortcuts.title': 'Keyboard shortcuts',
+  'shortcuts.close': 'Close',
+  'shortcuts.action.fullscreen': 'Toggle fullscreen',
+  'shortcuts.action.pause': 'Pause / resume',
+  'shortcuts.action.settings': 'Toggle settings',
+  'shortcuts.action.next': 'Next animation',
+  'shortcuts.action.prev': 'Previous animation',
+  'shortcuts.action.shortcuts': 'Toggle this help',
 };
 
 const pt: Dict = {
@@ -109,6 +117,14 @@ const pt: Dict = {
   'anim.shapes': 'Formas Geométricas',
   'anim.logo': 'Logo Personalizado',
   'anim.text': 'Texto Personalizado',
+  'shortcuts.title': 'Atalhos de teclado',
+  'shortcuts.close': 'Fechar',
+  'shortcuts.action.fullscreen': 'Alternar tela cheia',
+  'shortcuts.action.pause': 'Pausar / retomar',
+  'shortcuts.action.settings': 'Abrir configurações',
+  'shortcuts.action.next': 'Próxima animação',
+  'shortcuts.action.prev': 'Animação anterior',
+  'shortcuts.action.shortcuts': 'Alternar esta ajuda',
 };
 
 const dicts: Record<Lang, Dict> = { en, pt };

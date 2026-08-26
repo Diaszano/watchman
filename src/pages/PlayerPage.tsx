@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ScreensaverCanvas } from '@/components/ScreensaverCanvas';
 import { ScreensaverBackground } from '@/components/ScreensaverBackground';
 import { SettingsPanel } from '@/components/SettingsPanel';
+import { ShortcutsOverlay } from '@/components/ShortcutsOverlay';
 import { FpsMonitor } from '@/components/FpsMonitor';
 import { Button } from '@/components/Button';
 import { useAnimationLoop } from '@/hooks/useAnimationLoop';
@@ -20,9 +21,11 @@ export const PlayerPage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [paused, setPaused] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [fps, setFps] = useState(0);
   const [uiVisible, setUiVisible] = useState(true);
 
+  const animationId = useSettings((s) => s.animationId);
   const showFps = useSettings((s) => s.showFps);
   const customImageId = useSettings((s) => s.customImageId);
   const customImage = useStoredImage(customImageId);
@@ -49,8 +52,10 @@ export const PlayerPage = () => {
       nextAnimation: () => step(1),
       prevAnimation: () => step(-1),
       toggleSettings: () => setSettingsOpen((o) => !o),
+      toggleShortcuts: () => setShortcutsOpen((o) => !o),
+      escape: settingsOpen ? () => setSettingsOpen(false) : undefined,
     }),
-    [toggle, step],
+    [toggle, step, settingsOpen],
   );
   useKeyboardShortcuts(handlers);
 
@@ -72,7 +77,7 @@ export const PlayerPage = () => {
     };
   }, []);
 
-  const controlsShown = uiVisible || settingsOpen;
+  const controlsShown = uiVisible || settingsOpen || shortcutsOpen;
 
   return (
     <div className={`relative h-full w-full bg-black ${controlsShown ? '' : 'cursor-none'}`}>
@@ -115,6 +120,16 @@ export const PlayerPage = () => {
       </div>
 
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} overlay />
+      <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
+      <div
+        aria-live="polite"
+        className={`absolute bottom-3 left-3 z-30 rounded-md bg-black/50 px-2 py-1 text-xs text-white/90 backdrop-blur transition-opacity duration-300 ${
+          controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      >
+        {t(`anim.${animationId}`)}
+      </div>
     </div>
   );
 };

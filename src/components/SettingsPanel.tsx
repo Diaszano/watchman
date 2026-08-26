@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
-import { animations } from '@/animations';
+import { animations, getAnimation } from '@/animations';
+import { isRelevant } from '@/animations/relevantControls';
 import { imageStorage } from '@/services/imageStorage';
 import { Button } from './Button';
 import { ColorInput, Select, Slider, Toggle } from './controls';
@@ -68,6 +69,8 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
     ? 'border-white/10 bg-neutral-900/80 text-white'
     : 'border-black/10 bg-white/90 text-neutral-900 dark:border-white/10 dark:bg-neutral-900/80 dark:text-white';
 
+  const meta = getAnimation(s.animationId);
+
   return (
     <aside
       className={`fixed right-0 top-0 z-40 flex h-full w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-l p-4 backdrop-blur-xl ${surface}`}
@@ -83,48 +86,64 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         </button>
       </div>
 
-      <Slider
-        label={t('settings.speed')}
-        value={s.speed}
-        min={0.1}
-        max={3}
-        step={0.1}
-        onChange={(v) => s.set('speed', v)}
-      />
-      <Slider
-        label={t('settings.count')}
-        value={s.count}
-        min={10}
-        max={1000}
-        step={10}
-        onChange={(v) => s.set('count', v)}
-      />
-      <Slider
-        label={t('settings.size')}
-        value={s.size}
-        min={5}
-        max={200}
-        step={1}
-        onChange={(v) => s.set('size', v)}
-      />
-      <Slider
-        label={t('settings.opacity')}
-        value={s.opacity}
-        min={0.1}
-        max={1}
-        step={0.05}
-        onChange={(v) => s.set('opacity', v)}
-      />
-      <Slider
-        label={t('settings.brightness')}
-        value={s.brightness}
-        min={0.2}
-        max={1}
-        step={0.05}
-        onChange={(v) => s.set('brightness', v)}
-      />
+      {isRelevant(meta, 'speed') && (
+        <Slider
+          label={t('settings.speed')}
+          value={s.speed}
+          min={0.1}
+          max={3}
+          step={0.1}
+          onChange={(v) => s.set('speed', v)}
+        />
+      )}
+      {isRelevant(meta, 'count') && (
+        <Slider
+          label={t('settings.count')}
+          value={s.count}
+          min={10}
+          max={1000}
+          step={10}
+          onChange={(v) => s.set('count', v)}
+        />
+      )}
+      {isRelevant(meta, 'size') && (
+        <Slider
+          label={t('settings.size')}
+          value={s.size}
+          min={5}
+          max={200}
+          step={1}
+          onChange={(v) => s.set('size', v)}
+        />
+      )}
+      {isRelevant(meta, 'opacity') && (
+        <Slider
+          label={t('settings.opacity')}
+          value={s.opacity}
+          min={0.1}
+          max={1}
+          step={0.05}
+          onChange={(v) => s.set('opacity', v)}
+        />
+      )}
+      {isRelevant(meta, 'brightness') && (
+        <Slider
+          label={t('settings.brightness')}
+          value={s.brightness}
+          min={0.2}
+          max={1}
+          step={0.05}
+          onChange={(v) => s.set('brightness', v)}
+        />
+      )}
 
-      <ColorInput label={t('settings.color')} value={s.color} onChange={(v) => s.set('color', v)} />
+      {isRelevant(meta, 'color') && (
+        <ColorInput
+          label={t('settings.color')}
+          value={s.color}
+          onChange={(v) => s.set('color', v)}
+        />
+      )}
       <ColorInput
         label={t('settings.background')}
         value={s.background}

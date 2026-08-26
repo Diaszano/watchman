@@ -61,8 +61,12 @@ export interface Animation {
   draw(frame: AnimationFrame): void;
 }
 
+export type PerModeControl = 'speed' | 'count' | 'size' | 'opacity' | 'brightness' | 'color';
+
 export interface AnimationMeta {
   id: string;
   /** i18n key suffix -> resolved via t(`anim.${id}`). */
   create: () => Animation;
+  /** Controls relevant for this mode; undefined means all apply. */
+  controls?: PerModeControl[];
 }
