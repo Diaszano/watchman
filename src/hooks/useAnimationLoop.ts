@@ -36,6 +36,20 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
     let fpsAccum = 0;
     let fpsFrames = 0;
     let autoState = initialAutoQualityState();
+    let visible = !document.hidden;
+
+    // Sync visible state with page visibility to pause/resume the loop.
+    // Browsers throttle rAF when hidden, but explicit pause avoids
+    // large dt spikes when the user returns to the tab.
+    const handleVisibilityChange = () => {
+      visible = !document.hidden;
+      if (visible && !raf) {
+        lastCallbackTime = performance.now();
+        lastRenderTime = lastCallbackTime;
+        raf = requestAnimationFrame(frame);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     let currentId = '';
     let instance: Animation | null = null;
@@ -80,6 +94,11 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
     ro.observe(canvas);
 
     const frame = (now: number) => {
+      if (!visible) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        return;
+      }
       raf = requestAnimationFrame(frame);
       const callbackElapsed = Math.max(0, (now - lastCallbackTime) / 1000);
       lastCallbackTime = now;
@@ -181,6 +200,7 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [canvasRef, paused, onFps, customImageUrl]);
 };
