@@ -179,7 +179,7 @@ describe('SettingsPanel', () => {
 
   it('persists image IDs without binary image content', () => {
     useSettings.persist.clearStorage();
-    useSettings.getState().patch({
+    useSettings.setState({
       backgroundImageId: 'background-image-42',
       customImageId: 'custom-image-84',
     });

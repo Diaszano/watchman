@@ -141,7 +141,7 @@ describe('useAnimationLoop', () => {
   it('runs Matrix in Economy with half-density animation work', () => {
     const { canvas } = createCanvas();
     const runFrame = installAnimationFrames();
-    useSettings.getState().patch({ animationId: 'matrix', renderQuality: 'economy' });
+    useSettings.setState({ animationId: 'matrix', renderQuality: 'economy' });
 
     const { unmount } = renderHook(() =>
       useAnimationLoop({ canvasRef: { current: canvas }, paused: false, customImageUrl: null }),

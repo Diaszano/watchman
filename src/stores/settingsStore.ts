@@ -28,11 +28,10 @@ export const defaultSettings: Settings = {
 
 export interface SettingsState extends Settings {
   set: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
-  patch: (partial: Partial<Settings>) => void;
   reset: () => void;
 }
 
-export type PersistedSettings = Omit<SettingsState, 'set' | 'patch' | 'reset'>;
+export type PersistedSettings = Omit<SettingsState, 'set' | 'reset'>;
 
 export function migrateSettings(persistedState: unknown, version: number): Partial<Settings> {
   const legacy = persistedState as Partial<Settings> & {
@@ -108,7 +107,6 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       ...defaultSettings,
       set: (key, value) => set({ [key]: value } as Partial<Settings>),
-      patch: (partial) => set(partial),
       reset: () => set({ ...defaultSettings, playlist: [...defaultSettings.playlist] }),
     }),
     {
