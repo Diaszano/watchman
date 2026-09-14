@@ -1,7 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { animations, getAnimation } from '@/animations';
 import { imageStorage } from '@/services/imageStorage';
 import type { PerModeControl } from '@/types';
@@ -18,8 +17,14 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const { t } = useI18n();
   const s = useSettings();
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const panelRef = useRef<HTMLElement>(null);
-  useFocusTrap({ active: open, containerRef: panelRef, onEscape: onClose });
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    else if (!open && dialog.open) dialog.close();
+  }, [open]);
 
   if (!open) return null;
 
@@ -76,12 +81,15 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const isRelevant = (control: PerModeControl) => !meta.controls || meta.controls.includes(control);
 
   return (
-    <aside
-      ref={panelRef}
-      role="dialog"
+    <dialog
+      ref={dialogRef}
       aria-modal="true"
       aria-labelledby="settings-panel-title"
-      className={`fixed right-0 top-0 z-40 flex h-full w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-l p-4 backdrop-blur-xl ${surface}`}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      className={`fixed right-0 top-0 z-40 m-0 flex h-full max-h-none w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-0 border-l p-4 backdrop-blur-xl ${surface}`}
     >
       <div className="mb-2 flex items-center justify-between">
         <h2 id="settings-panel-title" className="text-lg font-semibold">
@@ -288,7 +296,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
       <Button className="mt-4" onClick={() => void resetSettings()}>
         {t('settings.reset')}
       </Button>
-    </aside>
+    </dialog>
   );
 };
 
