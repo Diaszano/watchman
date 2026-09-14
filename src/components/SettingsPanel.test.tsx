@@ -184,8 +184,6 @@ describe('SettingsPanel', () => {
       customImageId: 'custom-image-84',
     });
 
-    vi.advanceTimersByTime(250);
-
     const serialized = localStorage.getItem('watchman-settings');
     expect(serialized).not.toBeNull();
     expect(serialized).toContain('"backgroundImageId":"background-image-42"');

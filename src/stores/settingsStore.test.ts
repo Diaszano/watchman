@@ -36,24 +36,15 @@ describe('settings persistence', () => {
     expect(JSON.stringify(migrated)).not.toContain('data:image');
   });
 
-  it('persists the final setting once after the debounce delay', () => {
+  it('persists settings synchronously to localStorage without binary image content', () => {
     const setItem = vi.spyOn(Storage.prototype, 'setItem');
     useSettings.persist.clearStorage();
     setItem.mockClear();
 
-    useSettings.getState().set('speed', 1.5);
-    useSettings.getState().set('speed', 2);
     useSettings.getState().set('speed', 2.5);
 
-    expect(setItem).not.toHaveBeenCalled();
-
-    vi.advanceTimersByTime(249);
-    expect(setItem).not.toHaveBeenCalled();
-
-    vi.advanceTimersByTime(1);
-    expect(setItem).toHaveBeenCalledTimes(1);
-
-    const [key, payload] = setItem.mock.calls[0] as [string, string];
+    expect(setItem).toHaveBeenCalled();
+    const [key, payload] = setItem.mock.calls.at(-1) as [string, string];
     const persisted = JSON.parse(payload) as { state: Record<string, unknown>; version: number };
     expect(key).toBe('watchman-settings');
     expect(persisted).toMatchObject({ state: { speed: 2.5 }, version: 2 });
@@ -64,14 +55,11 @@ describe('settings persistence', () => {
     expect(payload).not.toContain('data:image');
   });
 
-  it('does not recreate settings after clearStorage cancels a pending write', () => {
-    useSettings.persist.clearStorage();
+  it('clears persisted settings on clearStorage', () => {
     useSettings.getState().set('speed', 2);
+    expect(localStorage.getItem('watchman-settings')).not.toBeNull();
 
     useSettings.persist.clearStorage();
-    expect(localStorage.getItem('watchman-settings')).toBeNull();
-
-    vi.advanceTimersByTime(275);
     expect(localStorage.getItem('watchman-settings')).toBeNull();
   });
 

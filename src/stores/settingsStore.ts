@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist, type PersistStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Settings } from '@/types';
 
 export const defaultSettings: Settings = {
@@ -53,32 +53,11 @@ export function migrateSettings(persistedState: unknown, version: number): Parti
   return { ...defaultSettings, ...legacy };
 }
 
-const jsonStorage = createJSONStorage<PersistedSettings>(() => localStorage)!;
-const writeTimers = new Map<string, ReturnType<typeof setTimeout>>();
-
-const debouncedStorage: PersistStorage<PersistedSettings> = {
-  getItem: (name) => jsonStorage.getItem(name),
-  setItem: (name, value) => {
-    const previousTimer = writeTimers.get(name);
-    if (previousTimer) clearTimeout(previousTimer);
-
-    writeTimers.set(
-      name,
-      setTimeout(() => {
-        jsonStorage.setItem(name, value);
-        writeTimers.delete(name);
-      }, 250),
-    );
-  },
-  removeItem: (name) => {
-    const pendingTimer = writeTimers.get(name);
-    if (pendingTimer) clearTimeout(pendingTimer);
-    writeTimers.delete(name);
-    return jsonStorage.removeItem(name);
-  },
-};
-
-const partialize = ({ set, reset, ...persisted }: SettingsState): PersistedSettings => persisted;
+const partialize = ({
+  set: _set,
+  reset: _reset,
+  ...persisted
+}: SettingsState): PersistedSettings => persisted;
 
 export const useSettings = create<SettingsState>()(
   persist<SettingsState, [], [], PersistedSettings>(
@@ -89,7 +68,7 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: 'watchman-settings',
-      storage: debouncedStorage,
+      storage: createJSONStorage(() => localStorage),
       partialize,
       version: 2,
       migrate: (persistedState, version) =>
