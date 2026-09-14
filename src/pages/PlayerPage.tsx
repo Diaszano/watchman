@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ScreensaverBackground } from '@/components/ScreensaverBackground';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { ShortcutsOverlay } from '@/components/ShortcutsOverlay';
@@ -16,7 +15,6 @@ import { animationIds } from '@/animations';
 
 export const PlayerPage = () => {
   const { t } = useI18n();
-  const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [paused, setPaused] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -113,7 +111,12 @@ export const PlayerPage = () => {
         <Button variant="ghost" onClick={() => toggle()}>
           ⛶
         </Button>
-        <Button variant="ghost" onClick={() => navigate('/')}>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            window.location.hash = '';
+          }}
+        >
           ✕
         </Button>
       </div>

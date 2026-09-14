@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/Button';
 import { AnimationSelector } from '@/components/AnimationSelector';
@@ -9,7 +8,6 @@ import { useFullscreen } from '@/hooks/useFullscreen';
 
 export const HomePage = () => {
   const { t } = useI18n();
-  const navigate = useNavigate();
   const { toggle } = useFullscreen();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -38,7 +36,9 @@ export const HomePage = () => {
           <Button
             variant="primary"
             className="mt-2 px-10 py-3 text-lg"
-            onClick={() => navigate('/play')}
+            onClick={() => {
+              window.location.hash = '/play';
+            }}
           >
             ▶ {t('home.start')}
           </Button>
