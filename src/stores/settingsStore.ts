@@ -52,11 +52,8 @@ export function migrateSettings(persistedState: unknown, version: number): Parti
   return { ...defaultSettings, ...legacy };
 }
 
-const partialize = ({
-  set: _set,
-  reset: _reset,
-  ...persisted
-}: SettingsState): PersistedSettings => persisted;
+const partialize = ({ set: _set, reset: _reset, ...persisted }: SettingsState): PersistedSettings =>
+  persisted;
 
 export const useSettings = create<SettingsState>()(
   persist<SettingsState, [], [], PersistedSettings>(
