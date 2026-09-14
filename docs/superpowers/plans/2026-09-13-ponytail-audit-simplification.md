@@ -1,6 +1,6 @@
 # Ponytail Audit Simplification Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Eliminate over-engineering, speculative abstractions, hand-rolled standard APIs, redundant wrappers, and dead code identified in the repo-wide ponytail audit, shrinking the codebase by ~600 lines and reducing 2 heavy dependencies (`react-router-dom`, `playwright`).
 
@@ -30,12 +30,12 @@
 - Consumes: Standard React hooks (`useEffect`, `useRef`), `document.addEventListener('visibilitychange')`.
 - Produces: Correct visibility-change listener attached in the main hook effect without violating React Rules of Hooks.
 
-- [ ] **Step 1: Write failing test / verify existing failure**
+- [x] **Step 1: Write failing test / verify existing failure**
 
 Run: `npx vitest run src/hooks/useAnimationLoop.test.ts`
 Expected: FAIL with `Error: Invalid hook call. Hooks can only be called inside of the body of a function component.`
 
-- [ ] **Step 2: Replace nested `useEffect` with direct listener inside outer effect**
+- [x] **Step 2: Replace nested `useEffect` with direct listener inside outer effect**
 
 In `src/hooks/useAnimationLoop.ts`, remove the nested `useEffect` call inside the effect callback. Attach the `visibilitychange` listener directly in the outer effect:
 
@@ -53,12 +53,12 @@ In `src/hooks/useAnimationLoop.ts`, remove the nested `useEffect` call inside th
 ```
 Ensure `document.removeEventListener('visibilitychange', handleVisibilityChange)` is called in the outer effect cleanup function.
 
-- [ ] **Step 3: Run test to verify it passes**
+- [x] **Step 3: Run test to verify it passes**
 
 Run: `npx vitest run src/hooks/useAnimationLoop.test.ts`
 Expected: PASS (all tests in `useAnimationLoop.test.ts` passing).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/hooks/useAnimationLoop.ts
@@ -77,12 +77,12 @@ git commit -m "fix(loop): remove invalid nested useEffect hook in animation loop
 - Consumes: Standard `Math` functions.
 - Produces: Stripped `math.ts` with only genuinely used utilities (`rand`, `randInt`, `pick`).
 
-- [ ] **Step 1: Verify `clamp` has zero usages**
+- [x] **Step 1: Verify `clamp` has zero usages**
 
 Run: `git grep "clamp(" src/`
 Expected: Only the definition in `src/utils/math.ts`.
 
-- [ ] **Step 2: Delete `clamp` from `src/utils/math.ts`**
+- [x] **Step 2: Delete `clamp` from `src/utils/math.ts`**
 
 Remove lines 1-2 from `src/utils/math.ts`:
 ```typescript
@@ -91,12 +91,12 @@ Remove lines 1-2 from `src/utils/math.ts`:
 //   v < min ? min : v > max ? max : v;
 ```
 
-- [ ] **Step 3: Run typecheck and tests**
+- [x] **Step 3: Run typecheck and tests**
 
 Run: `npx tsc -b && npm test`
 Expected: PASS with 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/utils/math.ts
@@ -118,12 +118,12 @@ git commit -m "chore(utils): delete unused clamp helper"
 - Consumes: `SettingsState` in `settingsStore.ts`.
 - Produces: `SettingsState` exposing only `set` and `reset`. Tests using `useSettings.getState().patch(...)` updated to `useSettings.setState(...)` or multiple `set(...)`.
 
-- [ ] **Step 1: Inspect test usages of `patch`**
+- [x] **Step 1: Inspect test usages of `patch`**
 
 Check references with `git grep "\.patch(" src/`.
 Notice `patch` is only called in test files to set multiple mock values at once. In Zustand, `useSettings.setState({ ... })` already provides native partial state patching for tests without cluttering the production interface.
 
-- [ ] **Step 2: Remove `patch` from `SettingsState` and update test files to `setState`**
+- [x] **Step 2: Remove `patch` from `SettingsState` and update test files to `setState`**
 
 In `src/stores/settingsStore.ts`:
 ```typescript
@@ -135,12 +135,12 @@ export interface SettingsState extends Settings {
 Remove `patch: (partial) => set(partial)` from the store creator.
 In `SettingsPanel.test.tsx`, `useAnimationLoop.test.ts`, and `useKeyboardShortcuts.test.ts`, replace `useSettings.getState().patch(x)` with `useSettings.setState(x)`.
 
-- [ ] **Step 3: Run typecheck and tests**
+- [x] **Step 3: Run typecheck and tests**
 
 Run: `npx tsc -b && npm test`
 Expected: PASS with 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/stores/settingsStore.ts src/components/SettingsPanel.test.tsx src/hooks/useAnimationLoop.test.ts src/hooks/useKeyboardShortcuts.test.ts
@@ -159,11 +159,11 @@ git commit -m "refactor(store): delete unused patch action in favor of native se
 - Consumes: `SettingsState`
 - Produces: `PersistedSettings` without 23 lines of manual field copying.
 
-- [ ] **Step 1: Write test for persisted state shape**
+- [x] **Step 1: Write test for persisted state shape**
 
 In `src/stores/settingsStore.test.ts`, ensure test verifies all scalar settings persist into storage and action methods (`set`, `reset`) are omitted.
 
-- [ ] **Step 2: Replace manual object mapping with concise destructuring**
+- [x] **Step 2: Replace manual object mapping with concise destructuring**
 
 In `src/stores/settingsStore.ts`:
 ```typescript
@@ -171,12 +171,12 @@ In `src/stores/settingsStore.ts`:
 const partialize = ({ set, reset, ...persisted }: SettingsState): PersistedSettings => persisted;
 ```
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npx vitest run src/stores/settingsStore.test.ts`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/stores/settingsStore.ts
@@ -196,11 +196,11 @@ git commit -m "refactor(store): shrink partialize via rest destructuring"
 - Consumes: Standard `localStorage`.
 - Produces: Direct synchronous persistence on user settings changes; eliminates `writeTimers` map and emergency `pagehide`/`visibilitychange` localStorage flush handlers in `PlayerPage`.
 
-- [ ] **Step 1: Verify persistence expectations in `settingsStore.test.ts`**
+- [x] **Step 1: Verify persistence expectations in `settingsStore.test.ts`**
 
 Inspect `src/stores/settingsStore.test.ts` for any timer-advancing mocks (`vi.advanceTimersByTime(250)`).
 
-- [ ] **Step 2: Simplify storage in `settingsStore.ts` and remove pagehide flush in `PlayerPage.tsx`**
+- [x] **Step 2: Simplify storage in `settingsStore.ts` and remove pagehide flush in `PlayerPage.tsx`**
 
 In `src/stores/settingsStore.ts`:
 Replace `storage: debouncedStorage` with `storage: createJSONStorage(() => localStorage)`.
@@ -209,12 +209,12 @@ Delete `const writeTimers = new Map<...>()` and `const debouncedStorage = { ... 
 In `src/pages/PlayerPage.tsx`:
 Delete the entire second `useEffect` hook listening to `pagehide` and `visibilitychange` for flushing `localStorage.setItem('watchman-settings', ...)`.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npm test`
 Expected: All tests pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/stores/settingsStore.ts src/pages/PlayerPage.tsx
@@ -234,12 +234,12 @@ git commit -m "refactor(store): remove debounced storage and redundant pagehide 
 - Consumes: Standard `<canvas ref={canvasRef} className="absolute inset-0 z-10 block h-full w-full" />`.
 - Produces: Direct `<canvas>` element in `PlayerPage`, removing wrapper component file and forwardRef boilerplate.
 
-- [ ] **Step 1: Verify single caller**
+- [x] **Step 1: Verify single caller**
 
 Run: `git grep "ScreensaverCanvas" src/`
 Expected: Only in `src/pages/PlayerPage.tsx` and its own definition.
 
-- [ ] **Step 2: Inline `<canvas>` in `PlayerPage.tsx` and delete `ScreensaverCanvas.tsx`**
+- [x] **Step 2: Inline `<canvas>` in `PlayerPage.tsx` and delete `ScreensaverCanvas.tsx`**
 
 In `src/pages/PlayerPage.tsx`:
 Remove `import { ScreensaverCanvas } from '@/components/ScreensaverCanvas';`.
@@ -249,12 +249,12 @@ Replace `<ScreensaverCanvas ref={canvasRef} />` with:
 ```
 Delete `src/components/ScreensaverCanvas.tsx`.
 
-- [ ] **Step 3: Run tests and typecheck**
+- [x] **Step 3: Run tests and typecheck**
 
 Run: `npx tsc -b && npm test`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm src/components/ScreensaverCanvas.tsx
@@ -275,12 +275,12 @@ git commit -m "refactor(ui): inline ScreensaverCanvas wrapper into PlayerPage"
 - Consumes: Centered stage styles with gradient blur circles.
 - Produces: Direct `<main>` layout element in `HomePage.tsx`.
 
-- [ ] **Step 1: Verify single caller**
+- [x] **Step 1: Verify single caller**
 
 Run: `git grep "CenteredLayout" src/`
 Expected: Only in `src/pages/HomePage.tsx`.
 
-- [ ] **Step 2: Inline layout markup into `HomePage.tsx` and remove layout file**
+- [x] **Step 2: Inline layout markup into `HomePage.tsx` and remove layout file**
 
 In `src/pages/HomePage.tsx`:
 Replace `<CenteredLayout>...</CenteredLayout>` with:
@@ -295,12 +295,12 @@ Replace `<CenteredLayout>...</CenteredLayout>` with:
 ```
 Delete `src/layouts/CenteredLayout.tsx`.
 
-- [ ] **Step 3: Run tests and typecheck**
+- [x] **Step 3: Run tests and typecheck**
 
 Run: `npx tsc -b && npm test`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm src/layouts/CenteredLayout.tsx
@@ -321,12 +321,12 @@ git commit -m "refactor(ui): inline CenteredLayout into HomePage"
 - Consumes: `useSettings((s) => s.theme)`.
 - Produces: Direct 3-line `useEffect` in `App.tsx` toggling `'dark'` on `document.documentElement`.
 
-- [ ] **Step 1: Verify single caller**
+- [x] **Step 1: Verify single caller**
 
 Run: `git grep "useTheme" src/`
 Expected: Only `src/App.tsx`.
 
-- [ ] **Step 2: Inline theme effect into `src/App.tsx` and delete `src/hooks/useTheme.ts`**
+- [x] **Step 2: Inline theme effect into `src/App.tsx` and delete `src/hooks/useTheme.ts`**
 
 In `src/App.tsx`:
 ```tsx
@@ -341,12 +341,12 @@ useEffect(() => {
 ```
 Delete `src/hooks/useTheme.ts`.
 
-- [ ] **Step 3: Run tests and typecheck**
+- [x] **Step 3: Run tests and typecheck**
 
 Run: `npx tsc -b && npm test`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm src/hooks/useTheme.ts
@@ -371,11 +371,11 @@ git commit -m "refactor(theme): inline useTheme effect into App"
 - Consumes: `raw: number`, `minimum: number`, `renderDensity: number`.
 - Produces: Exported `densityCount` in `src/utils/math.ts`, removing duplicate definitions from all 5 animation files.
 
-- [ ] **Step 1: Add unit test in `src/animations/rendering.test.ts`**
+- [x] **Step 1: Add unit test in `src/animations/rendering.test.ts`**
 
 Verify `densityCount(100, 10, 0.5)` yields `50`, and `densityCount(10, 10, 0.5)` yields minimum `10`.
 
-- [ ] **Step 2: Export `densityCount` in `src/utils/math.ts` and import across animations**
+- [x] **Step 2: Export `densityCount` in `src/utils/math.ts` and import across animations**
 
 In `src/utils/math.ts`:
 ```typescript
@@ -384,12 +384,12 @@ export const densityCount = (raw: number, minimum: number, renderDensity: number
 ```
 Remove local `densityCount` declarations from `bubbles.ts`, `neon.ts`, `particles.ts`, `shapes.ts`, and `starfield.ts`, importing from `@/utils/math`.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npx vitest run src/animations/rendering.test.ts`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/utils/math.ts src/animations/bubbles.ts src/animations/neon.ts src/animations/particles.ts src/animations/shapes.ts src/animations/starfield.ts
@@ -411,12 +411,12 @@ git commit -m "refactor(animations): deduplicate densityCount helper into math u
 - Consumes: `Settings`, `animationIds`.
 - Produces: `getNextInPlaylist` exported directly from `@/animations`, eliminating circular/pass-through re-export file `playlist.ts`.
 
-- [ ] **Step 1: Check imports of `playlist.ts`**
+- [x] **Step 1: Check imports of `playlist.ts`**
 
 Run: `git grep "animations/playlist" src/`
 Expected: `src/hooks/useAnimationLoop.ts`, `src/animations/playlist.test.ts`.
 
-- [ ] **Step 2: Move `getNextInPlaylist` to `src/animations/index.ts` and delete `playlist.ts`**
+- [x] **Step 2: Move `getNextInPlaylist` to `src/animations/index.ts` and delete `playlist.ts`**
 
 In `src/animations/index.ts`:
 ```typescript
@@ -434,12 +434,12 @@ export const getNextInPlaylist = (s: Settings): string => {
 ```
 Update imports in `useAnimationLoop.ts` and `playlist.test.ts` to import from `@/animations`. Delete `src/animations/playlist.ts`.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npx vitest run src/animations/playlist.test.ts`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm src/animations/playlist.ts
@@ -461,12 +461,12 @@ git commit -m "refactor(animations): merge getNextInPlaylist into animations mod
 - Consumes: `meta: AnimationMeta`, `control: PerModeControl`.
 - Produces: Inline predicate in `SettingsPanel.tsx`: `const isRelevant = (c: PerModeControl) => !meta.controls || meta.controls.includes(c)`.
 
-- [ ] **Step 1: Verify single caller**
+- [x] **Step 1: Verify single caller**
 
 Run: `git grep "isRelevant" src/`
 Expected: Only `src/components/SettingsPanel.tsx` and its test.
 
-- [ ] **Step 2: Inline predicate into `SettingsPanel.tsx` and delete separate module and test**
+- [x] **Step 2: Inline predicate into `SettingsPanel.tsx` and delete separate module and test**
 
 In `src/components/SettingsPanel.tsx`:
 Remove `import { isRelevant } from '@/animations/relevantControls';`.
@@ -476,12 +476,12 @@ const isRelevant = (control: PerModeControl) => !meta.controls || meta.controls.
 ```
 Delete `src/animations/relevantControls.ts` and `src/animations/relevantControls.test.ts`.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npx vitest run src/components/SettingsPanel.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm src/animations/relevantControls.ts src/animations/relevantControls.test.ts
@@ -503,12 +503,12 @@ git commit -m "refactor(settings): inline isRelevant predicate and remove isolat
 - Consumes: `file: File`.
 - Produces: Image size and type validation localized inside `imageStorage.ts`.
 
-- [ ] **Step 1: Verify single caller**
+- [x] **Step 1: Verify single caller**
 
 Run: `git grep "validateImageFile" src/`
 Expected: Only `src/services/imageStorage.ts` and `src/utils/file.test.ts`.
 
-- [ ] **Step 2: Inline validation into `imageStorage.ts` and delete `file.ts` / `file.test.ts`**
+- [x] **Step 2: Inline validation into `imageStorage.ts` and delete `file.ts` / `file.test.ts`**
 
 In `src/services/imageStorage.ts`:
 ```typescript
@@ -521,12 +521,12 @@ const validateImageFile = (file: File): void => {
 ```
 Delete `src/utils/file.ts` and `src/utils/file.test.ts`.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npx vitest run src/services/imageStorage.test.ts`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm src/utils/file.ts src/utils/file.test.ts
@@ -549,11 +549,11 @@ git commit -m "refactor(storage): inline validateImageFile into imageStorage"
 - Consumes: `hex: string`, `alpha: number` (0..1).
 - Produces: Standard 8-digit hex `#rrggbbaa` (e.g. `#38bdf880`), eliminating regex parsing and parseInt allocations.
 
-- [ ] **Step 1: Write test for 8-digit hex with alpha formatting**
+- [x] **Step 1: Write test for 8-digit hex with alpha formatting**
 
 In `src/utils/color.test.ts`, verify `rgba('#38bdf8', 0.5)` produces valid Canvas/CSS 8-digit hex `#38bdf880` or rgba.
 
-- [ ] **Step 2: Simplify `rgba` implementation without regex**
+- [x] **Step 2: Simplify `rgba` implementation without regex**
 
 In `src/utils/color.ts`:
 ```typescript
@@ -567,12 +567,12 @@ export const rgba = (hex: string, alpha: number): string => {
 ```
 Remove `hexToRgb`. Update tests in `color.test.ts` to test `rgba` output.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npx vitest run src/utils/color.test.ts`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/utils/color.ts src/utils/color.test.ts
@@ -592,12 +592,12 @@ git commit -m "refactor(color): replace regex hex parser with native 8-digit hex
 - Consumes: Browser native `<dialog>` element with `.showModal()`, `.close()`, and `cancel` event.
 - Produces: Accessible modal drawer with browser-native focus trapping, Tab/Shift-Tab cycling, and Escape key handling out of the box.
 
-- [ ] **Step 1: Inspect SettingsPanel accessibility tests**
+- [x] **Step 1: Inspect SettingsPanel accessibility tests**
 
 Run: `npx vitest run src/components/SettingsPanel.test.tsx`
 Check tests verifying dialog role and escape key behavior.
 
-- [ ] **Step 2: Refactor `SettingsPanel` to use `<dialog>` and remove `useFocusTrap`**
+- [x] **Step 2: Refactor `SettingsPanel` to use `<dialog>` and remove `useFocusTrap`**
 
 In `src/components/SettingsPanel.tsx`:
 Use a `dialogRef = useRef<HTMLDialogElement>(null)`. When `open` changes:
@@ -612,12 +612,12 @@ useEffect(() => {
 Handle `onCancel={(e) => { e.preventDefault(); onClose(); }}` on the `<dialog>`.
 Remove `useFocusTrap` and delete `src/hooks/useFocusTrap.ts`.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npx vitest run src/components/SettingsPanel.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm src/hooks/useFocusTrap.ts
@@ -641,7 +641,7 @@ git commit -m "refactor(a11y): replace custom useFocusTrap with native HTML5 dia
 - Consumes: `window.location.hash` and `hashchange` event.
 - Produces: Zero-dependency 2-page navigation (`#/play` vs Home), saving bundle size and eliminating `react-router-dom`.
 
-- [ ] **Step 1: Create minimal hook `useHashRoute` or local hash listener**
+- [x] **Step 1: Create minimal hook `useHashRoute` or local hash listener**
 
 In `src/App.tsx`:
 ```tsx
@@ -662,19 +662,19 @@ export const App = () => {
 };
 ```
 
-- [ ] **Step 2: Update navigation callers and remove `react-router-dom`**
+- [x] **Step 2: Update navigation callers and remove `react-router-dom`**
 
 In `HomePage.tsx`: replace `navigate('/play')` with `window.location.hash = '/play'`.
 In `PlayerPage.tsx`: replace `navigate('/')` with `window.location.hash = ''`.
 Remove `react-router-dom` from `package.json`.
 In `vite.config.ts`: remove `if (id.includes('/node_modules/react-router-dom/')) return 'router-vendor';`.
 
-- [ ] **Step 3: Run tests and typecheck**
+- [x] **Step 3: Run tests and typecheck**
 
 Run: `npm uninstall react-router-dom && npx tsc -b && npm test`
 Expected: PASS with 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add package.json package-lock.json src/App.tsx src/pages/HomePage.tsx src/pages/PlayerPage.tsx vite.config.ts
@@ -694,21 +694,21 @@ git commit -m "refactor(router): replace react-router-dom with native window has
 - Consumes: None (screenshots `docs/home.png` and `docs/player.png` are already committed in git and never generated in CI).
 - Produces: Removal of `playwright` devDependency (~150MB+ download and browser management complexity).
 
-- [ ] **Step 1: Verify `capture-screenshots.mjs` is unreferenced in scripts and CI**
+- [x] **Step 1: Verify `capture-screenshots.mjs` is unreferenced in scripts and CI**
 
 Run: `git grep "capture-screenshots" .`
 Expected: Zero references in `package.json` scripts and zero in `.github/workflows`.
 
-- [ ] **Step 2: Remove script and uninstall playwright**
+- [x] **Step 2: Remove script and uninstall playwright**
 
 Run: `rm scripts/capture-screenshots.mjs && npm uninstall playwright`
 
-- [ ] **Step 3: Verify build and tests**
+- [x] **Step 3: Verify build and tests**
 
 Run: `npm run build && npm test && npm run test:release`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm scripts/capture-screenshots.mjs
@@ -734,7 +734,7 @@ git commit -m "chore: remove standalone playwright screenshot capture script and
 - Consumes: `window.devicePixelRatio`, CSS dimensions.
 - Produces: Direct clean DPR capping `const dpr = Math.min(window.devicePixelRatio || 1, 2)`. Eliminates per-frame `performance.now()` instrumentation, multi-tier state machine, overBudget hysteresis counters, and ~250 lines of complex scaling code.
 
-- [ ] **Step 1: Simplify canvas dimension calculation in `useAnimationLoop.ts`**
+- [x] **Step 1: Simplify canvas dimension calculation in `useAnimationLoop.ts`**
 
 In `useAnimationLoop.ts`:
 ```typescript
@@ -750,19 +750,19 @@ const resize = () => {
 Remove `drawStartedAt`, `drawMs`, `nextAutoQualityState`, `autoState`, and `QUALITY_PROFILES`.
 Pass fixed `renderDensity = 1` to `instance.draw`.
 
-- [ ] **Step 2: Clean up types, settings store, and UI controls**
+- [x] **Step 2: Clean up types, settings store, and UI controls**
 
 Remove `RenderQuality`, `RenderQualityState`, `RenderQualityDecision` from `src/types/index.ts`.
 Remove `renderQuality` from `Settings` interface and store defaults.
 Delete `src/utils/renderQuality.ts` and `src/utils/renderQuality.test.ts`.
 Update `useAnimationLoop.test.ts` to test clean DPR rendering.
 
-- [ ] **Step 3: Run full verification suite**
+- [x] **Step 3: Run full verification suite**
 
 Run: `npx tsc -b && npm test && npm run lint`
 Expected: PASS with 0 errors and all tests passing.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git rm src/utils/renderQuality.ts src/utils/renderQuality.test.ts
@@ -774,7 +774,7 @@ git commit -m "refactor(quality): replace dynamic quality PID state machine with
 
 ## Plan Verification Checklist
 
-- [ ] All 17 points from the ponytail audit have an explicit task.
-- [ ] Every task has clear file paths, interface definitions, and test expectations.
-- [ ] No vague placeholders ("TBD", "TODO", "implement later").
-- [ ] All verification steps run non-interactive test commands (`npm test`, `npx tsc -b`, `npm run lint`).
+- [x] All 17 points from the ponytail audit have an explicit task.
+- [x] Every task has clear file paths, interface definitions, and test expectations.
+- [x] No vague placeholders ("TBD", "TODO", "implement later").
+- [x] All verification steps run non-interactive test commands (`npm test`, `npx tsc -b`, `npm run lint`).
