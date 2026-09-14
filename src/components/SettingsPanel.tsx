@@ -184,17 +184,6 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         ]}
         onChange={(v) => s.set('fpsLimit', Number(v))}
       />
-      <Select
-        label={t('settings.quality')}
-        value={s.renderQuality}
-        options={[
-          { value: 'auto', label: t('settings.quality.auto') },
-          { value: 'economy', label: t('settings.quality.economy') },
-          { value: 'balanced', label: t('settings.quality.balanced') },
-          { value: 'high', label: t('settings.quality.high') },
-        ]}
-        onChange={(v) => s.set('renderQuality', v)}
-      />
       <Toggle
         label={t('settings.showFps')}
         value={s.showFps}

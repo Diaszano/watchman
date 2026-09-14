@@ -1,20 +1,6 @@
 export type Theme = 'light' | 'dark';
 export type Lang = 'en' | 'pt';
 export type PlaylistMode = 'sequential' | 'random';
-export type RenderQuality = 'auto' | 'economy' | 'balanced' | 'high';
-export type RenderQualityLevel = Exclude<RenderQuality, 'auto'>;
-
-export interface RenderQualityState {
-  level: RenderQualityLevel;
-  overBudgetFrames: number;
-  headroomFrames: number;
-}
-
-export interface RenderQualityDecision {
-  dpr: number;
-  width: number;
-  height: number;
-}
 
 /** User-tunable settings shared by all animations. Persisted to LocalStorage. */
 export interface Settings {
@@ -36,7 +22,6 @@ export interface Settings {
   playlist: string[]; // animation ids
   playlistMode: PlaylistMode;
   customText: string;
-  renderQuality: RenderQuality;
   backgroundImageId: string | null;
   customImageId: string | null;
 }

@@ -111,14 +111,6 @@ describe('SettingsPanel', () => {
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
   });
 
-  it('switches rendering quality to High', () => {
-    render(<SettingsPanel open onClose={() => undefined} />);
-
-    fireEvent.change(screen.getByDisplayValue('Auto'), { target: { value: 'high' } });
-
-    expect(useSettings.getState().renderQuality).toBe('high');
-  });
-
   it('renders localized theme select options', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
 

@@ -104,8 +104,8 @@ describe('useAnimationLoop', () => {
     unmount();
   });
 
-  it('keeps default Auto canvas allocation within twelve million pixels', () => {
-    const { canvas } = createCanvas(3_840, 2_160);
+  it('caps canvas allocation to DPR 2 and passes density 1', () => {
+    const { canvas } = createCanvas(800, 600);
     const runFrame = installAnimationFrames();
     Object.defineProperty(window, 'devicePixelRatio', { value: 3, configurable: true });
 
@@ -114,42 +114,9 @@ describe('useAnimationLoop', () => {
     );
     runFrame(17);
 
-    expect(canvas.width * canvas.height).toBeLessThanOrEqual(12_000_000);
-    expect(draw.mock.calls[0]?.[0].renderDensity).toBe(0.75);
-    unmount();
-  });
-
-  it('resizes the canvas when the selected quality profile changes', () => {
-    const { canvas } = createCanvas(3_840, 2_160);
-    const runFrame = installAnimationFrames();
-    Object.defineProperty(window, 'devicePixelRatio', { value: 3, configurable: true });
-    useSettings.getState().set('renderQuality', 'high');
-
-    const { unmount } = renderHook(() =>
-      useAnimationLoop({ canvasRef: { current: canvas }, paused: false, customImageUrl: null }),
-    );
-    expect(canvas.width * canvas.height).toBeGreaterThan(12_000_000);
-
-    useSettings.getState().set('renderQuality', 'economy');
-    runFrame(17);
-
-    expect(canvas.width * canvas.height).toBeLessThanOrEqual(6_000_000);
-    expect(draw.mock.calls[0]?.[0].renderDensity).toBe(0.5);
-    unmount();
-  });
-
-  it('runs Matrix in Economy with half-density animation work', () => {
-    const { canvas } = createCanvas();
-    const runFrame = installAnimationFrames();
-    useSettings.setState({ animationId: 'matrix', renderQuality: 'economy' });
-
-    const { unmount } = renderHook(() =>
-      useAnimationLoop({ canvasRef: { current: canvas }, paused: false, customImageUrl: null }),
-    );
-    runFrame(17);
-
-    expect(getAnimation).toHaveBeenCalledWith('matrix');
-    expect(draw.mock.calls[0]?.[0].renderDensity).toBe(0.5);
+    expect(canvas.width).toBe(1600);
+    expect(canvas.height).toBe(1200);
+    expect(draw.mock.calls[0]?.[0].renderDensity).toBe(1);
     unmount();
   });
 

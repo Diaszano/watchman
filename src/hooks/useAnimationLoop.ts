@@ -2,12 +2,6 @@ import { useEffect, type RefObject } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { getAnimation, getNextInPlaylist } from '@/animations';
 import type { Animation } from '@/types';
-import {
-  getCanvasDimensions,
-  initialAutoQualityState,
-  nextAutoQualityState,
-  QUALITY_PROFILES,
-} from '@/utils/renderQuality';
 
 interface Options {
   canvasRef: RefObject<HTMLCanvasElement | null>;
@@ -35,7 +29,6 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
     let accum = 0; // fps-cap accumulator
     let fpsAccum = 0;
     let fpsFrames = 0;
-    let autoState = initialAutoQualityState();
     let visible = !document.hidden;
 
     // Sync visible state with page visibility to pause/resume the loop.
@@ -68,29 +61,17 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
 
     let cssW = 0;
     let cssH = 0;
-    let lastSizedLevel = autoState.level;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
     const resize = () => {
       cssW = canvas.clientWidth;
       cssH = canvas.clientHeight;
-      if (cssW <= 0 || cssH <= 0) return 1;
-
-      const quality = useSettings.getState().renderQuality;
-      const level = quality === 'auto' ? autoState.level : quality;
-      lastSizedLevel = level;
-      const dimensions = getCanvasDimensions({
-        cssWidth: cssW,
-        cssHeight: cssH,
-        deviceDpr: window.devicePixelRatio || 1,
-        level,
-      });
-      if (canvas.width !== dimensions.width) canvas.width = dimensions.width;
-      if (canvas.height !== dimensions.height) canvas.height = dimensions.height;
-      return dimensions.dpr;
+      if (cssW <= 0 || cssH <= 0) return;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
     };
-    let dpr = resize();
-    const ro = new ResizeObserver(() => {
-      dpr = resize();
-    });
+    resize();
+    const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
     const frame = (now: number) => {
@@ -105,7 +86,6 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
       if (paused) return;
 
       const s = useSettings.getState();
-      const intervalMs = s.fpsLimit > 0 ? 1_000 / s.fpsLimit : 1_000 / 60;
 
       // FPS cap.
       if (s.fpsLimit > 0) {
@@ -142,9 +122,6 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
         instance = getAnimation(currentId).create();
       }
 
-      const effectiveLevel = s.renderQuality === 'auto' ? autoState.level : s.renderQuality;
-      if (effectiveLevel !== lastSizedLevel) dpr = resize();
-
       // Anti burn-in: slow global drift so nothing sits still.
       const brightness = s.brightness;
       if (s.antiBurnIn) {
@@ -176,7 +153,6 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
       ctx.setTransform(dpr, 0, 0, dpr, offX * dpr, offY * dpr);
       // Clear a margin larger than the viewport so drift never exposes edges.
       ctx.clearRect(-30, -30, cssW + 60, cssH + 60);
-      const drawStartedAt = performance.now();
       instance.draw({
         ctx,
         width: cssW,
@@ -184,16 +160,9 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
         dt,
         time,
         settings: s,
-        renderDensity: QUALITY_PROFILES[effectiveLevel].density,
+        renderDensity: 1,
         customImageUrl,
       });
-      const drawMs = performance.now() - drawStartedAt;
-      if (s.renderQuality === 'auto') {
-        const nextState = nextAutoQualityState(autoState, drawMs, intervalMs);
-        const levelChanged = nextState.level !== autoState.level;
-        autoState = nextState;
-        if (levelChanged) dpr = resize();
-      }
     };
 
     raf = requestAnimationFrame(frame);

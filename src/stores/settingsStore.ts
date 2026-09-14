@@ -21,7 +21,6 @@ export const defaultSettings: Settings = {
   playlist: [],
   playlistMode: 'sequential',
   customText: 'Watchman',
-  renderQuality: 'auto',
   backgroundImageId: null,
   customImageId: null,
 };
