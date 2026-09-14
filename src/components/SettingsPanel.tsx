@@ -3,8 +3,8 @@ import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { animations, getAnimation } from '@/animations';
-import { isRelevant } from '@/animations/relevantControls';
 import { imageStorage } from '@/services/imageStorage';
+import type { PerModeControl } from '@/types';
 import { Button } from './Button';
 import { ColorInput, Select, Slider, Toggle } from './controls';
 
@@ -73,6 +73,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
     : 'border-black/10 bg-white/90 text-neutral-900 dark:border-white/10 dark:bg-neutral-900/80 dark:text-white';
 
   const meta = getAnimation(s.animationId);
+  const isRelevant = (control: PerModeControl) => !meta.controls || meta.controls.includes(control);
 
   return (
     <aside
@@ -95,7 +96,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         </button>
       </div>
 
-      {isRelevant(meta, 'speed') && (
+      {isRelevant('speed') && (
         <Slider
           label={t('settings.speed')}
           value={s.speed}
@@ -105,7 +106,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
           onChange={(v) => s.set('speed', v)}
         />
       )}
-      {isRelevant(meta, 'count') && (
+      {isRelevant('count') && (
         <Slider
           label={t('settings.count')}
           value={s.count}
@@ -115,7 +116,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
           onChange={(v) => s.set('count', v)}
         />
       )}
-      {isRelevant(meta, 'size') && (
+      {isRelevant('size') && (
         <Slider
           label={t('settings.size')}
           value={s.size}
@@ -125,7 +126,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
           onChange={(v) => s.set('size', v)}
         />
       )}
-      {isRelevant(meta, 'opacity') && (
+      {isRelevant('opacity') && (
         <Slider
           label={t('settings.opacity')}
           value={s.opacity}
@@ -135,7 +136,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
           onChange={(v) => s.set('opacity', v)}
         />
       )}
-      {isRelevant(meta, 'brightness') && (
+      {isRelevant('brightness') && (
         <Slider
           label={t('settings.brightness')}
           value={s.brightness}
@@ -146,7 +147,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         />
       )}
 
-      {isRelevant(meta, 'color') && (
+      {isRelevant('color') && (
         <ColorInput
           label={t('settings.color')}
           value={s.color}
