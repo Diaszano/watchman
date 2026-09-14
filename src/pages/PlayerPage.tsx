@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ScreensaverCanvas } from '@/components/ScreensaverCanvas';
 import { ScreensaverBackground } from '@/components/ScreensaverBackground';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { ShortcutsOverlay } from '@/components/ShortcutsOverlay';
@@ -82,7 +81,7 @@ export const PlayerPage = () => {
   return (
     <div className={`relative h-full w-full bg-black ${controlsShown ? '' : 'cursor-none'}`}>
       <ScreensaverBackground />
-      <ScreensaverCanvas ref={canvasRef} />
+      <canvas ref={canvasRef} className="absolute inset-0 z-10 block h-full w-full" />
 
       {showFps && <FpsMonitor fps={fps} />}
 
