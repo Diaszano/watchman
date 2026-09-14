@@ -59,6 +59,8 @@ describe('settings persistence', () => {
     expect(persisted).toMatchObject({ state: { speed: 2.5 }, version: 2 });
     expect(persisted.state).not.toHaveProperty('backgroundImage');
     expect(persisted.state).not.toHaveProperty('customImage');
+    expect(persisted.state).not.toHaveProperty('set');
+    expect(persisted.state).not.toHaveProperty('reset');
     expect(payload).not.toContain('data:image');
   });
 

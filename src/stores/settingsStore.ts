@@ -78,29 +78,7 @@ const debouncedStorage: PersistStorage<PersistedSettings> = {
   },
 };
 
-const partialize = (state: SettingsState): PersistedSettings => ({
-  animationId: state.animationId,
-  speed: state.speed,
-  count: state.count,
-  size: state.size,
-  color: state.color,
-  background: state.background,
-  gradientBackground: state.gradientBackground,
-  opacity: state.opacity,
-  brightness: state.brightness,
-  fpsLimit: state.fpsLimit,
-  theme: state.theme,
-  lang: state.lang,
-  showFps: state.showFps,
-  antiBurnIn: state.antiBurnIn,
-  autoSwitch: state.autoSwitch,
-  playlist: state.playlist,
-  playlistMode: state.playlistMode,
-  customText: state.customText,
-  renderQuality: state.renderQuality,
-  backgroundImageId: state.backgroundImageId,
-  customImageId: state.customImageId,
-});
+const partialize = ({ set, reset, ...persisted }: SettingsState): PersistedSettings => persisted;
 
 export const useSettings = create<SettingsState>()(
   persist<SettingsState, [], [], PersistedSettings>(
