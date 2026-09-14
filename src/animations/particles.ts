@@ -1,5 +1,5 @@
 import type { Animation, AnimationFrame } from '@/types';
-import { rand } from '@/utils/math';
+import { densityCount, rand } from '@/utils/math';
 
 interface P {
   x: number;
@@ -7,9 +7,6 @@ interface P {
   vx: number;
   vy: number;
 }
-
-const densityCount = (raw: number, minimum: number, renderDensity: number) =>
-  Math.max(minimum, Math.round(raw * renderDensity));
 
 export const createParticles = (): Animation => {
   const ps: P[] = [];

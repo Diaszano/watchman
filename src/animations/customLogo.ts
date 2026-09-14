@@ -1,4 +1,5 @@
 import type { Animation, AnimationFrame } from '@/types';
+import { translate } from '@/services/i18n';
 import { rand } from '@/utils/math';
 
 export const createCustomLogo = (): Animation => {
@@ -23,7 +24,7 @@ export const createCustomLogo = (): Animation => {
         ctx.font = `bold ${settings.size}px system-ui, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('Upload a logo in Settings', width / 2, height / 2);
+        ctx.fillText(translate(settings.lang, 'logo.uploadPrompt'), width / 2, height / 2);
         return;
       }
 

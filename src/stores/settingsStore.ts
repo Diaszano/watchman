@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist, type PersistStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Settings } from '@/types';
 
 export const defaultSettings: Settings = {
@@ -21,18 +21,16 @@ export const defaultSettings: Settings = {
   playlist: [],
   playlistMode: 'sequential',
   customText: 'Watchman',
-  renderQuality: 'auto',
   backgroundImageId: null,
   customImageId: null,
 };
 
 export interface SettingsState extends Settings {
   set: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
-  patch: (partial: Partial<Settings>) => void;
   reset: () => void;
 }
 
-export type PersistedSettings = Omit<SettingsState, 'set' | 'patch' | 'reset'>;
+export type PersistedSettings = Omit<SettingsState, 'set' | 'reset'>;
 
 export function migrateSettings(persistedState: unknown, version: number): Partial<Settings> {
   const legacy = persistedState as Partial<Settings> & {
@@ -54,66 +52,19 @@ export function migrateSettings(persistedState: unknown, version: number): Parti
   return { ...defaultSettings, ...legacy };
 }
 
-const jsonStorage = createJSONStorage<PersistedSettings>(() => localStorage)!;
-const writeTimers = new Map<string, ReturnType<typeof setTimeout>>();
-
-const debouncedStorage: PersistStorage<PersistedSettings> = {
-  getItem: (name) => jsonStorage.getItem(name),
-  setItem: (name, value) => {
-    const previousTimer = writeTimers.get(name);
-    if (previousTimer) clearTimeout(previousTimer);
-
-    writeTimers.set(
-      name,
-      setTimeout(() => {
-        jsonStorage.setItem(name, value);
-        writeTimers.delete(name);
-      }, 250),
-    );
-  },
-  removeItem: (name) => {
-    const pendingTimer = writeTimers.get(name);
-    if (pendingTimer) clearTimeout(pendingTimer);
-    writeTimers.delete(name);
-    return jsonStorage.removeItem(name);
-  },
-};
-
-const partialize = (state: SettingsState): PersistedSettings => ({
-  animationId: state.animationId,
-  speed: state.speed,
-  count: state.count,
-  size: state.size,
-  color: state.color,
-  background: state.background,
-  gradientBackground: state.gradientBackground,
-  opacity: state.opacity,
-  brightness: state.brightness,
-  fpsLimit: state.fpsLimit,
-  theme: state.theme,
-  lang: state.lang,
-  showFps: state.showFps,
-  antiBurnIn: state.antiBurnIn,
-  autoSwitch: state.autoSwitch,
-  playlist: state.playlist,
-  playlistMode: state.playlistMode,
-  customText: state.customText,
-  renderQuality: state.renderQuality,
-  backgroundImageId: state.backgroundImageId,
-  customImageId: state.customImageId,
-});
+const partialize = ({ set: _set, reset: _reset, ...persisted }: SettingsState): PersistedSettings =>
+  persisted;
 
 export const useSettings = create<SettingsState>()(
   persist<SettingsState, [], [], PersistedSettings>(
     (set) => ({
       ...defaultSettings,
       set: (key, value) => set({ [key]: value } as Partial<Settings>),
-      patch: (partial) => set(partial),
       reset: () => set({ ...defaultSettings, playlist: [...defaultSettings.playlist] }),
     }),
     {
       name: 'watchman-settings',
-      storage: debouncedStorage,
+      storage: createJSONStorage(() => localStorage),
       partialize,
       version: 2,
       migrate: (persistedState, version) =>

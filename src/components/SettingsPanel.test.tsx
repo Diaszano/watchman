@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { imageStorage } from '@/services/imageStorage';
 import { defaultSettings, useSettings } from '@/stores/settingsStore';
@@ -111,22 +111,51 @@ describe('SettingsPanel', () => {
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
   });
 
-  it('switches rendering quality to High', () => {
+  it('renders localized theme select options', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
 
-    fireEvent.change(screen.getByDisplayValue('Auto'), { target: { value: 'high' } });
+    const options = within(screen.getByDisplayValue('Dark')).getAllByRole('option');
 
-    expect(useSettings.getState().renderQuality).toBe('high');
+    expect(options.map((option) => option.textContent)).toEqual(['Dark', 'Light']);
+  });
+
+  it('renders a theme-aware light surface when not used as an overlay', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+
+    expect(screen.getByRole('dialog')).toHaveClass('bg-white/90');
+    expect(screen.getByRole('dialog')).toHaveClass('dark:bg-neutral-900/80');
+  });
+
+  it('keeps the dark glass look when rendered as an overlay', () => {
+    render(<SettingsPanel open onClose={() => undefined} overlay />);
+
+    expect(screen.getByRole('dialog')).toHaveClass('bg-neutral-900/80');
+    expect(screen.getByRole('dialog')).toHaveClass('text-white');
+  });
+
+  it('renders modal dialog semantics when opened', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveAttribute('aria-labelledby', 'settings-panel-title');
+  });
+
+  it('calls onClose when cancel event is triggered on dialog', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open onClose={onClose} />);
+
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('persists image IDs without binary image content', () => {
     useSettings.persist.clearStorage();
-    useSettings.getState().patch({
+    useSettings.setState({
       backgroundImageId: 'background-image-42',
       customImageId: 'custom-image-84',
     });
-
-    vi.advanceTimersByTime(250);
 
     const serialized = localStorage.getItem('watchman-settings');
     expect(serialized).not.toBeNull();

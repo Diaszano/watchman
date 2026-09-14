@@ -22,11 +22,14 @@ Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, P
 - **10 animation modes** — DVD Logo, Digital Clock, Particle System, Floating Bubbles, Starfield (parallax), Matrix Rain, Neon Lines, Geometric Shapes, Custom Logo (image upload), Custom Text.
 - **Anti burn-in engine** — global drift and per-mode motion so nothing sits static.
 - **Live configuration** — speed, object count, size, colors, background (solid / gradient / image), opacity, brightness, FPS cap. Every control updates in real time.
+- **Per-animation relevant controls** — each mode only surfaces the settings that affect it.
 - **Automatic playlist** — pick favorites, set a switch interval, sequential or random.
 - **Screen Wake Lock API** — keeps the display awake while protection runs; auto-reacquires; degrades gracefully with a notice when unsupported.
 - **Fullscreen API**, **keyboard shortcuts**, **auto-hiding UI**, and an optional **FPS monitor**.
+- **In-app keyboard shortcut overlay** — press `H` at any time to see every shortcut.
 - **Persistent preferences** — everything is saved to LocalStorage and restored on next visit.
-- **Light / dark themes** and **English / Português** i18n.
+- **Light / dark themes** — the light theme is fully functional — and **English / Português** i18n.
+- **Accessible settings panel (focus trap)** — dialog semantics keep keyboard focus inside the panel while it is open.
 - **PWA** — installable, offline-capable via service worker.
 - **High-DPI / 4K / ultrawide** aware (DPR-scaled canvas, capped for performance).
 
@@ -36,20 +39,23 @@ Watchman starts in **Auto** quality. It begins with a 12 MP canvas budget and re
 
 ## Screenshots
 
-> _Placeholder — add screenshots or a GIF here._
->
-> `docs/home.png` · `docs/player.png`
+| Home                   | Player                     |
+| ---------------------- | -------------------------- |
+| ![Home](docs/home.png) | ![Player](docs/player.png) |
 
 ## Keyboard shortcuts
 
-| Key     | Action             |
-| ------- | ------------------ |
-| `F`     | Toggle fullscreen  |
-| `Space` | Pause / resume     |
-| `Esc`   | Exit fullscreen    |
-| `S`     | Toggle settings    |
-| `N`     | Next animation     |
-| `P`     | Previous animation |
+| Key       | Action                   |
+| --------- | ------------------------ |
+| `F`       | Toggle fullscreen        |
+| `Space`   | Pause / resume           |
+| `Esc`     | Exit fullscreen          |
+| `S`       | Toggle settings          |
+| `N`       | Next animation           |
+| `P`       | Previous animation       |
+| `H` / `?` | Toggle shortcuts overlay |
+
+`Esc` also closes the settings panel when it is open.
 
 ## Tech stack
 

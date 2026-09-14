@@ -1,20 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
-import { animations } from '@/animations';
+import { animations, getAnimation } from '@/animations';
 import { imageStorage } from '@/services/imageStorage';
+import type { PerModeControl } from '@/types';
 import { Button } from './Button';
 import { ColorInput, Select, Slider, Toggle } from './controls';
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  overlay?: boolean;
 }
 
-export const SettingsPanel = ({ open, onClose }: Props) => {
+export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const { t } = useI18n();
   const s = useSettings();
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    else if (!open && dialog.open) dialog.close();
+  }, [open]);
 
   if (!open) return null;
 
@@ -63,57 +73,95 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
     s.set('playlist', next);
   };
 
+  const surface = overlay
+    ? 'border-white/10 bg-neutral-900/80 text-white'
+    : 'border-black/10 bg-white/90 text-neutral-900 dark:border-white/10 dark:bg-neutral-900/80 dark:text-white';
+
+  const meta = getAnimation(s.animationId);
+  const isRelevant = (control: PerModeControl) => !meta.controls || meta.controls.includes(control);
+
   return (
-    <aside className="fixed right-0 top-0 z-40 flex h-full w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-l border-white/10 bg-neutral-900/80 p-4 text-white backdrop-blur-xl">
+    <dialog
+      ref={dialogRef}
+      aria-modal="true"
+      aria-labelledby="settings-panel-title"
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      className={`fixed right-0 top-0 z-40 m-0 flex h-full max-h-none w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-0 border-l p-4 backdrop-blur-xl ${surface}`}
+    >
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t('settings.title')}</h2>
-        <button onClick={onClose} aria-label="Close" className="text-white/60 hover:text-white">
+        <h2 id="settings-panel-title" className="text-lg font-semibold">
+          {t('settings.title')}
+        </h2>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="text-neutral-500 hover:text-neutral-900 dark:text-white/60 dark:hover:text-white"
+        >
           ✕
         </button>
       </div>
 
-      <Slider
-        label={t('settings.speed')}
-        value={s.speed}
-        min={0.1}
-        max={3}
-        step={0.1}
-        onChange={(v) => s.set('speed', v)}
-      />
-      <Slider
-        label={t('settings.count')}
-        value={s.count}
-        min={10}
-        max={1000}
-        step={10}
-        onChange={(v) => s.set('count', v)}
-      />
-      <Slider
-        label={t('settings.size')}
-        value={s.size}
-        min={5}
-        max={200}
-        step={1}
-        onChange={(v) => s.set('size', v)}
-      />
-      <Slider
-        label={t('settings.opacity')}
-        value={s.opacity}
-        min={0.1}
-        max={1}
-        step={0.05}
-        onChange={(v) => s.set('opacity', v)}
-      />
-      <Slider
-        label={t('settings.brightness')}
-        value={s.brightness}
-        min={0.2}
-        max={1}
-        step={0.05}
-        onChange={(v) => s.set('brightness', v)}
-      />
+      {isRelevant('speed') && (
+        <Slider
+          label={t('settings.speed')}
+          value={s.speed}
+          min={0.1}
+          max={3}
+          step={0.1}
+          onChange={(v) => s.set('speed', v)}
+        />
+      )}
+      {isRelevant('count') && (
+        <Slider
+          label={t('settings.count')}
+          value={s.count}
+          min={10}
+          max={1000}
+          step={10}
+          onChange={(v) => s.set('count', v)}
+        />
+      )}
+      {isRelevant('size') && (
+        <Slider
+          label={t('settings.size')}
+          value={s.size}
+          min={5}
+          max={200}
+          step={1}
+          onChange={(v) => s.set('size', v)}
+        />
+      )}
+      {isRelevant('opacity') && (
+        <Slider
+          label={t('settings.opacity')}
+          value={s.opacity}
+          min={0.1}
+          max={1}
+          step={0.05}
+          onChange={(v) => s.set('opacity', v)}
+        />
+      )}
+      {isRelevant('brightness') && (
+        <Slider
+          label={t('settings.brightness')}
+          value={s.brightness}
+          min={0.2}
+          max={1}
+          step={0.05}
+          onChange={(v) => s.set('brightness', v)}
+        />
+      )}
 
-      <ColorInput label={t('settings.color')} value={s.color} onChange={(v) => s.set('color', v)} />
+      {isRelevant('color') && (
+        <ColorInput
+          label={t('settings.color')}
+          value={s.color}
+          onChange={(v) => s.set('color', v)}
+        />
+      )}
       <ColorInput
         label={t('settings.background')}
         value={s.background}
@@ -136,17 +184,6 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
         ]}
         onChange={(v) => s.set('fpsLimit', Number(v))}
       />
-      <Select
-        label={t('settings.quality')}
-        value={s.renderQuality}
-        options={[
-          { value: 'auto', label: t('settings.quality.auto') },
-          { value: 'economy', label: t('settings.quality.economy') },
-          { value: 'balanced', label: t('settings.quality.balanced') },
-          { value: 'high', label: t('settings.quality.high') },
-        ]}
-        onChange={(v) => s.set('renderQuality', v)}
-      />
       <Toggle
         label={t('settings.showFps')}
         value={s.showFps}
@@ -162,8 +199,8 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
         label={t('settings.theme')}
         value={s.theme}
         options={[
-          { value: 'dark', label: 'Dark' },
-          { value: 'light', label: 'Light' },
+          { value: 'dark', label: t('settings.theme.dark') },
+          { value: 'light', label: t('settings.theme.light') },
         ]}
         onChange={(v) => s.set('theme', v)}
       />
@@ -179,34 +216,38 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
 
       {/* Custom text + uploads */}
       <label className="flex flex-col gap-1 py-1.5 text-sm">
-        <span className="text-white/80">{t('settings.customText')}</span>
+        <span className="text-neutral-700 dark:text-white/80">{t('settings.customText')}</span>
         <input
           type="text"
           value={s.customText}
           onChange={(e) => s.set('customText', e.target.value)}
-          className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 outline-none"
+          className="rounded-lg border border-black/10 bg-black/5 px-2 py-1 outline-none dark:border-white/10 dark:bg-white/10"
         />
       </label>
 
       <FileField
         label={t('settings.customImage')}
+        clearLabel={t('settings.clear')}
         onFile={(file) => void replaceImage('customImageId', file)}
         onClear={s.customImageId ? () => void clearImage('customImageId') : undefined}
       />
       <FileField
         label={t('settings.background')}
+        clearLabel={t('settings.clear')}
         onFile={(file) => void replaceImage('backgroundImageId', file)}
         onClear={s.backgroundImageId ? () => void clearImage('backgroundImageId') : undefined}
       />
       {uploadError && (
-        <p role="alert" className="text-xs text-red-300">
+        <p role="alert" className="text-xs text-red-600 dark:text-red-300">
           {uploadError}
         </p>
       )}
 
       {/* Playlist */}
-      <div className="mt-3 border-t border-white/10 pt-3">
-        <p className="mb-1 text-sm font-medium text-white/80">{t('settings.playlist')}</p>
+      <div className="mt-3 border-t border-black/10 pt-3 dark:border-white/10">
+        <p className="mb-1 text-sm font-medium text-neutral-700 dark:text-white/80">
+          {t('settings.playlist')}
+        </p>
         <div className="grid grid-cols-2 gap-1">
           {animations.map((a) => (
             <label key={a.id} className="flex items-center gap-2 text-xs">
@@ -233,8 +274,8 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
             label={t('settings.playlistMode')}
             value={s.playlistMode}
             options={[
-              { value: 'sequential', label: 'Sequential' },
-              { value: 'random', label: 'Random' },
+              { value: 'sequential', label: t('settings.playlistMode.sequential') },
+              { value: 'random', label: t('settings.playlistMode.random') },
             ]}
             onChange={(v) => s.set('playlistMode', v)}
           />
@@ -244,25 +285,30 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
       <Button className="mt-4" onClick={() => void resetSettings()}>
         {t('settings.reset')}
       </Button>
-    </aside>
+    </dialog>
   );
 };
 
 const FileField = ({
   label,
+  clearLabel,
   onFile,
   onClear,
 }: {
   label: string;
+  clearLabel?: string;
   onFile: (f: File) => void;
   onClear?: () => void;
 }) => (
   <label className="flex items-center justify-between gap-2 py-1.5 text-sm">
-    <span className="text-white/80">{label}</span>
+    <span className="text-neutral-700 dark:text-white/80">{label}</span>
     <span className="flex items-center gap-1">
       {onClear && (
-        <button onClick={onClear} className="text-xs text-white/50 hover:text-white">
-          clear
+        <button
+          onClick={onClear}
+          className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white"
+        >
+          {clearLabel ?? 'clear'}
         </button>
       )}
       <input

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
   <label className="flex items-center justify-between gap-3 py-1.5 text-sm">
-    <span className="text-white/80">{label}</span>
+    <span className="text-neutral-700 dark:text-white/80">{label}</span>
     {children}
   </label>
 );
@@ -60,10 +60,10 @@ export const Select = <T extends string>(p: {
     <select
       value={p.value}
       onChange={(e) => p.onChange(e.target.value as T)}
-      className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-white outline-none"
+      className="rounded-lg border border-black/10 bg-black/5 px-2 py-1 text-neutral-900 outline-none dark:border-white/10 dark:bg-white/10 dark:text-white"
     >
       {p.options.map((o) => (
-        <option key={o.value} value={o.value} className="bg-neutral-900">
+        <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-900">
           {o.label}
         </option>
       ))}
