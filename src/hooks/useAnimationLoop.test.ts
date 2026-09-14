@@ -7,7 +7,7 @@ const { draw, getAnimation } = vi.hoisted(() => ({
   getAnimation: vi.fn(() => ({ create: () => ({ draw }) })),
 }));
 
-vi.mock('@/animations/playlist', () => ({
+vi.mock('@/animations', () => ({
   getAnimation,
   getNextInPlaylist: vi.fn(),
 }));

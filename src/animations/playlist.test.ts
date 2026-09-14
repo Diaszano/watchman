@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getNextInPlaylist } from './playlist';
+import { getNextInPlaylist } from './index';
 import { defaultSettings } from '@/stores/settingsStore';
 import type { Settings } from '@/types';
 

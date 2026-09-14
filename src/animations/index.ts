@@ -1,4 +1,4 @@
-import type { AnimationMeta } from '@/types';
+import type { AnimationMeta, Settings } from '@/types';
 import { createDvd } from './dvd';
 import { createClock } from './clock';
 import { createParticles } from './particles';
@@ -68,3 +68,13 @@ export const animationIds = animations.map((a) => a.id);
 
 export const getAnimation = (id: string): AnimationMeta =>
   animations.find((a) => a.id === id) ?? animations[0]!;
+
+export const getNextInPlaylist = (s: Settings): string => {
+  const list = s.playlist.length > 1 ? s.playlist : animationIds;
+  if (s.playlistMode === 'random') {
+    const others = list.filter((id) => id !== s.animationId);
+    return others.length ? others[(Math.random() * others.length) | 0]! : s.animationId;
+  }
+  const i = list.indexOf(s.animationId);
+  return list[(i + 1) % list.length]!;
+};

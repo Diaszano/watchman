@@ -1,6 +1,6 @@
 import { useEffect, type RefObject } from 'react';
 import { useSettings } from '@/stores/settingsStore';
-import { getAnimation, getNextInPlaylist } from '@/animations/playlist';
+import { getAnimation, getNextInPlaylist } from '@/animations';
 import type { Animation } from '@/types';
 import {
   getCanvasDimensions,
