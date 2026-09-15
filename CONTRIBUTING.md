@@ -38,9 +38,9 @@ you get started.
 ## Coding Standards
 
 - **TypeScript** — strict mode, no `any` unless absolutely necessary
-- **ESLint** — run `npm run lint` to check for issues
+- **Biome** — run `npm run lint` to check for issues
 - **Prettier** — run `npm run format` to auto-format code
-- Configurations are in [eslint.config.js](eslint.config.js) and
+- Configurations are in [biome.json](biome.json) and
   [.prettierrc.json](.prettierrc.json)
 
 Please ensure both pass before submitting a PR:

@@ -19,7 +19,7 @@ export const createCustomLogo = (): Animation => {
         img = el;
       }
 
-      if (!customImageUrl || !img || !img.complete || img.naturalWidth === 0) {
+      if (!customImageUrl || !img?.complete || img.naturalWidth === 0) {
         ctx.fillStyle = settings.color;
         ctx.font = `bold ${settings.size}px system-ui, sans-serif`;
         ctx.textAlign = 'center';
