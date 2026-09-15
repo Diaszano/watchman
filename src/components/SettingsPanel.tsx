@@ -96,6 +96,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
           {t('settings.title')}
         </h2>
         <button
+          type="button"
           onClick={onClose}
           aria-label="Close"
           className="text-neutral-500 hover:text-neutral-900 dark:text-white/60 dark:hover:text-white"
@@ -305,6 +306,7 @@ const FileField = ({
     <span className="flex items-center gap-1">
       {onClear && (
         <button
+          type="button"
           onClick={onClear}
           className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white"
         >

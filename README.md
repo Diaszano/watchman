@@ -59,7 +59,7 @@ Watchman starts in **Auto** quality. It begins with a 12 MP canvas budget and re
 
 ## Tech stack
 
-TypeScript · React 18 · Vite · Tailwind CSS v4 · React Router · Zustand · Vitest · ESLint · Prettier · Docker · Nginx.
+TypeScript · React 18 · Vite · Tailwind CSS v4 · React Router · Zustand · Vitest · Biome · Prettier · Docker · Nginx.
 
 ---
 
@@ -84,7 +84,7 @@ npm run dev        # Vite dev server (HMR) at http://localhost:5173
 ```bash
 npm run build      # type-check + production build to dist/
 npm run preview    # preview the production build
-npm run lint       # ESLint
+npm run lint       # Biome linter
 npm run format     # Prettier
 npm run format:check # verify Prettier formatting without modifying files
 npm test           # Vitest
