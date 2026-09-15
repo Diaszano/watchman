@@ -1,6 +1,10 @@
 # Watchman
 
 <p align="center">
+  <img src="public/logo.png" alt="Watchman" width="480">
+</p>
+
+<p align="center">
   <a href="https://hub.docker.com/r/diaszano/watchman">
     <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/diaszano/watchman?style=flat-square&logo=docker">
     <img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/diaszano/watchman?style=flat-square&logo=docker">
