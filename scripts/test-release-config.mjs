@@ -7,11 +7,11 @@ import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { load } from 'js-yaml';
 
 const ACTIONS = {
-  checkout: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0',
+  checkout: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
   setupNode: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
-  dockerLogin: 'docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0',
-  setupQemu: 'docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8',
-  setupBuildx: 'docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c',
+  dockerLogin: 'docker/login-action@dbcb813823bdd20940b903addbd779551569679f',
+  setupQemu: 'docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a',
+  setupBuildx: 'docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e',
   buildPush: 'docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a',
   trivy: 'aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25',
 };
