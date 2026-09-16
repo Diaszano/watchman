@@ -1,6 +1,10 @@
 # Watchman
 
 <p align="center">
+  <strong>English</strong> · <a href="README.pt-BR.md">Português (Brasil)</a>
+</p>
+
+<p align="center">
   <img src="public/logo.png" alt="Watchman" width="480">
 </p>
 
@@ -31,15 +35,15 @@ Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, P
 - **Screen Wake Lock API** — keeps the display awake while protection runs; auto-reacquires; degrades gracefully with a notice when unsupported.
 - **Fullscreen API**, **keyboard shortcuts**, **auto-hiding UI**, and an optional **FPS monitor**.
 - **In-app keyboard shortcut overlay** — press `H` at any time to see every shortcut.
-- **Persistent preferences** — everything is saved to LocalStorage and restored on next visit.
+- **Persistent preferences** — settings are saved to LocalStorage, while uploaded images stay in IndexedDB.
 - **Light / dark themes** — the light theme is fully functional — and **English / Português** i18n.
-- **Accessible settings panel (focus trap)** — dialog semantics keep keyboard focus inside the panel while it is open.
+- **Accessible settings dialog** — native dialog semantics and keyboard focus management.
 - **PWA** — installable, offline-capable via service worker.
 - **High-DPI / 4K / ultrawide** aware (DPR-scaled canvas, capped for performance).
 
-## Rendering quality
+## Rendering
 
-Watchman starts in **Auto** quality. It begins with a 12 MP canvas budget and reduces resolution and animation density only after sustained frame pressure. Use Economy for battery-sensitive or older devices; choose High for displays with sufficient GPU headroom. Uploaded background and logo images stay in this browser through IndexedDB and are limited to 5 MiB.
+The canvas follows the display's device pixel ratio, capped at 2 for predictable performance on high-resolution screens. Use the FPS limit setting (30, 60, 120, or unlimited) to balance smoothness and power use. Uploaded background and logo images stay in this browser through IndexedDB and are limited to 5 MiB each.
 
 ## Screenshots
 
@@ -63,7 +67,7 @@ Watchman starts in **Auto** quality. It begins with a 12 MP canvas budget and re
 
 ## Tech stack
 
-TypeScript · React 18 · Vite · Tailwind CSS v4 · React Router · Zustand · Vitest · ESLint · Prettier · Docker · Nginx.
+TypeScript · React 19 · Vite · Tailwind CSS v4 · Zustand · Vitest · ESLint · Prettier · Docker · Nginx.
 
 ---
 
@@ -92,6 +96,9 @@ npm run lint       # ESLint
 npm run format     # Prettier
 npm run format:check # verify Prettier formatting without modifying files
 npm test           # Vitest
+npm run test:watch # Vitest watch mode
+npm run test:commits # validate local commit messages
+npm run test:release # validate the release configuration
 ```
 
 ## Contributing
@@ -105,6 +112,8 @@ chore(ci): maintain automation
 ```
 
 `npm ci` configures the Husky `commit-msg` hook. The same rules are checked against every pull request commit in CI.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, branch policy, and pull request checklist.
 
 ---
 
@@ -142,9 +151,11 @@ container verification and Trivy scan before publishing it.
 
 ### Docker Hub publication
 
-Every successful push to `main` publishes a multi-architecture image for `linux/amd64` and `linux/arm64` as `<dockerhub-user>/watchman:latest`. When the commits produce a semantic release, the image also receives `X.Y.Z`, `X.Y`, and `X` tags.
+Every successful push to `main` publishes stable multi-architecture images for `linux/amd64` and `linux/arm64` to Docker Hub and GHCR with the `latest` tag. When the commits produce a semantic release, the images also receive `X.Y.Z`, `X.Y`, and `X` tags.
 
-Conventional Commits determine the next version: `fix`, `perf`, and `revert` create a patch; `feat` creates a minor; and a breaking change creates a major. The release workflow updates the npm version files and changelog, creates the Git tag, and publishes the GitHub Release automatically.
+Pushes to `dev` publish the moving `dev` tag to both registries. Commits that qualify for a semantic release also publish an exact prerelease tag such as `X.Y.Z-dev.N`.
+
+Conventional Commits determine the next version: `fix`, `perf`, and `revert` create a patch; `feat` creates a minor; and a breaking change creates a major. The release workflow creates the Git tag and publishes the GitHub Release automatically.
 
 Repository administrators must create these GitHub Actions secrets:
 
@@ -155,9 +166,9 @@ Repository administrators must create these GitHub Actions secrets:
 
 Before the first publication, create the Docker Hub repository `watchman` under the account or organization named by `DOCKERHUB_USERNAME`.
 
-The repository must allow GitHub Actions to write repository contents so Semantic Release can push the release commit and tag to `main`.
+The repository must allow GitHub Actions to write repository contents so Semantic Release can create tags and GitHub Releases.
 
-When protecting `main`, require the `Commit messages`, `Lint, test, and build`, and `Pull request title` checks, while allowing the GitHub Actions release identity to push the generated release commit and tag.
+When protecting `main`, require the `Commit messages`, `Lint, test, and build`, and `Pull request title` checks.
 
 ---
 
@@ -166,8 +177,9 @@ When protecting `main`, require the `Commit messages`, `Lint, test, and build`, 
 The render pipeline is intentionally **canvas-first and React-light**: React owns the shell (routing, settings UI, overlays, and background); a single `requestAnimationFrame` loop drives animation pixels.
 
 - `useAnimationLoop` reads settings via `zustand`'s `getState()` **each frame**, so tuning is instant without React re-renders. It handles DPR sizing, the FPS cap, tab-visibility pause, and the anti burn-in drift — in one place, so every animation benefits.
-- Each **animation is an independent module** exposing a factory `() => { draw(frame) }`. State lives in the closure and resets on switch. Adding one is a new file plus a single line in `animations/index.ts` (open/closed).
-- **Settings** are one strongly-typed store persisted to LocalStorage via `zustand/middleware`.
+- Each **animation is an independent module** exposing a factory `() => { draw(frame) }`. State lives in the closure and resets on switch. Adding one requires a new module and a registry entry in `animations/index.ts`.
+- **Navigation** uses the browser's native hash routing, keeping the two-page flow dependency-free.
+- **Settings** are one strongly-typed store persisted to LocalStorage via `zustand/middleware`; uploaded images are stored separately in IndexedDB.
 
 ### Folder structure
 
@@ -175,14 +187,13 @@ The render pipeline is intentionally **canvas-first and React-light**: React own
 src/
  ├── animations/   # one module per mode + registry + playlist logic
  ├── components/   # reusable UI (Button, controls, SettingsPanel, canvas…)
- ├── hooks/        # useAnimationLoop, useWakeLock, useFullscreen, keyboard, theme, i18n
- ├── layouts/      # page shells
+ ├── hooks/        # animation loop, wake lock, fullscreen, keyboard, images, i18n
  ├── pages/        # HomePage, PlayerPage
- ├── services/     # i18n dictionary
+ ├── services/     # i18n dictionary and browser image storage
  ├── stores/       # settingsStore (zustand + persist)
  ├── styles/       # Tailwind entry
  ├── types/        # shared types (Settings, Animation, AnimationFrame)
- ├── utils/        # math, color, file helpers
+ ├── utils/        # math and color helpers
  └── App.tsx
 ```
 

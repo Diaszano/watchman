@@ -23,11 +23,13 @@ you get started.
    cd watchman
    ```
 
-2. **Install dependencies** (this also sets up Husky git hooks):
+2. **Install the locked dependencies** (this also sets up Husky git hooks):
 
    ```bash
-   npm install
+   npm ci
    ```
+
+   Use `npm install` only when intentionally changing dependencies and the lockfile.
 
 3. **Start the dev server:**
 
@@ -43,11 +45,12 @@ you get started.
 - Configurations are in [eslint.config.js](eslint.config.js) and
   [.prettierrc.json](.prettierrc.json)
 
-Please ensure both pass before submitting a PR:
+Please ensure both pass before submitting a PR. Use `format` to fix files and
+`format:check` to run the same non-modifying check used by CI:
 
 ```bash
 npm run lint
-npm run format
+npm run format:check
 ```
 
 ## Commit Convention
@@ -92,17 +95,21 @@ perf: reduce particle system memory allocations
 ## Branch Strategy
 
 1. **Fork** the repository
-2. Create a **feature branch** from `main`:
+2. Create a focused branch from `dev`:
    ```bash
-   git checkout -b feat/my-new-feature
+   git switch -c feat/my-new-feature dev
    ```
 3. Make your changes and commit using Conventional Commits
-4. Push to your fork and **open a Pull Request** against `main`
+4. Push to your fork and **open a Pull Request** against `dev`
+
+The stable `main` branch only accepts promotion pull requests from `dev` (or
+`development`); CI enforces this policy.
 
 ## Pull Request Guidelines
 
 - **PR titles** must follow Conventional Commits (validated by CI)
-- **CI must pass** — lint, test, build, and container security checks
+- **CI must pass** — formatting, lint, tests, build, release configuration,
+  dependency review, and container security checks
 - Include a clear **description** of your changes
 - Reference related issues (e.g., `Closes #42`)
 - Keep PRs focused — one feature or fix per PR
@@ -115,6 +122,8 @@ Run the test suite:
 ```bash
 npm test              # Run tests once
 npm run test:watch    # Watch mode for development
+npm run test:release  # Validate semantic-release configuration
+npm run build         # Type-check and build the production bundle
 ```
 
 We use [Vitest](https://vitest.dev/) with
@@ -149,7 +158,7 @@ Watchman uses a **canvas-first, React-light** approach:
   for instant tuning without React re-renders
 - Each **animation is an independent module** exposing a factory
   `() => { draw(frame) }` — state lives in the closure
-- Adding a new animation = one new file + one line in `animations/index.ts`
+- Adding a new animation = one new module + one registry entry in `animations/index.ts`
 
 See the [README](README.md) for the full architecture overview.
 

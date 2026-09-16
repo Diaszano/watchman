@@ -16,14 +16,18 @@ Open [http://localhost:8080](http://localhost:8080)
 
 ## Tags
 
-| Tag                 | Description           |
-| ------------------- | --------------------- |
-| `latest`            | Latest stable release |
-| `X.Y.Z`, `X.Y`, `X` | Semantic version tags |
+| Tag                 | Description                  |
+| ------------------- | ---------------------------- |
+| `latest`            | Latest stable release        |
+| `dev`               | Latest development build     |
+| `X.Y.Z`, `X.Y`, `X` | Semantic version tags        |
+| `X.Y.Z-dev.N`       | Exact development prerelease |
 
 ## Platforms
 
 `linux/amd64`, `linux/arm64`
+
+The same images are also published to [GitHub Container Registry](https://github.com/diaszano/watchman/pkgs/container/watchman).
 
 ## Development
 
