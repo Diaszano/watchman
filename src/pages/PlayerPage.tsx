@@ -82,10 +82,12 @@ export const PlayerPage = () => {
     onActivity();
     window.addEventListener('mousemove', onActivity);
     window.addEventListener('touchstart', onActivity);
+    window.addEventListener('keydown', onActivity);
     return () => {
       clearTimeout(timer);
       window.removeEventListener('mousemove', onActivity);
       window.removeEventListener('touchstart', onActivity);
+      window.removeEventListener('keydown', onActivity);
     };
   }, []);
 
@@ -124,6 +126,14 @@ export const PlayerPage = () => {
           onClick={() => setPaused((p) => !p)}
         >
           <span aria-hidden="true">{paused ? '▶' : '⏸'}</span>
+        </Button>
+        <Button
+          variant="ghost"
+          aria-label={t('player.shortcuts')}
+          title={t('player.shortcuts')}
+          onClick={() => setShortcutsOpen(true)}
+        >
+          <span aria-hidden="true">?</span>
         </Button>
         <Button
           variant="ghost"
