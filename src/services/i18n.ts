@@ -54,6 +54,9 @@ const en: Dict = {
   'settings.wakeLockUnsupported':
     'Screen wake lock is unavailable in this browser. Animations still run.',
   'anim.dvd': 'DVD Logo',
+  'home.category.classic': 'Classic',
+  'home.category.effects': 'Effects',
+  'home.category.custom': 'Custom',
   'anim.clock': 'Digital Clock',
   'anim.particles': 'Particle System',
   'anim.bubbles': 'Floating Bubbles',
@@ -125,6 +128,9 @@ const pt: Dict = {
   'settings.wakeLockUnsupported':
     'O bloqueio de tela não está disponível neste navegador. As animações continuam.',
   'anim.dvd': 'Logo DVD',
+  'home.category.classic': 'Clássico',
+  'home.category.effects': 'Efeitos',
+  'home.category.custom': 'Personalizado',
   'anim.clock': 'Relógio Digital',
   'anim.particles': 'Sistema de Partículas',
   'anim.bubbles': 'Bolhas Flutuantes',

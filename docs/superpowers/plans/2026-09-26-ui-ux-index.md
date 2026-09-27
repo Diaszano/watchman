@@ -24,13 +24,13 @@ flowchart TD
 
 | # | Plano | Prioridade | Arquivo | Status |
 | :-: | :--- | :-: | :--- | :-: |
-| 1 | **Acessibilidade WCAG 2.1 AA** | 🔴 P0 | [`2026-09-26-ui-ux-01-acessibilidade-wcag.md`](file:///home/diaszano/Documentos/GitHub/watchman/docs/superpowers/plans/2026-09-26-ui-ux-01-acessibilidade-wcag.md) | ⏳ Pronto para execução |
-| 2 | **Navegação por Teclado e Modais** | 🔴 P0 | [`2026-09-26-ui-ux-02-navegacao-teclado-modais.md`](file:///home/diaszano/Documentos/GitHub/watchman/docs/superpowers/plans/2026-09-26-ui-ux-02-navegacao-teclado-modais.md) | ⏳ Pronto para execução |
-| 3 | **Visibilidade de Status e HUD** | 🟡 P1 | [`2026-09-26-ui-ux-03-visibilidade-status-hud.md`](file:///home/diaszano/Documentos/GitHub/watchman/docs/superpowers/plans/2026-09-26-ui-ux-03-visibilidade-status-hud.md) | ⏳ Pronto para execução |
-| 4 | **Design System de Ícones & IconButton** | 🟡 P1 | [`2026-09-26-ui-ux-04-design-system-icon-buttons.md`](file:///home/diaszano/Documentos/GitHub/watchman/docs/superpowers/plans/2026-09-26-ui-ux-04-design-system-icon-buttons.md) | ⏳ Pronto para execução |
-| 5 | **Otimização de Assets e LCP (WebP)** | 🟡 P1 | [`2026-09-26-ui-ux-05-otimizacao-assets-lcp.md`](file:///home/diaszano/Documentos/GitHub/watchman/docs/superpowers/plans/2026-09-26-ui-ux-05-otimizacao-assets-lcp.md) | ⏳ Pronto para execução |
-| 6 | **Reestruturação do SettingsPanel em Abas** | 🟢 P2 | [`2026-09-26-ui-ux-06-reestruturacao-settings-panel.md`](file:///home/diaszano/Documentos/GitHub/watchman/docs/superpowers/plans/2026-09-26-ui-ux-06-reestruturacao-settings-panel.md) | ⏳ Pronto para execução |
-| 7 | **Seleção Visual de Animações na Home** | 🟢 P2 | [`2026-09-26-ui-ux-07-selecao-visual-animacoes.md`](file:///home/diaszano/Documentos/GitHub/watchman/docs/superpowers/plans/2026-09-26-ui-ux-07-selecao-visual-animacoes.md) | ⏳ Pronto para execução |
+| 1 | **Acessibilidade WCAG 2.1 AA** | 🔴 P0 | [`2026-09-26-ui-ux-01-acessibilidade-wcag.md`](2026-09-26-ui-ux-01-acessibilidade-wcag.md) | ✅ Concluído |
+| 2 | **Navegação por Teclado e Modais** | 🔴 P0 | [`2026-09-26-ui-ux-02-navegacao-teclado-modais.md`](2026-09-26-ui-ux-02-navegacao-teclado-modais.md) | ✅ Concluído |
+| 3 | **Visibilidade de Status e HUD** | 🟡 P1 | [`2026-09-26-ui-ux-03-visibilidade-status-hud.md`](2026-09-26-ui-ux-03-visibilidade-status-hud.md) | ✅ Concluído |
+| 4 | **Design System de Ícones & IconButton** | 🟡 P1 | [`2026-09-26-ui-ux-04-design-system-icon-buttons.md`](2026-09-26-ui-ux-04-design-system-icon-buttons.md) | ✅ Concluído |
+| 5 | **Otimização de Assets e LCP (WebP)** | 🟡 P1 | [`2026-09-26-ui-ux-05-otimizacao-assets-lcp.md`](2026-09-26-ui-ux-05-otimizacao-assets-lcp.md) | ✅ Concluído |
+| 6 | **Reestruturação do SettingsPanel em Abas** | 🟢 P2 | [`2026-09-26-ui-ux-06-reestruturacao-settings-panel.md`](2026-09-26-ui-ux-06-reestruturacao-settings-panel.md) | ✅ Concluído |
+| 7 | **Seleção Visual de Animações na Home** | 🟢 P2 | [`2026-09-26-ui-ux-07-selecao-visual-animacoes.md`](2026-09-26-ui-ux-07-selecao-visual-animacoes.md) | ✅ Concluído |
 
 ---
 

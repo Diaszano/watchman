@@ -4,7 +4,14 @@ import { SettingsPanel } from '@/components/SettingsPanel';
 import { ShortcutsOverlay } from '@/components/ShortcutsOverlay';
 import { FpsMonitor } from '@/components/FpsMonitor';
 import { IconButton } from '@/components/IconButton';
-import { PlayIcon, PauseIcon, HelpIcon, SettingsIcon, FullscreenIcon, CloseIcon } from '@/components/icons';
+import {
+  PlayIcon,
+  PauseIcon,
+  HelpIcon,
+  SettingsIcon,
+  FullscreenIcon,
+  CloseIcon,
+} from '@/components/icons';
 import { useAnimationLoop } from '@/hooks/useAnimationLoop';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useFullscreen } from '@/hooks/useFullscreen';

@@ -9,7 +9,7 @@ export const Logo = ({ size = 240 }: { size?: number }) => {
         src="/logo.png"
         alt={t('app.logoAlt')}
         width={size}
-        height={Math.round(size * 926 / 1698)}
+        height={Math.round((size * 926) / 1698)}
         decoding="async"
         className="h-auto max-w-full drop-shadow-[0_0_20px_rgba(56,189,248,0.5)]"
       />

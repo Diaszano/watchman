@@ -24,6 +24,9 @@ describe('Logo', () => {
     expect(picture?.querySelector('source')).toHaveAttribute('type', 'image/webp');
     expect(picture?.querySelector('img')).toHaveAttribute('src', '/logo.png');
     expect(picture?.querySelector('img')).toHaveAttribute('width', '320');
-    expect(picture?.querySelector('img')).toHaveAttribute('height', String(Math.round(320 * 926 / 1698)));
+    expect(picture?.querySelector('img')).toHaveAttribute(
+      'height',
+      String(Math.round((320 * 926) / 1698)),
+    );
   });
 });
