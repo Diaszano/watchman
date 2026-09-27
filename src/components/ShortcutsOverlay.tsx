@@ -22,6 +22,7 @@ export const ShortcutsOverlay = ({ open, onClose }: Props) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <button
+        type="button"
         aria-label={t('shortcuts.close')}
         onClick={onClose}
         className="absolute inset-0 cursor-default bg-black/60"
@@ -33,6 +34,7 @@ export const ShortcutsOverlay = ({ open, onClose }: Props) => {
         className="relative w-80 max-w-[90vw] rounded-2xl border border-white/10 bg-neutral-900/90 p-6 text-white backdrop-blur-xl"
       >
         <button
+          type="button"
           onClick={onClose}
           aria-label={t('shortcuts.close')}
           className="absolute right-4 top-4 text-white/60 hover:text-white"
