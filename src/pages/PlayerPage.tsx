@@ -102,22 +102,39 @@ export const PlayerPage = () => {
           controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
-        <Button variant="ghost" onClick={() => setPaused((p) => !p)}>
-          {paused ? '▶' : '⏸'}
-        </Button>
-        <Button variant="ghost" onClick={() => setSettingsOpen((o) => !o)}>
-          ⚙
-        </Button>
-        <Button variant="ghost" onClick={() => toggle()}>
-          ⛶
+        <Button
+          variant="ghost"
+          aria-label={paused ? t('player.play') : t('player.pause')}
+          title={paused ? t('player.play') : t('player.pause')}
+          onClick={() => setPaused((p) => !p)}
+        >
+          <span aria-hidden="true">{paused ? '▶' : '⏸'}</span>
         </Button>
         <Button
           variant="ghost"
+          aria-label={t('player.settings')}
+          title={t('player.settings')}
+          onClick={() => setSettingsOpen((o) => !o)}
+        >
+          <span aria-hidden="true">⚙</span>
+        </Button>
+        <Button
+          variant="ghost"
+          aria-label={t('player.fullscreen')}
+          title={t('player.fullscreen')}
+          onClick={() => toggle()}
+        >
+          <span aria-hidden="true">⛶</span>
+        </Button>
+        <Button
+          variant="ghost"
+          aria-label={t('player.close')}
+          title={t('player.close')}
           onClick={() => {
             window.location.hash = '';
           }}
         >
-          ✕
+          <span aria-hidden="true">✕</span>
         </Button>
       </div>
 

@@ -15,7 +15,7 @@ const styles: Record<Variant, string> = {
 
 export const Button = ({ variant = 'ghost', className = '', children, ...rest }: Props) => (
   <button
-    className={`rounded-xl px-5 py-2.5 font-medium transition-colors disabled:opacity-50 ${styles[variant]} ${className}`}
+    className={`rounded-xl px-5 py-2.5 font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 disabled:opacity-50 ${styles[variant]} ${className}`}
     {...rest}
   >
     {children}
