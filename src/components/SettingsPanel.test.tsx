@@ -136,6 +136,7 @@ describe('SettingsPanel', () => {
 
     expect(screen.getByRole('dialog')).toHaveClass('bg-neutral-900/80');
     expect(screen.getByRole('dialog')).toHaveClass('text-white');
+    expect(screen.getByRole('button', { name: 'Close' })).not.toHaveClass('text-neutral-900');
   });
 
   it('renders modal dialog semantics when opened', () => {
@@ -202,6 +203,8 @@ describe('SettingsPanel', () => {
   });
 
   it('switches tabs with click and arrow keys and applies True Black', () => {
+    useSettings.setState({ gradientBackground: true, backgroundImageId: 'old-background' });
+    vi.spyOn(imageStorage, 'remove').mockResolvedValue();
     render(<SettingsPanel open onClose={() => undefined} />);
     const tabs = screen.getAllByRole('tab');
     expect(tabs).toHaveLength(4);
@@ -211,6 +214,8 @@ describe('SettingsPanel', () => {
     expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-oled');
     fireEvent.click(screen.getByRole('button', { name: 'True Black' }));
     expect(useSettings.getState().background).toBe('#000000');
+    expect(useSettings.getState().gradientBackground).toBe(false);
+    expect(useSettings.getState().backgroundImageId).toBeNull();
     fireEvent.click(tabs[2]!);
     expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-playlist');
   });

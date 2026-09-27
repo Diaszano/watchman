@@ -34,11 +34,6 @@ flowchart TD
 
 ---
 
-## 🚀 Como Executar
+## Execução
 
-Escolha a estratégia desejada para início:
-
-1. **Subagent-Driven Development (Recomendado):**
-   - Disparo de subagentes focados por plano com verificação e revisão de cada task.
-2. **Inline Execution (Sessão Atual):**
-   - Execução sequencial dos planos diretamente nesta sessão com checkpoints de teste e commits convencionais.
+Os planos 1 e 2 foram concluídos anteriormente. Os planos 3 a 7 foram implementados na branch `feat/ui-ux-improvements`, com testes, typecheck e build de produção.

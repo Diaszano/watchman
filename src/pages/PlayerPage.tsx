@@ -123,7 +123,7 @@ export const PlayerPage = () => {
       )}
 
       <div
-        className={`absolute right-3 top-3 z-30 flex gap-2 transition-opacity duration-300 ${
+        className={`absolute right-3 top-3 z-30 flex gap-2 text-white transition-opacity duration-300 ${
           controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >

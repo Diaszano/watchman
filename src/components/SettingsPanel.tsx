@@ -263,7 +263,13 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
             <p className="text-xs text-neutral-600 dark:text-white/60">
               {t('settings.antiBurnIn.desc')}
             </p>
-            <Button onClick={() => s.set('background', '#000000')}>
+            <Button
+              onClick={() => {
+                s.set('background', '#000000');
+                s.set('gradientBackground', false);
+                void clearImage('backgroundImageId');
+              }}
+            >
               {t('settings.trueBlack')}
             </Button>
             <FileField

@@ -25,7 +25,7 @@ export const AnimationSelector = () => {
     <div
       role="group"
       aria-label={t('home.animation')}
-      className="grid w-full grid-cols-2 gap-2 sm:grid-cols-5"
+      className="grid w-full grid-cols-2 gap-2 max-[399px]:grid-flow-col max-[399px]:auto-cols-[7rem] max-[399px]:grid-cols-none max-[399px]:overflow-x-auto max-[399px]:pb-2 sm:grid-cols-5"
     >
       {animations.map((a) => (
         <AnimationPreviewCard
