@@ -3,7 +3,15 @@ import { ScreensaverBackground } from '@/components/ScreensaverBackground';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { ShortcutsOverlay } from '@/components/ShortcutsOverlay';
 import { FpsMonitor } from '@/components/FpsMonitor';
-import { Button } from '@/components/Button';
+import { IconButton } from '@/components/IconButton';
+import {
+  PlayIcon,
+  PauseIcon,
+  HelpIcon,
+  SettingsIcon,
+  FullscreenIcon,
+  CloseIcon,
+} from '@/components/icons';
 import { useAnimationLoop } from '@/hooks/useAnimationLoop';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useFullscreen } from '@/hooks/useFullscreen';
@@ -42,6 +50,21 @@ export const PlayerPage = () => {
     [setSetting],
   );
 
+  const handleEscape = useCallback(() => {
+    if (shortcutsOpen) {
+      setShortcutsOpen(false);
+      return;
+    }
+    if (settingsOpen) {
+      setSettingsOpen(false);
+      return;
+    }
+    // Se não estiver em fullscreen nativo (o browser já trata fullscreen), volta para a Home
+    if (!document.fullscreenElement) {
+      window.location.hash = '';
+    }
+  }, [shortcutsOpen, settingsOpen]);
+
   const handlers = useMemo(
     () => ({
       toggleFullscreen: () => toggle(),
@@ -50,9 +73,9 @@ export const PlayerPage = () => {
       prevAnimation: () => step(-1),
       toggleSettings: () => setSettingsOpen((o) => !o),
       toggleShortcuts: () => setShortcutsOpen((o) => !o),
-      escape: settingsOpen ? () => setSettingsOpen(false) : undefined,
+      escape: handleEscape,
     }),
-    [toggle, step, settingsOpen],
+    [toggle, step, handleEscape],
   );
   useKeyboardShortcuts(handlers);
 
@@ -67,10 +90,12 @@ export const PlayerPage = () => {
     onActivity();
     window.addEventListener('mousemove', onActivity);
     window.addEventListener('touchstart', onActivity);
+    window.addEventListener('keydown', onActivity);
     return () => {
       clearTimeout(timer);
       window.removeEventListener('mousemove', onActivity);
       window.removeEventListener('touchstart', onActivity);
+      window.removeEventListener('keydown', onActivity);
     };
   }, []);
 
@@ -98,27 +123,37 @@ export const PlayerPage = () => {
       )}
 
       <div
-        className={`absolute right-3 top-3 z-30 flex gap-2 transition-opacity duration-300 ${
+        className={`absolute right-3 top-3 z-30 flex gap-2 text-white transition-opacity duration-300 ${
           controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
-        <Button variant="ghost" onClick={() => setPaused((p) => !p)}>
-          {paused ? '▶' : '⏸'}
-        </Button>
-        <Button variant="ghost" onClick={() => setSettingsOpen((o) => !o)}>
-          ⚙
-        </Button>
-        <Button variant="ghost" onClick={() => toggle()}>
-          ⛶
-        </Button>
-        <Button
-          variant="ghost"
+        <IconButton
+          label={paused ? t('player.play') : t('player.pause')}
+          icon={paused ? <PlayIcon /> : <PauseIcon />}
+          onClick={() => setPaused((p) => !p)}
+        />
+        <IconButton
+          label={t('player.shortcuts')}
+          icon={<HelpIcon />}
+          onClick={() => setShortcutsOpen(true)}
+        />
+        <IconButton
+          label={t('player.settings')}
+          icon={<SettingsIcon />}
+          onClick={() => setSettingsOpen((o) => !o)}
+        />
+        <IconButton
+          label={t('player.fullscreen')}
+          icon={<FullscreenIcon />}
+          onClick={() => toggle()}
+        />
+        <IconButton
+          label={t('player.close')}
+          icon={<CloseIcon />}
           onClick={() => {
             window.location.hash = '';
           }}
-        >
-          ✕
-        </Button>
+        />
       </div>
 
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} overlay />

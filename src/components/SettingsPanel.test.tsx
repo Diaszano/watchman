@@ -17,6 +17,7 @@ describe('SettingsPanel', () => {
   });
 
   const uploadBackground = (file: File) => {
+    fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
     const input = screen
       .getAllByText('Background')
       .find((element) => element.closest('label')?.querySelector('input[type=file]'))!
@@ -65,6 +66,7 @@ describe('SettingsPanel', () => {
     const remove = vi.spyOn(imageStorage, 'remove').mockResolvedValue();
 
     render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'General' }));
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
@@ -86,6 +88,7 @@ describe('SettingsPanel', () => {
       .mockResolvedValueOnce();
 
     render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'General' }));
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
@@ -107,12 +110,14 @@ describe('SettingsPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Custom logo' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
 
+    fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
     fireEvent.click(screen.getByRole('button', { name: 'Background' }));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
   });
 
   it('renders localized theme select options', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'General' }));
 
     const options = within(screen.getByDisplayValue('Dark')).getAllByRole('option');
 
@@ -131,6 +136,7 @@ describe('SettingsPanel', () => {
 
     expect(screen.getByRole('dialog')).toHaveClass('bg-neutral-900/80');
     expect(screen.getByRole('dialog')).toHaveClass('text-white');
+    expect(screen.getByRole('button', { name: 'Close' })).not.toHaveClass('text-neutral-900');
   });
 
   it('renders modal dialog semantics when opened', () => {
@@ -150,6 +156,49 @@ describe('SettingsPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('closes on Escape without passing it to window shortcuts', () => {
+    const onClose = vi.fn();
+    const onWindowKeyDown = vi.fn();
+    window.addEventListener('keydown', onWindowKeyDown);
+    render(<SettingsPanel open onClose={onClose} />);
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(onWindowKeyDown).not.toHaveBeenCalled();
+    window.removeEventListener('keydown', onWindowKeyDown);
+  });
+
+  it('calls onClose when backdrop is clicked', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+
+    // Simula clique fora do bounding rect da caixa
+    fireEvent.click(dialog, { clientX: 10, clientY: 10 });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('does not call onClose when clicking inside dialog', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      left: 100,
+      width: 320,
+      height: 800,
+      right: 420,
+      bottom: 800,
+      x: 100,
+      y: 0,
+      toJSON: () => {},
+    });
+
+    fireEvent.click(dialog, { clientX: 200, clientY: 200 });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('persists image IDs without binary image content', () => {
     useSettings.persist.clearStorage();
     useSettings.setState({
@@ -164,5 +213,23 @@ describe('SettingsPanel', () => {
     expect(serialized).not.toContain('data:image');
     expect(serialized).not.toContain('base64');
     expect(serialized).not.toContain('Blob');
+  });
+
+  it('switches tabs with click and arrow keys and applies True Black', () => {
+    useSettings.setState({ gradientBackground: true, backgroundImageId: 'old-background' });
+    vi.spyOn(imageStorage, 'remove').mockResolvedValue();
+    render(<SettingsPanel open onClose={() => undefined} />);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs).toHaveLength(4);
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(tabs[0]!, { key: 'ArrowRight' });
+    expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-oled');
+    fireEvent.click(screen.getByRole('button', { name: 'True Black' }));
+    expect(useSettings.getState().background).toBe('#000000');
+    expect(useSettings.getState().gradientBackground).toBe(false);
+    expect(useSettings.getState().backgroundImageId).toBeNull();
+    fireEvent.click(tabs[2]!);
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-playlist');
   });
 });

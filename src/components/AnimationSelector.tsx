@@ -1,6 +1,20 @@
 import { animations } from '@/animations';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
+import { AnimationPreviewCard } from './AnimationPreviewCard';
+
+const previews: Record<string, [string, 'classic' | 'effects' | 'custom']> = {
+  dvd: ['📀', 'classic'],
+  clock: ['🕒', 'classic'],
+  particles: ['✦', 'effects'],
+  bubbles: ['○', 'effects'],
+  starfield: ['✨', 'effects'],
+  matrix: ['▦', 'effects'],
+  neon: ['⚡', 'effects'],
+  shapes: ['◇', 'effects'],
+  logo: ['▣', 'custom'],
+  text: ['Aa', 'custom'],
+};
 
 export const AnimationSelector = () => {
   const { t } = useI18n();
@@ -8,17 +22,20 @@ export const AnimationSelector = () => {
   const set = useSettings((s) => s.set);
 
   return (
-    <select
+    <fieldset
       aria-label={t('home.animation')}
-      value={animationId}
-      onChange={(e) => set('animationId', e.target.value)}
-      className="rounded-xl border border-black/10 bg-black/5 px-4 py-2.5 text-neutral-900 backdrop-blur outline-none hover:bg-black/10 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+      className="grid w-full grid-cols-2 gap-2 max-[399px]:grid-flow-col max-[399px]:auto-cols-[7rem] max-[399px]:grid-cols-none max-[399px]:overflow-x-auto max-[399px]:pb-2 sm:grid-cols-5"
     >
       {animations.map((a) => (
-        <option key={a.id} value={a.id} className="bg-white dark:bg-neutral-900">
-          {t(`anim.${a.id}`)}
-        </option>
+        <AnimationPreviewCard
+          key={a.id}
+          title={t(`anim.${a.id}`)}
+          category={t(`home.category.${previews[a.id]?.[1] ?? 'effects'}`)}
+          icon={previews[a.id]?.[0] ?? '✦'}
+          selected={animationId === a.id}
+          onSelect={() => set('animationId', a.id)}
+        />
       ))}
-    </select>
+    </fieldset>
   );
 };

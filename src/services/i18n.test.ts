@@ -25,4 +25,34 @@ describe('i18n', () => {
   it.each(['en', 'pt'] as const)('falls back to the key when missing in %s', (lang) => {
     expect(translate(lang, 'settings.doesNotExist')).toBe('settings.doesNotExist');
   });
+
+  it('provides accessible labels for player controls in en and pt', () => {
+    const keys = [
+      'player.play',
+      'player.pause',
+      'player.settings',
+      'player.fullscreen',
+      'player.close',
+      'player.shortcuts',
+      'app.logoAlt',
+    ];
+    for (const k of keys) {
+      expect(translate('en', k)).not.toBe(k);
+      expect(translate('pt', k)).not.toBe(k);
+    }
+  });
+
+  it('translates settings tabs and OLED help in both languages', () => {
+    for (const key of [
+      'settings.tab.animation',
+      'settings.tab.oled',
+      'settings.tab.playlist',
+      'settings.tab.general',
+      'settings.antiBurnIn.desc',
+      'settings.trueBlack',
+    ]) {
+      expect(translate('en', key)).not.toBe(key);
+      expect(translate('pt', key)).not.toBe(key);
+    }
+  });
 });

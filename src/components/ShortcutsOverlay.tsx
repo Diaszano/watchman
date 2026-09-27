@@ -1,4 +1,6 @@
 import { useI18n } from '@/hooks/useI18n';
+import { IconButton } from './IconButton';
+import { CloseIcon } from './icons';
 
 interface Props {
   open: boolean;
@@ -33,14 +35,12 @@ export const ShortcutsOverlay = ({ open, onClose }: Props) => {
         aria-label={t('shortcuts.title')}
         className="relative w-80 max-w-[90vw] rounded-2xl border border-white/10 bg-neutral-900/90 p-6 text-white backdrop-blur-xl"
       >
-        <button
-          type="button"
+        <IconButton
           onClick={onClose}
-          aria-label={t('shortcuts.close')}
-          className="absolute right-4 top-4 text-white/60 hover:text-white"
-        >
-          ✕
-        </button>
+          label={t('shortcuts.close')}
+          icon={<CloseIcon />}
+          className="absolute right-4 top-4 border-white/10 bg-white/10 text-white hover:bg-white/20"
+        />
         <h2 className="mb-4 pr-6 text-lg font-semibold">{t('shortcuts.title')}</h2>
         <ul className="flex flex-col gap-3">
           {rows.map(([key, label]) => (
