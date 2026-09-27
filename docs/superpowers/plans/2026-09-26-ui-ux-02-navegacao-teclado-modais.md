@@ -115,7 +115,7 @@ it('calls onClose when backdrop is clicked', () => {
   const onClose = vi.fn();
   render(<SettingsPanel open={true} onClose={onClose} />);
   const dialog = screen.getByRole('dialog');
-  
+
   // Simula clique fora do bounding rect da caixa
   fireEvent.click(dialog, { clientX: 10, clientY: 10 });
   expect(onClose).toHaveBeenCalled();

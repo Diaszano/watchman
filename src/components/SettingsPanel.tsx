@@ -107,6 +107,13 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
       aria-modal="true"
       aria-labelledby="settings-panel-title"
       onClick={handleDialogClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }
+      }}
       onCancel={(e) => {
         e.preventDefault();
         onClose();

@@ -156,6 +156,19 @@ describe('SettingsPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('closes on Escape without passing it to window shortcuts', () => {
+    const onClose = vi.fn();
+    const onWindowKeyDown = vi.fn();
+    window.addEventListener('keydown', onWindowKeyDown);
+    render(<SettingsPanel open onClose={onClose} />);
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(onWindowKeyDown).not.toHaveBeenCalled();
+    window.removeEventListener('keydown', onWindowKeyDown);
+  });
+
   it('calls onClose when backdrop is clicked', () => {
     const onClose = vi.fn();
     render(<SettingsPanel open={true} onClose={onClose} />);

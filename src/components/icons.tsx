@@ -18,13 +18,7 @@ const svg = (path: React.ReactNode, props: Props = {}) => (
 );
 
 export const PlayIcon = (props: Props) => svg(<path d="m8 5 11 7-11 7z" />, props);
-export const PauseIcon = (props: Props) =>
-  svg(
-    <>
-      <path d="M7 5v14M17 5v14" />
-    </>,
-    props,
-  );
+export const PauseIcon = (props: Props) => svg(<path d="M7 5v14M17 5v14" />, props);
 export const SettingsIcon = (props: Props) =>
   svg(
     <>
@@ -44,10 +38,4 @@ export const HelpIcon = (props: Props) =>
     </>,
     props,
   );
-export const ResetIcon = (props: Props) =>
-  svg(
-    <>
-      <path d="M3 12a9 9 0 1 0 3-7M3 4v5h5" />
-    </>,
-    props,
-  );
+export const ResetIcon = (props: Props) => svg(<path d="M3 12a9 9 0 1 0 3-7M3 4v5h5" />, props);

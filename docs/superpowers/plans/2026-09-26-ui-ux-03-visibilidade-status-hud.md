@@ -43,7 +43,7 @@ describe('PlayerPage HUD visibility', () => {
 
   it('resets auto-hide timer on keydown event', () => {
     render(<PlayerPage />);
-    
+
     // Avança 3.5 segundos para ocultar
     act(() => {
       vi.advanceTimersByTime(3500);
