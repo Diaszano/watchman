@@ -10,9 +10,9 @@ const ACTIONS = {
   checkout: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
   setupNode: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
   dockerLogin: 'docker/login-action@dbcb813823bdd20940b903addbd779551569679f',
-  setupQemu: 'docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a',
-  setupBuildx: 'docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e',
-  buildPush: 'docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a',
+  setupQemu: 'docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1',
+  setupBuildx: 'docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069',
+  buildPush: 'docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc',
   trivy: 'aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25',
 };
 
