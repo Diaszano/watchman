@@ -55,10 +55,7 @@ assert.equal(npmPlugin[1].npmPublish, false);
 
 const releaseWorkflow = load(await readFile('.github/workflows/release.yml', 'utf8'));
 assert.deepEqual(Object.keys(releaseWorkflow.on), ['workflow_call']);
-assert.deepEqual(releaseWorkflow.on.workflow_call.secrets, {
-  DOCKERHUB_USERNAME: { required: true },
-  DOCKERHUB_TOKEN: { required: true },
-});
+assert.equal(releaseWorkflow.on.workflow_call?.secrets, undefined);
 assert.deepEqual(releaseWorkflow.permissions, { contents: 'write', packages: 'write' });
 
 const releaseSteps = releaseWorkflow.jobs.release.steps;
@@ -66,7 +63,9 @@ const step = (name) => releaseSteps.find((entry) => entry.name === name);
 assert.equal(step('Checkout repository').uses, ACTIONS.checkout);
 assert.equal(step('Set up Node.js').uses, ACTIONS.setupNode);
 assert.equal(step('Set up Node.js').with['node-version'], 24);
-assert.equal(step('Log in to Docker Hub').uses, ACTIONS.dockerLogin);
+assert.equal(step('Log in to GitHub Container Registry').uses, ACTIONS.dockerLogin);
+assert.equal(step('Log in to GitHub Container Registry').with.registry, 'ghcr.io');
+assert.equal(step('Log in to Docker Hub'), undefined);
 assert.equal(step('Set up QEMU').uses, ACTIONS.setupQemu);
 assert.equal(step('Set up Docker Buildx').uses, ACTIONS.setupBuildx);
 
@@ -96,7 +95,6 @@ const runBuildTags = async ({ published, version = '', refName = 'main' }) => {
       env: {
         ...process.env,
         GITHUB_OUTPUT: outputFile,
-        DOCKER_IMAGE: 'example/watchman',
         GHCR_IMAGE: 'ghcr.io/example/watchman',
         RELEASE_PUBLISHED: published,
         VERSION: version,
@@ -112,17 +110,14 @@ const runBuildTags = async ({ published, version = '', refName = 'main' }) => {
 
 assert.equal(
   await runBuildTags({ published: 'false', refName: 'main' }),
-  'tags<<EOF\nexample/watchman:latest\nghcr.io/example/watchman:latest\nEOF\n',
+  'primary_image=ghcr.io/example/watchman:latest\ntags<<EOF\nghcr.io/example/watchman:latest\nEOF\n',
 );
 assert.equal(
   await runBuildTags({ published: 'true', version: '2.3.4', refName: 'main' }),
   [
+    'primary_image=ghcr.io/example/watchman:2.3.4',
     'tags<<EOF',
-    'example/watchman:latest',
     'ghcr.io/example/watchman:latest',
-    'example/watchman:2.3.4',
-    'example/watchman:2.3',
-    'example/watchman:2',
     'ghcr.io/example/watchman:2.3.4',
     'ghcr.io/example/watchman:2.3',
     'ghcr.io/example/watchman:2',
@@ -132,15 +127,14 @@ assert.equal(
 );
 assert.equal(
   await runBuildTags({ published: 'false', refName: 'dev' }),
-  'tags<<EOF\nexample/watchman:dev\nghcr.io/example/watchman:dev\nEOF\n',
+  'primary_image=ghcr.io/example/watchman:dev\ntags<<EOF\nghcr.io/example/watchman:dev\nEOF\n',
 );
 assert.equal(
   await runBuildTags({ published: 'true', version: '2.3.4-dev.1', refName: 'dev' }),
   [
+    'primary_image=ghcr.io/example/watchman:2.3.4-dev.1',
     'tags<<EOF',
-    'example/watchman:dev',
     'ghcr.io/example/watchman:dev',
-    'example/watchman:2.3.4-dev.1',
     'ghcr.io/example/watchman:2.3.4-dev.1',
     'EOF',
     '',
@@ -226,10 +220,7 @@ const prTitleSteps = prTitleWorkflow.jobs.commitlint.steps;
 assert.equal(prTitleSteps[0].uses, ACTIONS.checkout);
 assert.equal(prTitleSteps[1].uses, ACTIONS.setupNode);
 assert.equal(prTitleSteps[1].with['node-version'], 24);
-assert.deepEqual(ciWorkflow.jobs.release.secrets, {
-  DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}',
-  DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}',
-});
+assert.equal(ciWorkflow.jobs.release.secrets, undefined);
 
 const resolver = resolve('.github/scripts/resolve-release-tag.sh');
 const repository = await mkdtemp(join(tmpdir(), 'watchman-release-tags-'));

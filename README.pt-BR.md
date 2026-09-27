@@ -141,22 +141,13 @@ As imagens-base usam tags fixadas por hashes imutáveis no `Dockerfile` e no `Do
 
 ### Publicação de imagens
 
-Cada push bem-sucedido para `main` publica imagens estáveis para `linux/amd64` e `linux/arm64` no Docker Hub e no GHCR com a tag `latest`. Quando os commits geram um release semântico, as imagens também recebem as tags `X.Y.Z`, `X.Y` e `X`.
+Cada push bem-sucedido para `main` publica imagens estáveis para `linux/amd64` e `linux/arm64` no GitHub Container Registry (`ghcr.io`) com a tag `latest`. Quando os commits geram um release semântico, as imagens também recebem as tags `X.Y.Z`, `X.Y` e `X`.
 
-Pushes para `dev` publicam a tag móvel `dev` nos dois registros. Commits que geram um release semântico também publicam uma tag exata de pré-release, como `X.Y.Z-dev.N`.
+Pushes para `dev` publicam a tag móvel `dev` no GHCR. Commits que geram um release semântico também publicam uma tag exata de pré-release, como `X.Y.Z-dev.N`.
 
 Conventional Commits determina a próxima versão: `fix`, `perf` e `revert` geram uma correção; `feat` gera uma versão secundária; e uma mudança incompatível gera uma versão principal. O workflow cria a tag Git e publica o GitHub Release automaticamente.
 
-Administradores do repositório precisam criar estes secrets do GitHub Actions:
-
-| Secret               | Finalidade                                               |
-| -------------------- | -------------------------------------------------------- |
-| `DOCKERHUB_USERNAME` | Conta ou organização do Docker Hub que possui `watchman` |
-| `DOCKERHUB_TOKEN`    | Token do Docker Hub com permissão de envio               |
-
-Antes da primeira publicação, crie o repositório `watchman` no Docker Hub sob a conta ou organização indicada em `DOCKERHUB_USERNAME`.
-
-O repositório deve permitir que o GitHub Actions grave seu conteúdo para que o Semantic Release possa criar tags e GitHub Releases.
+O repositório deve permitir que o GitHub Actions grave seu conteúdo e pacotes para que o Semantic Release possa criar tags e GitHub Releases, além de publicar as imagens no GHCR.
 
 Ao proteger `main`, exija as verificações `Commit messages`, `Lint, test, and build` e `Pull request title`.
 
