@@ -80,11 +80,27 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const meta = getAnimation(s.animationId);
   const isRelevant = (control: PerModeControl) => !meta.controls || meta.controls.includes(control);
 
+  const handleDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const rect = dialog.getBoundingClientRect();
+    const isInDialog =
+      rect.top <= e.clientY &&
+      e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX &&
+      e.clientX <= rect.left + rect.width;
+
+    if (!isInDialog) {
+      onClose();
+    }
+  };
+
   return (
     <dialog
       ref={dialogRef}
       aria-modal="true"
       aria-labelledby="settings-panel-title"
+      onClick={handleDialogClick}
       onCancel={(e) => {
         e.preventDefault();
         onClose();

@@ -150,6 +150,36 @@ describe('SettingsPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onClose when backdrop is clicked', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+
+    // Simula clique fora do bounding rect da caixa
+    fireEvent.click(dialog, { clientX: 10, clientY: 10 });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('does not call onClose when clicking inside dialog', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      left: 100,
+      width: 320,
+      height: 800,
+      right: 420,
+      bottom: 800,
+      x: 100,
+      y: 0,
+      toJSON: () => {},
+    });
+
+    fireEvent.click(dialog, { clientX: 200, clientY: 200 });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('persists image IDs without binary image content', () => {
     useSettings.persist.clearStorage();
     useSettings.setState({
