@@ -3,7 +3,8 @@ import { ScreensaverBackground } from '@/components/ScreensaverBackground';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { ShortcutsOverlay } from '@/components/ShortcutsOverlay';
 import { FpsMonitor } from '@/components/FpsMonitor';
-import { Button } from '@/components/Button';
+import { IconButton } from '@/components/IconButton';
+import { PlayIcon, PauseIcon, HelpIcon, SettingsIcon, FullscreenIcon, CloseIcon } from '@/components/icons';
 import { useAnimationLoop } from '@/hooks/useAnimationLoop';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useFullscreen } from '@/hooks/useFullscreen';
@@ -119,48 +120,33 @@ export const PlayerPage = () => {
           controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
-        <Button
-          variant="ghost"
-          aria-label={paused ? t('player.play') : t('player.pause')}
-          title={paused ? t('player.play') : t('player.pause')}
+        <IconButton
+          label={paused ? t('player.play') : t('player.pause')}
+          icon={paused ? <PlayIcon /> : <PauseIcon />}
           onClick={() => setPaused((p) => !p)}
-        >
-          <span aria-hidden="true">{paused ? '▶' : '⏸'}</span>
-        </Button>
-        <Button
-          variant="ghost"
-          aria-label={t('player.shortcuts')}
-          title={t('player.shortcuts')}
+        />
+        <IconButton
+          label={t('player.shortcuts')}
+          icon={<HelpIcon />}
           onClick={() => setShortcutsOpen(true)}
-        >
-          <span aria-hidden="true">?</span>
-        </Button>
-        <Button
-          variant="ghost"
-          aria-label={t('player.settings')}
-          title={t('player.settings')}
+        />
+        <IconButton
+          label={t('player.settings')}
+          icon={<SettingsIcon />}
           onClick={() => setSettingsOpen((o) => !o)}
-        >
-          <span aria-hidden="true">⚙</span>
-        </Button>
-        <Button
-          variant="ghost"
-          aria-label={t('player.fullscreen')}
-          title={t('player.fullscreen')}
+        />
+        <IconButton
+          label={t('player.fullscreen')}
+          icon={<FullscreenIcon />}
           onClick={() => toggle()}
-        >
-          <span aria-hidden="true">⛶</span>
-        </Button>
-        <Button
-          variant="ghost"
-          aria-label={t('player.close')}
-          title={t('player.close')}
+        />
+        <IconButton
+          label={t('player.close')}
+          icon={<CloseIcon />}
           onClick={() => {
             window.location.hash = '';
           }}
-        >
-          <span aria-hidden="true">✕</span>
-        </Button>
+        />
       </div>
 
       <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} overlay />

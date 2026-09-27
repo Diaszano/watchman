@@ -5,6 +5,8 @@ import { animations, getAnimation } from '@/animations';
 import { imageStorage } from '@/services/imageStorage';
 import type { PerModeControl } from '@/types';
 import { Button } from './Button';
+import { IconButton } from './IconButton';
+import { CloseIcon } from './icons';
 import { ColorInput, Select, Slider, Toggle } from './controls';
 
 interface Props {
@@ -111,14 +113,11 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         <h2 id="settings-panel-title" className="text-lg font-semibold">
           {t('settings.title')}
         </h2>
-        <button
-          type="button"
+        <IconButton
           onClick={onClose}
-          aria-label="Close"
-          className="text-neutral-500 hover:text-neutral-900 dark:text-white/60 dark:hover:text-white"
-        >
-          ✕
-        </button>
+          label={t('shortcuts.close')}
+          icon={<CloseIcon />}
+        />
       </div>
 
       {isRelevant('speed') && (
