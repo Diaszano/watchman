@@ -1,12 +1,18 @@
-export const Logo = ({ size = 72 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 64 64"
-    aria-hidden
-    className="drop-shadow-[0_0_20px_rgba(56,189,248,0.5)]"
-  >
-    <circle cx="32" cy="32" r="18" fill="none" stroke="#38bdf8" strokeWidth="4" />
-    <circle cx="32" cy="32" r="7" fill="#38bdf8" />
-  </svg>
-);
+import { useI18n } from '@/hooks/useI18n';
+
+export const Logo = ({ size = 240 }: { size?: number }) => {
+  const { t } = useI18n();
+  return (
+    <picture>
+      <source srcSet="/logo.webp" type="image/webp" />
+      <img
+        src="/logo.png"
+        alt={t('app.logoAlt')}
+        width={size}
+        height={Math.round((size * 926) / 1698)}
+        decoding="async"
+        className="h-auto max-w-full drop-shadow-[0_0_20px_rgba(56,189,248,0.5)]"
+      />
+    </picture>
+  );
+};

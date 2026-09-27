@@ -1,6 +1,6 @@
 import type { Animation, AnimationFrame } from '@/types';
 import { randomColor } from '@/utils/color';
-import { pick, rand } from '@/utils/math';
+import { densityCount, pick, rand } from '@/utils/math';
 
 type Kind = 'square' | 'circle' | 'triangle' | 'hexagon';
 const KINDS: Kind[] = ['square', 'circle', 'triangle', 'hexagon'];
@@ -16,9 +16,6 @@ interface Shape {
   kind: Kind;
   color: string;
 }
-
-const densityCount = (raw: number, minimum: number, renderDensity: number) =>
-  Math.max(minimum, Math.round(raw * renderDensity));
 
 const path = (ctx: CanvasRenderingContext2D, kind: Kind, s: number) => {
   ctx.beginPath();

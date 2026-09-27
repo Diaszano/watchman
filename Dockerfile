@@ -11,6 +11,7 @@ COPY . .
 RUN npm run build
 
 FROM ${NGINX_IMAGE} AS runtime
+RUN apk upgrade --no-cache
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=build /app/dist/ /usr/share/nginx/html/
 

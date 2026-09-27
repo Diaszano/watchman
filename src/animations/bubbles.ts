@@ -1,6 +1,6 @@
 import type { Animation, AnimationFrame } from '@/types';
 import { rgba } from '@/utils/color';
-import { rand } from '@/utils/math';
+import { densityCount, rand } from '@/utils/math';
 
 interface B {
   x: number;
@@ -10,9 +10,6 @@ interface B {
   drift: number;
   alpha: number;
 }
-
-const densityCount = (raw: number, minimum: number, renderDensity: number) =>
-  Math.max(minimum, Math.round(raw * renderDensity));
 
 export const createBubbles = (): Animation => {
   const bs: B[] = [];

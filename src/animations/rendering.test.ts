@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultSettings } from '@/stores/settingsStore';
 import type { AnimationFrame, Settings } from '@/types';
+import { densityCount } from '@/utils/math';
 import { createClock } from './clock';
 import { createMatrix } from './matrix';
 import { createNeon } from './neon';
@@ -139,7 +140,7 @@ describe('animation rendering cost', () => {
 
   it('creates the clock time formatter once per animation', () => {
     const formatter = { format: vi.fn(() => '12:34:56') };
-    const constructor = vi
+    const dateTimeFormatSpy = vi
       .spyOn(Intl, 'DateTimeFormat')
       .mockImplementation(function MockDateTimeFormat() {
         return formatter as unknown as Intl.DateTimeFormat;
@@ -150,14 +151,19 @@ describe('animation rendering cost', () => {
     clock.draw(frame(ctx, 1));
     clock.draw(frame(ctx, 1));
 
-    expect(constructor).toHaveBeenCalledTimes(1);
-    expect(constructor).toHaveBeenCalledWith('en-GB', {
+    expect(dateTimeFormatSpy).toHaveBeenCalledTimes(1);
+    expect(dateTimeFormatSpy).toHaveBeenCalledWith('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
       hour12: false,
     });
     expect(formatter.format).toHaveBeenCalledTimes(2);
-    constructor.mockRestore();
+    dateTimeFormatSpy.mockRestore();
+  });
+
+  it('calculates density count respecting minimum threshold', () => {
+    expect(densityCount(100, 10, 0.5)).toBe(50);
+    expect(densityCount(10, 10, 0.5)).toBe(10);
   });
 });

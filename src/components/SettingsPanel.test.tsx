@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { imageStorage } from '@/services/imageStorage';
 import { defaultSettings, useSettings } from '@/stores/settingsStore';
@@ -17,6 +17,7 @@ describe('SettingsPanel', () => {
   });
 
   const uploadBackground = (file: File) => {
+    fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
     const input = screen
       .getAllByText('Background')
       .find((element) => element.closest('label')?.querySelector('input[type=file]'))!
@@ -65,6 +66,7 @@ describe('SettingsPanel', () => {
     const remove = vi.spyOn(imageStorage, 'remove').mockResolvedValue();
 
     render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'General' }));
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
@@ -86,6 +88,7 @@ describe('SettingsPanel', () => {
       .mockResolvedValueOnce();
 
     render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'General' }));
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
@@ -107,26 +110,140 @@ describe('SettingsPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Custom logo' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
 
+    fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
     fireEvent.click(screen.getByRole('button', { name: 'Background' }));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
   });
 
-  it('switches rendering quality to High', () => {
+  it('updates slider values, switches and playlist choices through their labels', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+    const speed = screen.getByRole('slider', { name: 'Speed' });
+    fireEvent.change(speed, { target: { value: '3' } });
+    expect(useSettings.getState().speed).toBe(3);
+    expect(speed.style.getPropertyValue('--range-progress')).toBe('100%');
+    expect(speed.closest('label')).toHaveTextContent('3');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
+    const showFps = screen.getByRole('checkbox', { name: 'Show FPS' });
+    fireEvent.click(showFps);
+    expect(showFps).toBeChecked();
+    expect(useSettings.getState().showFps).toBe(true);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Playlist' }));
+    const matrix = screen.getByRole('checkbox', { name: 'Matrix Rain' });
+    const wasChecked = (matrix as HTMLInputElement).checked;
+    fireEvent.click(matrix);
+    expect(useSettings.getState().playlist.includes('matrix')).toBe(!wasChecked);
+  });
+
+  it('renders localized theme select options', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'General' }));
+
+    const options = within(screen.getByDisplayValue('Dark')).getAllByRole('option');
+
+    expect(options.map((option) => option.textContent)).toEqual(['Dark', 'Light']);
+  });
+
+  it('renders a theme-aware light surface when not used as an overlay', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
 
-    fireEvent.change(screen.getByDisplayValue('Auto'), { target: { value: 'high' } });
+    expect(screen.getByRole('dialog')).toHaveClass('settings-panel');
+    expect(screen.getByRole('dialog')).not.toHaveClass('settings-overlay');
+  });
 
-    expect(useSettings.getState().renderQuality).toBe('high');
+  it('keeps the dark glass look when rendered as an overlay', () => {
+    render(<SettingsPanel open onClose={() => undefined} overlay />);
+
+    expect(screen.getByRole('dialog')).toHaveClass('settings-overlay', 'dark');
+    expect(screen.getByRole('button', { name: 'Close' })).not.toHaveClass('text-neutral-900');
+  });
+
+  it('renders modal dialog semantics when opened', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveAttribute('aria-labelledby', 'settings-panel-title');
+  });
+
+  it('calls onClose when cancel event is triggered on dialog', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open onClose={onClose} />);
+
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes on Escape without passing it to window shortcuts', () => {
+    const onClose = vi.fn();
+    const onWindowKeyDown = vi.fn();
+    window.addEventListener('keydown', onWindowKeyDown);
+    render(<SettingsPanel open onClose={onClose} />);
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(onWindowKeyDown).not.toHaveBeenCalled();
+    window.removeEventListener('keydown', onWindowKeyDown);
+  });
+
+  it('calls onClose when backdrop is clicked', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+
+    // Simula clique fora do bounding rect da caixa
+    fireEvent.click(dialog, { clientX: 10, clientY: 10 });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('keeps settings open when a tab is activated from the keyboard', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open onClose={onClose} />);
+    vi.spyOn(screen.getByRole('dialog'), 'getBoundingClientRect').mockReturnValue({
+      x: 1000,
+      y: 0,
+      left: 1000,
+      top: 0,
+      right: 1440,
+      bottom: 900,
+      width: 440,
+      height: 900,
+      toJSON: () => {},
+    });
+    fireEvent.click(screen.getByRole('tab', { name: 'General' }), { detail: 0 });
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-general');
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('does not call onClose when clicking inside dialog', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      left: 100,
+      width: 320,
+      height: 800,
+      right: 420,
+      bottom: 800,
+      x: 100,
+      y: 0,
+      toJSON: () => {},
+    });
+
+    fireEvent.click(dialog, { clientX: 200, clientY: 200 });
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('persists image IDs without binary image content', () => {
     useSettings.persist.clearStorage();
-    useSettings.getState().patch({
+    useSettings.setState({
       backgroundImageId: 'background-image-42',
       customImageId: 'custom-image-84',
     });
-
-    vi.advanceTimersByTime(250);
 
     const serialized = localStorage.getItem('watchman-settings');
     expect(serialized).not.toBeNull();
@@ -135,5 +252,23 @@ describe('SettingsPanel', () => {
     expect(serialized).not.toContain('data:image');
     expect(serialized).not.toContain('base64');
     expect(serialized).not.toContain('Blob');
+  });
+
+  it('switches tabs with click and arrow keys and applies True Black', () => {
+    useSettings.setState({ gradientBackground: true, backgroundImageId: 'old-background' });
+    vi.spyOn(imageStorage, 'remove').mockResolvedValue();
+    render(<SettingsPanel open onClose={() => undefined} />);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs).toHaveLength(4);
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    fireEvent.keyDown(tabs[0]!, { key: 'ArrowRight' });
+    expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-oled');
+    fireEvent.click(screen.getByRole('button', { name: 'True Black' }));
+    expect(useSettings.getState().background).toBe('#000000');
+    expect(useSettings.getState().gradientBackground).toBe(false);
+    expect(useSettings.getState().backgroundImageId).toBeNull();
+    fireEvent.click(tabs[2]!);
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-playlist');
   });
 });

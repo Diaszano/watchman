@@ -1,12 +1,16 @@
 import type { Animation, AnimationFrame } from '@/types';
 
+const localeFor = (lang: 'en' | 'pt'): string => (lang === 'pt' ? 'pt-BR' : 'en-GB');
+
 export const createClock = (): Animation => {
-  const formatter = new Intl.DateTimeFormat('en-GB', {
+  const options = {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  });
+  } as const;
+  let locale = localeFor('en');
+  let formatter = new Intl.DateTimeFormat(locale, options);
   let x = -1;
   let y = 0;
   let vx = 1;
@@ -14,6 +18,12 @@ export const createClock = (): Animation => {
 
   return {
     draw({ ctx, width, height, dt, time, settings }: AnimationFrame) {
+      // Lang can change without remounting the animation, so key the cache on locale.
+      const nextLocale = localeFor(settings.lang);
+      if (nextLocale !== locale) {
+        locale = nextLocale;
+        formatter = new Intl.DateTimeFormat(locale, options);
+      }
       if (x < 0) {
         x = width / 2;
         y = height / 2;

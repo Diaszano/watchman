@@ -1,20 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
-import { animations } from '@/animations';
+import { animations, getAnimation } from '@/animations';
 import { imageStorage } from '@/services/imageStorage';
+import type { PerModeControl } from '@/types';
 import { Button } from './Button';
+import { IconButton } from './IconButton';
+import { CloseIcon, SettingsIcon, ResetIcon } from './icons';
 import { ColorInput, Select, Slider, Toggle } from './controls';
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  overlay?: boolean;
 }
 
-export const SettingsPanel = ({ open, onClose }: Props) => {
+const tabs = ['animation', 'oled', 'playlist', 'general'] as const;
+type SettingsTab = (typeof tabs)[number];
+
+export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const { t } = useI18n();
   const s = useSettings();
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<SettingsTab>('animation');
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    else if (!open && dialog.open) dialog.close();
+  }, [open]);
 
   if (!open) return null;
 
@@ -63,206 +79,339 @@ export const SettingsPanel = ({ open, onClose }: Props) => {
     s.set('playlist', next);
   };
 
+  const meta = getAnimation(s.animationId);
+  const isRelevant = (control: PerModeControl) => !meta.controls || meta.controls.includes(control);
+
+  const handleDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target !== e.currentTarget) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const rect = dialog.getBoundingClientRect();
+    const isInDialog =
+      rect.top <= e.clientY &&
+      e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX &&
+      e.clientX <= rect.left + rect.width;
+
+    if (!isInDialog) {
+      onClose();
+    }
+  };
+
   return (
-    <aside className="fixed right-0 top-0 z-40 flex h-full w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-l border-white/10 bg-neutral-900/80 p-4 text-white backdrop-blur-xl">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t('settings.title')}</h2>
-        <button onClick={onClose} aria-label="Close" className="text-white/60 hover:text-white">
-          ✕
-        </button>
+    <dialog
+      ref={dialogRef}
+      aria-modal="true"
+      aria-labelledby="settings-panel-title"
+      onClick={handleDialogClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }
+      }}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      className={`settings-panel ${overlay ? 'dark settings-overlay' : ''}`}
+    >
+      <div className="settings-header">
+        <div className="settings-heading">
+          <span className="settings-heading-icon">
+            <SettingsIcon />
+          </span>
+          <div>
+            <h2 id="settings-panel-title" className="text-lg font-semibold">
+              {t('settings.title')}
+            </h2>
+            <p className="settings-description">{t('settings.subtitle')}</p>
+          </div>
+        </div>
+        <IconButton onClick={onClose} label={t('shortcuts.close')} icon={<CloseIcon />} />
       </div>
 
-      <Slider
-        label={t('settings.speed')}
-        value={s.speed}
-        min={0.1}
-        max={3}
-        step={0.1}
-        onChange={(v) => s.set('speed', v)}
-      />
-      <Slider
-        label={t('settings.count')}
-        value={s.count}
-        min={10}
-        max={1000}
-        step={10}
-        onChange={(v) => s.set('count', v)}
-      />
-      <Slider
-        label={t('settings.size')}
-        value={s.size}
-        min={5}
-        max={200}
-        step={1}
-        onChange={(v) => s.set('size', v)}
-      />
-      <Slider
-        label={t('settings.opacity')}
-        value={s.opacity}
-        min={0.1}
-        max={1}
-        step={0.05}
-        onChange={(v) => s.set('opacity', v)}
-      />
-      <Slider
-        label={t('settings.brightness')}
-        value={s.brightness}
-        min={0.2}
-        max={1}
-        step={0.05}
-        onChange={(v) => s.set('brightness', v)}
-      />
-
-      <ColorInput label={t('settings.color')} value={s.color} onChange={(v) => s.set('color', v)} />
-      <ColorInput
-        label={t('settings.background')}
-        value={s.background}
-        onChange={(v) => s.set('background', v)}
-      />
-      <Toggle
-        label={t('settings.gradient')}
-        value={s.gradientBackground}
-        onChange={(v) => s.set('gradientBackground', v)}
-      />
-
-      <Select
-        label={t('settings.fps')}
-        value={String(s.fpsLimit)}
-        options={[
-          { value: '30', label: '30' },
-          { value: '60', label: '60' },
-          { value: '120', label: '120' },
-          { value: '0', label: '∞' },
-        ]}
-        onChange={(v) => s.set('fpsLimit', Number(v))}
-      />
-      <Select
-        label={t('settings.quality')}
-        value={s.renderQuality}
-        options={[
-          { value: 'auto', label: t('settings.quality.auto') },
-          { value: 'economy', label: t('settings.quality.economy') },
-          { value: 'balanced', label: t('settings.quality.balanced') },
-          { value: 'high', label: t('settings.quality.high') },
-        ]}
-        onChange={(v) => s.set('renderQuality', v)}
-      />
-      <Toggle
-        label={t('settings.showFps')}
-        value={s.showFps}
-        onChange={(v) => s.set('showFps', v)}
-      />
-      <Toggle
-        label={t('settings.antiBurnIn')}
-        value={s.antiBurnIn}
-        onChange={(v) => s.set('antiBurnIn', v)}
-      />
-
-      <Select
-        label={t('settings.theme')}
-        value={s.theme}
-        options={[
-          { value: 'dark', label: 'Dark' },
-          { value: 'light', label: 'Light' },
-        ]}
-        onChange={(v) => s.set('theme', v)}
-      />
-      <Select
-        label={t('settings.lang')}
-        value={s.lang}
-        options={[
-          { value: 'en', label: 'English' },
-          { value: 'pt', label: 'Português' },
-        ]}
-        onChange={(v) => s.set('lang', v)}
-      />
-
-      {/* Custom text + uploads */}
-      <label className="flex flex-col gap-1 py-1.5 text-sm">
-        <span className="text-white/80">{t('settings.customText')}</span>
-        <input
-          type="text"
-          value={s.customText}
-          onChange={(e) => s.set('customText', e.target.value)}
-          className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 outline-none"
-        />
-      </label>
-
-      <FileField
-        label={t('settings.customImage')}
-        onFile={(file) => void replaceImage('customImageId', file)}
-        onClear={s.customImageId ? () => void clearImage('customImageId') : undefined}
-      />
-      <FileField
-        label={t('settings.background')}
-        onFile={(file) => void replaceImage('backgroundImageId', file)}
-        onClear={s.backgroundImageId ? () => void clearImage('backgroundImageId') : undefined}
-      />
-      {uploadError && (
-        <p role="alert" className="text-xs text-red-300">
-          {uploadError}
-        </p>
-      )}
-
-      {/* Playlist */}
-      <div className="mt-3 border-t border-white/10 pt-3">
-        <p className="mb-1 text-sm font-medium text-white/80">{t('settings.playlist')}</p>
-        <div className="grid grid-cols-2 gap-1">
-          {animations.map((a) => (
-            <label key={a.id} className="flex items-center gap-2 text-xs">
-              <input
-                type="checkbox"
-                checked={s.playlist.includes(a.id)}
-                onChange={() => togglePlaylist(a.id)}
-                className="accent-sky-500"
+      <div role="tablist" aria-label={t('settings.title')} className="settings-tabs">
+        {tabs.map((tab, index) => (
+          <button
+            key={tab}
+            id={`tab-${tab}`}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
+            aria-controls={`tabpanel-${tab}`}
+            tabIndex={activeTab === tab ? 0 : -1}
+            onClick={() => setActiveTab(tab)}
+            onKeyDown={(e) => {
+              const next =
+                e.key === 'ArrowRight'
+                  ? index + 1
+                  : e.key === 'ArrowLeft'
+                    ? index - 1
+                    : e.key === 'Home'
+                      ? 0
+                      : e.key === 'End'
+                        ? tabs.length - 1
+                        : null;
+              if (next === null) return;
+              e.preventDefault();
+              const target = tabs[(next + tabs.length) % tabs.length]!;
+              setActiveTab(target);
+              document.getElementById(`tab-${target}`)?.focus();
+            }}
+            className="settings-tab"
+          >
+            {t(`settings.tab.${tab}`)}
+          </button>
+        ))}
+      </div>
+      <div
+        role="tabpanel"
+        id={`tabpanel-${activeTab}`}
+        aria-labelledby={`tab-${activeTab}`}
+        className="settings-body"
+      >
+        <div className="settings-context">
+          <span>{t(`settings.tab.${activeTab}`)}</span>
+          <p>
+            {activeTab === 'animation'
+              ? t(`anim.${s.animationId}`)
+              : t(`settings.intro.${activeTab}`)}
+          </p>
+        </div>
+        {activeTab === 'animation' && (
+          <>
+            {isRelevant('speed') && (
+              <Slider
+                label={t('settings.speed')}
+                value={s.speed}
+                min={0.1}
+                max={3}
+                step={0.1}
+                onChange={(v) => s.set('speed', v)}
               />
-              {t(`anim.${a.id}`)}
-            </label>
-          ))}
-        </div>
-        <div className="mt-2">
-          <Slider
-            label={t('settings.autoSwitch')}
-            value={s.autoSwitch}
-            min={0}
-            max={120}
-            step={5}
-            onChange={(v) => s.set('autoSwitch', v)}
-          />
-          <Select
-            label={t('settings.playlistMode')}
-            value={s.playlistMode}
-            options={[
-              { value: 'sequential', label: 'Sequential' },
-              { value: 'random', label: 'Random' },
-            ]}
-            onChange={(v) => s.set('playlistMode', v)}
-          />
-        </div>
-      </div>
+            )}
+            {isRelevant('count') && (
+              <Slider
+                label={t('settings.count')}
+                value={s.count}
+                min={10}
+                max={1000}
+                step={10}
+                onChange={(v) => s.set('count', v)}
+              />
+            )}
+            {isRelevant('size') && (
+              <Slider
+                label={t('settings.size')}
+                value={s.size}
+                min={5}
+                max={200}
+                step={1}
+                onChange={(v) => s.set('size', v)}
+              />
+            )}
+            {isRelevant('opacity') && (
+              <Slider
+                label={t('settings.opacity')}
+                value={s.opacity}
+                min={0.1}
+                max={1}
+                step={0.05}
+                onChange={(v) => s.set('opacity', v)}
+              />
+            )}
+            {isRelevant('brightness') && (
+              <Slider
+                label={t('settings.brightness')}
+                value={s.brightness}
+                min={0.2}
+                max={1}
+                step={0.05}
+                onChange={(v) => s.set('brightness', v)}
+              />
+            )}
 
-      <Button className="mt-4" onClick={() => void resetSettings()}>
-        {t('settings.reset')}
-      </Button>
-    </aside>
+            {isRelevant('color') && (
+              <ColorInput
+                label={t('settings.color')}
+                value={s.color}
+                onChange={(v) => s.set('color', v)}
+              />
+            )}
+          </>
+        )}
+        {activeTab === 'oled' && (
+          <>
+            <ColorInput
+              label={t('settings.background')}
+              value={s.background}
+              onChange={(v) => s.set('background', v)}
+            />
+            <Toggle
+              label={t('settings.gradient')}
+              value={s.gradientBackground}
+              onChange={(v) => s.set('gradientBackground', v)}
+            />
+
+            <Select
+              label={t('settings.fps')}
+              value={String(s.fpsLimit)}
+              options={[
+                { value: '30', label: '30' },
+                { value: '60', label: '60' },
+                { value: '120', label: '120' },
+                { value: '0', label: '∞' },
+              ]}
+              onChange={(v) => s.set('fpsLimit', Number(v))}
+            />
+            <Toggle
+              label={t('settings.showFps')}
+              value={s.showFps}
+              onChange={(v) => s.set('showFps', v)}
+            />
+            <Toggle
+              label={t('settings.antiBurnIn')}
+              value={s.antiBurnIn}
+              onChange={(v) => s.set('antiBurnIn', v)}
+            />
+            <p className="setting-help">{t('settings.antiBurnIn.desc')}</p>
+            <Button
+              onClick={() => {
+                s.set('background', '#000000');
+                s.set('gradientBackground', false);
+                void clearImage('backgroundImageId');
+              }}
+            >
+              {t('settings.trueBlack')}
+            </Button>
+            <FileField
+              label={t('settings.background')}
+              clearLabel={t('settings.clear')}
+              onFile={(file) => void replaceImage('backgroundImageId', file)}
+              onClear={s.backgroundImageId ? () => void clearImage('backgroundImageId') : undefined}
+            />
+          </>
+        )}
+
+        {activeTab === 'general' && (
+          <>
+            <Select
+              label={t('settings.theme')}
+              value={s.theme}
+              options={[
+                { value: 'dark', label: t('settings.theme.dark') },
+                { value: 'light', label: t('settings.theme.light') },
+              ]}
+              onChange={(v) => s.set('theme', v)}
+            />
+            <Select
+              label={t('settings.lang')}
+              value={s.lang}
+              options={[
+                { value: 'en', label: 'English' },
+                { value: 'pt', label: 'Português' },
+              ]}
+              onChange={(v) => s.set('lang', v)}
+            />
+            <Button className="settings-reset" onClick={() => void resetSettings()}>
+              <ResetIcon /> {t('settings.reset')}
+            </Button>
+          </>
+        )}
+
+        {/* Custom text + uploads */}
+        {activeTab === 'animation' && (
+          <>
+            <label className="setting-text">
+              <span className="setting-label">{t('settings.customText')}</span>
+              <input
+                type="text"
+                value={s.customText}
+                onChange={(e) => s.set('customText', e.target.value)}
+                className="setting-text-input"
+              />
+            </label>
+
+            <FileField
+              label={t('settings.customImage')}
+              clearLabel={t('settings.clear')}
+              onFile={(file) => void replaceImage('customImageId', file)}
+              onClear={s.customImageId ? () => void clearImage('customImageId') : undefined}
+            />
+          </>
+        )}
+        {uploadError && (
+          <p role="alert" className="text-xs text-red-600 dark:text-red-300">
+            {uploadError}
+          </p>
+        )}
+
+        {/* Playlist */}
+        {activeTab === 'playlist' && (
+          <div className="settings-playlist">
+            <p className="sr-only">{t('settings.playlist')}</p>
+            <div className="playlist-grid">
+              {animations.map((a) => (
+                <label key={a.id} className="playlist-choice">
+                  <input
+                    type="checkbox"
+                    checked={s.playlist.includes(a.id)}
+                    onChange={() => togglePlaylist(a.id)}
+                    className="accent-sky-500"
+                  />
+                  {t(`anim.${a.id}`)}
+                </label>
+              ))}
+            </div>
+            <div className="mt-2">
+              <Slider
+                label={t('settings.autoSwitch')}
+                value={s.autoSwitch}
+                min={0}
+                max={120}
+                step={5}
+                onChange={(v) => s.set('autoSwitch', v)}
+              />
+              <Select
+                label={t('settings.playlistMode')}
+                value={s.playlistMode}
+                options={[
+                  { value: 'sequential', label: t('settings.playlistMode.sequential') },
+                  { value: 'random', label: t('settings.playlistMode.random') },
+                ]}
+                onChange={(v) => s.set('playlistMode', v)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </dialog>
   );
 };
 
 const FileField = ({
   label,
+  clearLabel,
   onFile,
   onClear,
 }: {
   label: string;
+  clearLabel?: string;
   onFile: (f: File) => void;
   onClear?: () => void;
 }) => (
-  <label className="flex items-center justify-between gap-2 py-1.5 text-sm">
-    <span className="text-white/80">{label}</span>
-    <span className="flex items-center gap-1">
+  <label className="setting-upload">
+    <span className="setting-label">{label}</span>
+    <span className="upload-actions">
       {onClear && (
-        <button onClick={onClear} className="text-xs text-white/50 hover:text-white">
-          clear
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white"
+        >
+          {clearLabel ?? 'clear'}
         </button>
       )}
       <input
@@ -272,7 +421,7 @@ const FileField = ({
           const f = e.target.files?.[0];
           if (f) onFile(f);
         }}
-        className="w-28 text-xs file:mr-1 file:rounded file:border-0 file:bg-sky-500 file:px-2 file:py-1 file:text-white"
+        className="setting-file"
       />
     </span>
   </label>

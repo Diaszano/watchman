@@ -6,6 +6,8 @@ export interface ShortcutHandlers {
   nextAnimation: () => void;
   prevAnimation: () => void;
   toggleSettings: () => void;
+  toggleShortcuts?: () => void;
+  escape?: () => void;
 }
 
 /** Global keyboard control. Ignores keys while typing in inputs. */
@@ -33,7 +35,14 @@ export const useKeyboardShortcuts = (h: ShortcutHandlers): void => {
         case 's':
           h.toggleSettings();
           break;
-        // Esc: browser exits fullscreen natively; nothing to do.
+        case 'h':
+        case '?':
+          h.toggleShortcuts?.();
+          break;
+        // Esc: no preventDefault so the browser still exits fullscreen natively.
+        case 'escape':
+          if (h.escape) h.escape();
+          break;
       }
     };
     window.addEventListener('keydown', onKey);

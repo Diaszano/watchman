@@ -1,4 +1,5 @@
 import type { Animation, AnimationFrame } from '@/types';
+import { translate } from '@/services/i18n';
 import { rand } from '@/utils/math';
 
 export const createCustomLogo = (): Animation => {
@@ -18,12 +19,12 @@ export const createCustomLogo = (): Animation => {
         img = el;
       }
 
-      if (!customImageUrl || !img || !img.complete || img.naturalWidth === 0) {
+      if (!customImageUrl || !img?.complete || img.naturalWidth === 0) {
         ctx.fillStyle = settings.color;
         ctx.font = `bold ${settings.size}px system-ui, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('Upload a logo in Settings', width / 2, height / 2);
+        ctx.fillText(translate(settings.lang, 'logo.uploadPrompt'), width / 2, height / 2);
         return;
       }
 

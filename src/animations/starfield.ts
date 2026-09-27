@@ -1,14 +1,11 @@
 import type { Animation, AnimationFrame } from '@/types';
-import { rand } from '@/utils/math';
+import { densityCount, rand } from '@/utils/math';
 
 interface Star {
   x: number;
   y: number;
   z: number;
 }
-
-const densityCount = (raw: number, minimum: number, renderDensity: number) =>
-  Math.max(minimum, Math.round(raw * renderDensity));
 
 export const createStarfield = (): Animation => {
   const stars: Star[] = [];

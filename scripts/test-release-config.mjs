@@ -7,12 +7,12 @@ import { analyzeCommits } from '@semantic-release/commit-analyzer';
 import { load } from 'js-yaml';
 
 const ACTIONS = {
-  checkout: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0',
+  checkout: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
   setupNode: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
-  dockerLogin: 'docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0',
-  setupQemu: 'docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8',
-  setupBuildx: 'docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c',
-  buildPush: 'docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a',
+  dockerLogin: 'docker/login-action@dbcb813823bdd20940b903addbd779551569679f',
+  setupQemu: 'docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1',
+  setupBuildx: 'docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069',
+  buildPush: 'docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc',
   trivy: 'aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25',
 };
 
@@ -55,10 +55,7 @@ assert.equal(npmPlugin[1].npmPublish, false);
 
 const releaseWorkflow = load(await readFile('.github/workflows/release.yml', 'utf8'));
 assert.deepEqual(Object.keys(releaseWorkflow.on), ['workflow_call']);
-assert.deepEqual(releaseWorkflow.on.workflow_call.secrets, {
-  DOCKERHUB_USERNAME: { required: true },
-  DOCKERHUB_TOKEN: { required: true },
-});
+assert.equal(releaseWorkflow.on.workflow_call?.secrets, undefined);
 assert.deepEqual(releaseWorkflow.permissions, { contents: 'write', packages: 'write' });
 
 const releaseSteps = releaseWorkflow.jobs.release.steps;
@@ -66,7 +63,9 @@ const step = (name) => releaseSteps.find((entry) => entry.name === name);
 assert.equal(step('Checkout repository').uses, ACTIONS.checkout);
 assert.equal(step('Set up Node.js').uses, ACTIONS.setupNode);
 assert.equal(step('Set up Node.js').with['node-version'], 24);
-assert.equal(step('Log in to Docker Hub').uses, ACTIONS.dockerLogin);
+assert.equal(step('Log in to GitHub Container Registry').uses, ACTIONS.dockerLogin);
+assert.equal(step('Log in to GitHub Container Registry').with.registry, 'ghcr.io');
+assert.equal(step('Log in to Docker Hub'), undefined);
 assert.equal(step('Set up QEMU').uses, ACTIONS.setupQemu);
 assert.equal(step('Set up Docker Buildx').uses, ACTIONS.setupBuildx);
 
@@ -96,7 +95,6 @@ const runBuildTags = async ({ published, version = '', refName = 'main' }) => {
       env: {
         ...process.env,
         GITHUB_OUTPUT: outputFile,
-        DOCKER_IMAGE: 'example/watchman',
         GHCR_IMAGE: 'ghcr.io/example/watchman',
         RELEASE_PUBLISHED: published,
         VERSION: version,
@@ -112,17 +110,14 @@ const runBuildTags = async ({ published, version = '', refName = 'main' }) => {
 
 assert.equal(
   await runBuildTags({ published: 'false', refName: 'main' }),
-  'tags<<EOF\nexample/watchman:latest\nghcr.io/example/watchman:latest\nEOF\n',
+  'primary_image=ghcr.io/example/watchman:latest\ntags<<EOF\nghcr.io/example/watchman:latest\nEOF\n',
 );
 assert.equal(
   await runBuildTags({ published: 'true', version: '2.3.4', refName: 'main' }),
   [
+    'primary_image=ghcr.io/example/watchman:2.3.4',
     'tags<<EOF',
-    'example/watchman:latest',
     'ghcr.io/example/watchman:latest',
-    'example/watchman:2.3.4',
-    'example/watchman:2.3',
-    'example/watchman:2',
     'ghcr.io/example/watchman:2.3.4',
     'ghcr.io/example/watchman:2.3',
     'ghcr.io/example/watchman:2',
@@ -132,15 +127,14 @@ assert.equal(
 );
 assert.equal(
   await runBuildTags({ published: 'false', refName: 'dev' }),
-  'tags<<EOF\nexample/watchman:dev\nghcr.io/example/watchman:dev\nEOF\n',
+  'primary_image=ghcr.io/example/watchman:dev\ntags<<EOF\nghcr.io/example/watchman:dev\nEOF\n',
 );
 assert.equal(
   await runBuildTags({ published: 'true', version: '2.3.4-dev.1', refName: 'dev' }),
   [
+    'primary_image=ghcr.io/example/watchman:2.3.4-dev.1',
     'tags<<EOF',
-    'example/watchman:dev',
     'ghcr.io/example/watchman:dev',
-    'example/watchman:2.3.4-dev.1',
     'ghcr.io/example/watchman:2.3.4-dev.1',
     'EOF',
     '',
@@ -226,10 +220,7 @@ const prTitleSteps = prTitleWorkflow.jobs.commitlint.steps;
 assert.equal(prTitleSteps[0].uses, ACTIONS.checkout);
 assert.equal(prTitleSteps[1].uses, ACTIONS.setupNode);
 assert.equal(prTitleSteps[1].with['node-version'], 24);
-assert.deepEqual(ciWorkflow.jobs.release.secrets, {
-  DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}',
-  DOCKERHUB_TOKEN: '${{ secrets.DOCKERHUB_TOKEN }}',
-});
+assert.equal(ciWorkflow.jobs.release.secrets, undefined);
 
 const resolver = resolve('.github/scripts/resolve-release-tag.sh');
 const repository = await mkdtemp(join(tmpdir(), 'watchman-release-tags-'));
