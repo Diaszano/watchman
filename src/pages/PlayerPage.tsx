@@ -42,6 +42,21 @@ export const PlayerPage = () => {
     [setSetting],
   );
 
+  const handleEscape = useCallback(() => {
+    if (shortcutsOpen) {
+      setShortcutsOpen(false);
+      return;
+    }
+    if (settingsOpen) {
+      setSettingsOpen(false);
+      return;
+    }
+    // Se não estiver em fullscreen nativo (o browser já trata fullscreen), volta para a Home
+    if (!document.fullscreenElement) {
+      window.location.hash = '';
+    }
+  }, [shortcutsOpen, settingsOpen]);
+
   const handlers = useMemo(
     () => ({
       toggleFullscreen: () => toggle(),
@@ -50,9 +65,9 @@ export const PlayerPage = () => {
       prevAnimation: () => step(-1),
       toggleSettings: () => setSettingsOpen((o) => !o),
       toggleShortcuts: () => setShortcutsOpen((o) => !o),
-      escape: settingsOpen ? () => setSettingsOpen(false) : undefined,
+      escape: handleEscape,
     }),
-    [toggle, step, settingsOpen],
+    [toggle, step, handleEscape],
   );
   useKeyboardShortcuts(handlers);
 

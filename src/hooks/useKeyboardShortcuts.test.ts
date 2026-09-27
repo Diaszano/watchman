@@ -23,6 +23,7 @@ describe('useKeyboardShortcuts', () => {
     expect(onEscape).toHaveBeenCalledTimes(1);
   });
 
+
   it('does nothing for Escape when the handler is absent', () => {
     const handlers = {
       toggleFullscreen: vi.fn(),
