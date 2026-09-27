@@ -7,7 +7,7 @@ const press = (key: string) =>
 
 describe('useKeyboardShortcuts', () => {
   it('calls escape when provided', () => {
-    const escape = vi.fn();
+    const onEscape = vi.fn();
     renderHook(() =>
       useKeyboardShortcuts({
         toggleFullscreen: vi.fn(),
@@ -15,12 +15,12 @@ describe('useKeyboardShortcuts', () => {
         nextAnimation: vi.fn(),
         prevAnimation: vi.fn(),
         toggleSettings: vi.fn(),
-        escape,
+        escape: onEscape,
       }),
     );
 
     press('Escape');
-    expect(escape).toHaveBeenCalledTimes(1);
+    expect(onEscape).toHaveBeenCalledTimes(1);
   });
 
   it('does nothing for Escape when the handler is absent', () => {
@@ -34,7 +34,9 @@ describe('useKeyboardShortcuts', () => {
     renderHook(() => useKeyboardShortcuts(handlers));
 
     press('Escape');
-    Object.values(handlers).forEach((fn) => expect(fn).not.toHaveBeenCalled());
+    Object.values(handlers).forEach((fn) => {
+      expect(fn).not.toHaveBeenCalled();
+    });
   });
 
   it('does not preventDefault on Escape so native fullscreen exit still runs', () => {
