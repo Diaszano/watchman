@@ -41,4 +41,18 @@ describe('i18n', () => {
       expect(translate('pt', k)).not.toBe(k);
     }
   });
+
+  it('translates settings tabs and OLED help in both languages', () => {
+    for (const key of [
+      'settings.tab.animation',
+      'settings.tab.oled',
+      'settings.tab.playlist',
+      'settings.tab.general',
+      'settings.antiBurnIn.desc',
+      'settings.trueBlack',
+    ]) {
+      expect(translate('en', key)).not.toBe(key);
+      expect(translate('pt', key)).not.toBe(key);
+    }
+  });
 });
