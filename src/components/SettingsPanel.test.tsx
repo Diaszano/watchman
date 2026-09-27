@@ -115,6 +115,27 @@ describe('SettingsPanel', () => {
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
   });
 
+  it('updates slider values, switches and playlist choices through their labels', () => {
+    render(<SettingsPanel open onClose={() => undefined} />);
+    const speed = screen.getByRole('slider', { name: 'Speed' });
+    fireEvent.change(speed, { target: { value: '3' } });
+    expect(useSettings.getState().speed).toBe(3);
+    expect(speed.style.getPropertyValue('--range-progress')).toBe('100%');
+    expect(speed.closest('label')).toHaveTextContent('3');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
+    const showFps = screen.getByRole('checkbox', { name: 'Show FPS' });
+    fireEvent.click(showFps);
+    expect(showFps).toBeChecked();
+    expect(useSettings.getState().showFps).toBe(true);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Playlist' }));
+    const matrix = screen.getByRole('checkbox', { name: 'Matrix Rain' });
+    const wasChecked = (matrix as HTMLInputElement).checked;
+    fireEvent.click(matrix);
+    expect(useSettings.getState().playlist.includes('matrix')).toBe(!wasChecked);
+  });
+
   it('renders localized theme select options', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
     fireEvent.click(screen.getByRole('tab', { name: 'General' }));
@@ -127,15 +148,14 @@ describe('SettingsPanel', () => {
   it('renders a theme-aware light surface when not used as an overlay', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
 
-    expect(screen.getByRole('dialog')).toHaveClass('bg-white/90');
-    expect(screen.getByRole('dialog')).toHaveClass('dark:bg-neutral-900/80');
+    expect(screen.getByRole('dialog')).toHaveClass('settings-panel');
+    expect(screen.getByRole('dialog')).not.toHaveClass('settings-overlay');
   });
 
   it('keeps the dark glass look when rendered as an overlay', () => {
     render(<SettingsPanel open onClose={() => undefined} overlay />);
 
-    expect(screen.getByRole('dialog')).toHaveClass('bg-neutral-900/80');
-    expect(screen.getByRole('dialog')).toHaveClass('text-white');
+    expect(screen.getByRole('dialog')).toHaveClass('settings-overlay', 'dark');
     expect(screen.getByRole('button', { name: 'Close' })).not.toHaveClass('text-neutral-900');
   });
 
@@ -177,6 +197,25 @@ describe('SettingsPanel', () => {
     // Simula clique fora do bounding rect da caixa
     fireEvent.click(dialog, { clientX: 10, clientY: 10 });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('keeps settings open when a tab is activated from the keyboard', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel open onClose={onClose} />);
+    vi.spyOn(screen.getByRole('dialog'), 'getBoundingClientRect').mockReturnValue({
+      x: 1000,
+      y: 0,
+      left: 1000,
+      top: 0,
+      right: 1440,
+      bottom: 900,
+      width: 440,
+      height: 900,
+      toJSON: () => {},
+    });
+    fireEvent.click(screen.getByRole('tab', { name: 'General' }), { detail: 0 });
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-general');
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('does not call onClose when clicking inside dialog', () => {

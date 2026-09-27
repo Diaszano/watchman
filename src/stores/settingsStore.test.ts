@@ -13,6 +13,21 @@ describe('settings persistence', () => {
     vi.restoreAllMocks();
   });
 
+  it('detects the browser language on first visit and preserves a saved choice', async () => {
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['pt-BR', 'en-US']);
+    localStorage.clear();
+    vi.resetModules();
+    const { useSettings: freshSettings } = await import('./settingsStore');
+    expect(freshSettings.getState().lang).toBe('pt');
+
+    freshSettings.getState().set('lang', 'en');
+    vi.resetModules();
+    const { useSettings: restoredSettings } = await import('./settingsStore');
+    expect(restoredSettings.getState().lang).toBe('en');
+    restoredSettings.getState().reset();
+    expect(restoredSettings.getState().lang).toBe('pt');
+  });
+
   it('removes legacy Data URLs while preserving scalar settings', () => {
     const migrated = migrateSettings(
       {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Settings } from '@/types';
+import { detectLanguage } from '@/services/i18n';
 
 export const defaultSettings: Settings = {
   animationId: 'dvd',
@@ -14,7 +15,7 @@ export const defaultSettings: Settings = {
   brightness: 1,
   fpsLimit: 60,
   theme: 'dark',
-  lang: 'en',
+  lang: detectLanguage(),
   showFps: false,
   antiBurnIn: true,
   autoSwitch: 0,

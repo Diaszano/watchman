@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
-const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-  <label className="flex items-center justify-between gap-3 py-1.5 text-sm">
-    <span className="text-neutral-700 dark:text-white/80">{label}</span>
+const Row = ({ label, children }: { label: ReactNode; children: ReactNode }) => (
+  <label className="setting-row">
+    <span className="setting-label">{label}</span>
     {children}
   </label>
 );
@@ -15,17 +15,27 @@ export const Slider = (p: {
   step: number;
   onChange: (v: number) => void;
 }) => (
-  <Row label={`${p.label} (${p.value})`}>
+  <label className="setting-slider">
+    <span className="slider-heading">
+      <span>{p.label}</span>
+      <span className="setting-value" aria-hidden="true">
+        {p.value}
+      </span>
+    </span>
     <input
       type="range"
+      aria-label={p.label}
+      style={
+        { '--range-progress': `${((p.value - p.min) / (p.max - p.min)) * 100}%` } as CSSProperties
+      }
       min={p.min}
       max={p.max}
       step={p.step}
       value={p.value}
       onChange={(e) => p.onChange(Number(e.target.value))}
-      className="w-40 accent-sky-500 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+      className="setting-range"
     />
-  </Row>
+  </label>
 );
 
 export const Toggle = (p: { label: string; value: boolean; onChange: (v: boolean) => void }) => (
@@ -34,19 +44,23 @@ export const Toggle = (p: { label: string; value: boolean; onChange: (v: boolean
       type="checkbox"
       checked={p.value}
       onChange={(e) => p.onChange(e.target.checked)}
-      className="h-5 w-5 accent-sky-500 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2"
+      className="setting-switch"
     />
   </Row>
 );
 
 export const ColorInput = (p: { label: string; value: string; onChange: (v: string) => void }) => (
   <Row label={p.label}>
-    <input
-      type="color"
-      value={p.value}
-      onChange={(e) => p.onChange(e.target.value)}
-      className="h-8 w-14 cursor-pointer rounded bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-    />
+    <span className="setting-color">
+      <span aria-hidden="true">{p.value.toUpperCase()}</span>
+      <input
+        aria-label={p.label}
+        type="color"
+        value={p.value}
+        onChange={(e) => p.onChange(e.target.value)}
+        className="setting-swatch"
+      />
+    </span>
   </Row>
 );
 
@@ -60,10 +74,10 @@ export const Select = <T extends string>(p: {
     <select
       value={p.value}
       onChange={(e) => p.onChange(e.target.value as T)}
-      className="rounded-lg border border-black/10 bg-black/5 px-2 py-1 text-neutral-900 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 dark:border-white/10 dark:bg-white/10 dark:text-white"
+      className="setting-select"
     >
       {p.options.map((o) => (
-        <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-900">
+        <option key={o.value} value={o.value}>
           {o.label}
         </option>
       ))}

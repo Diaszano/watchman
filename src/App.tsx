@@ -5,9 +5,11 @@ import { useSettings } from '@/stores/settingsStore';
 
 export const App = () => {
   const theme = useSettings((s) => s.theme);
+  const lang = useSettings((s) => s.lang);
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+    document.documentElement.lang = lang;
+  }, [theme, lang]);
 
   const [route, setRoute] = useState(() => window.location.hash);
 
