@@ -6,6 +6,13 @@ type Dict = Record<string, string>;
 const en: Dict = {
   'app.title': 'Watchman',
   'app.subtitle': 'Keep your display alive. Reduce OLED burn-in.',
+  'home.eyebrow': 'A little motion. A better display.',
+  'home.headline': 'Give your screen',
+  'home.headlineAccent': 'a moment of calm.',
+  'home.collection': 'THE COLLECTION',
+  'home.choose': 'Find your flow.',
+  'home.selectionHint': 'Choose an animation, then press start.',
+  'home.footer': 'Made for your display. Tuned to your mood.',
   'home.start': 'Start Protection',
   'home.animation': 'Animation',
   'home.fullscreen': 'Fullscreen',
@@ -19,6 +26,10 @@ const en: Dict = {
   'player.shortcuts': 'Show keyboard shortcuts',
   'app.logoAlt': 'Watchman screensaver logo',
   'settings.title': 'Settings',
+  'settings.subtitle': 'Make this space your own.',
+  'settings.intro.oled': 'Fine-tune your display and pixel protection.',
+  'settings.intro.playlist': 'Pick your favorites and set the pace.',
+  'settings.intro.general': 'Your preferences, saved automatically.',
   'settings.tab.animation': 'Animation',
   'settings.tab.oled': 'OLED & Display',
   'settings.tab.playlist': 'Playlist',
@@ -79,6 +90,13 @@ const en: Dict = {
 const pt: Dict = {
   'app.title': 'Watchman',
   'app.subtitle': 'Mantenha a tela ativa. Reduza o burn-in OLED.',
+  'home.eyebrow': 'Um pouco de movimento. Uma tela mais viva.',
+  'home.headline': 'Dê à sua tela',
+  'home.headlineAccent': 'um momento de calma.',
+  'home.collection': 'A COLEÇÃO',
+  'home.choose': 'Encontre seu ritmo.',
+  'home.selectionHint': 'Escolha uma animação e inicie a proteção.',
+  'home.footer': 'Feito para sua tela. No seu ritmo.',
   'home.start': 'Iniciar Proteção',
   'home.animation': 'Animação',
   'home.fullscreen': 'Tela cheia',
@@ -92,6 +110,10 @@ const pt: Dict = {
   'player.shortcuts': 'Exibir atalhos de teclado',
   'app.logoAlt': 'Logotipo do protetor Watchman',
   'settings.title': 'Configurações',
+  'settings.subtitle': 'Deixe este espaço do seu jeito.',
+  'settings.intro.oled': 'Ajuste a tela e a proteção dos pixels.',
+  'settings.intro.playlist': 'Escolha seus favoritos e defina o ritmo.',
+  'settings.intro.general': 'Suas preferências, salvas automaticamente.',
   'settings.tab.animation': 'Animação',
   'settings.tab.oled': 'OLED & Tela',
   'settings.tab.playlist': 'Playlist',
@@ -153,3 +175,15 @@ const pt: Dict = {
 const dicts: Record<Lang, Dict> = { en, pt };
 
 export const translate = (lang: Lang, key: string): string => dicts[lang][key] ?? key;
+
+export const detectLanguage = (
+  languages: readonly string[] = navigator.languages.length
+    ? navigator.languages
+    : [navigator.language],
+): Lang => {
+  for (const language of languages) {
+    const base = language.toLowerCase().split('-')[0];
+    if (base === 'pt' || base === 'en') return base;
+  }
+  return 'en';
+};

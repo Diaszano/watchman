@@ -4,11 +4,11 @@ import { useI18n } from '@/hooks/useI18n';
 import { AnimationPreviewCard } from './AnimationPreviewCard';
 
 const previews: Record<string, [string, 'classic' | 'effects' | 'custom']> = {
-  dvd: ['📀', 'classic'],
-  clock: ['🕒', 'classic'],
+  dvd: ['DVD', 'classic'],
+  clock: ['12:48', 'classic'],
   particles: ['✦', 'effects'],
   bubbles: ['○', 'effects'],
-  starfield: ['✨', 'effects'],
+  starfield: ['✧', 'effects'],
   matrix: ['▦', 'effects'],
   neon: ['⚡', 'effects'],
   shapes: ['◇', 'effects'],
@@ -22,13 +22,11 @@ export const AnimationSelector = () => {
   const set = useSettings((s) => s.set);
 
   return (
-    <fieldset
-      aria-label={t('home.animation')}
-      className="grid w-full grid-cols-2 gap-2 max-[399px]:grid-flow-col max-[399px]:auto-cols-[7rem] max-[399px]:grid-cols-none max-[399px]:overflow-x-auto max-[399px]:pb-2 sm:grid-cols-5"
-    >
+    <fieldset aria-label={t('home.animation')} className="animation-grid">
       {animations.map((a) => (
         <AnimationPreviewCard
           key={a.id}
+          previewId={a.id}
           title={t(`anim.${a.id}`)}
           category={t(`home.category.${previews[a.id]?.[1] ?? 'effects'}`)}
           icon={previews[a.id]?.[0] ?? '✦'}

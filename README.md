@@ -149,24 +149,15 @@ Base image tags are pinned to immutable digests in `Dockerfile` and
 `Dockerfile.dev`. When updating a digest, rebuild the image and run the local
 container verification and Trivy scan before publishing it.
 
-### Docker Hub publication
+### Container image publication
 
-Every successful push to `main` publishes stable multi-architecture images for `linux/amd64` and `linux/arm64` to Docker Hub and GHCR with the `latest` tag. When the commits produce a semantic release, the images also receive `X.Y.Z`, `X.Y`, and `X` tags.
+Every successful push to `main` publishes stable multi-architecture images for `linux/amd64` and `linux/arm64` to GitHub Container Registry (`ghcr.io`) with the `latest` tag. When the commits produce a semantic release, the images also receive `X.Y.Z`, `X.Y`, and `X` tags.
 
-Pushes to `dev` publish the moving `dev` tag to both registries. Commits that qualify for a semantic release also publish an exact prerelease tag such as `X.Y.Z-dev.N`.
+Pushes to `dev` publish the moving `dev` tag to GHCR. Commits that qualify for a semantic release also publish an exact prerelease tag such as `X.Y.Z-dev.N`.
 
 Conventional Commits determine the next version: `fix`, `perf`, and `revert` create a patch; `feat` creates a minor; and a breaking change creates a major. The release workflow creates the Git tag and publishes the GitHub Release automatically.
 
-Repository administrators must create these GitHub Actions secrets:
-
-| Secret               | Purpose                                                 |
-| -------------------- | ------------------------------------------------------- |
-| `DOCKERHUB_USERNAME` | Docker Hub account or organization that owns `watchman` |
-| `DOCKERHUB_TOKEN`    | Docker Hub access token with push permission            |
-
-Before the first publication, create the Docker Hub repository `watchman` under the account or organization named by `DOCKERHUB_USERNAME`.
-
-The repository must allow GitHub Actions to write repository contents so Semantic Release can create tags and GitHub Releases.
+The repository must allow GitHub Actions to write repository contents and packages so Semantic Release can create tags and GitHub Releases, and publish images to GHCR.
 
 When protecting `main`, require the `Commit messages`, `Lint, test, and build`, and `Pull request title` checks.
 

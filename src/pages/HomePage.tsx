@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Logo } from '@/components/Logo';
+import { PlayIcon, SettingsIcon, FullscreenIcon } from '@/components/icons';
 import { Button } from '@/components/Button';
 import { AnimationSelector } from '@/components/AnimationSelector';
 import { SettingsPanel } from '@/components/SettingsPanel';
@@ -12,40 +13,73 @@ export const HomePage = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <main className="relative flex min-h-full items-center justify-center overflow-x-hidden bg-neutral-100 px-4 py-8 text-neutral-900 dark:bg-neutral-950 dark:text-white">
-      <div className="pointer-events-none absolute -top-1/3 left-1/2 h-[80vh] w-[80vh] -translate-x-1/2 rounded-full bg-sky-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-[60vh] w-[60vh] rounded-full bg-fuchsia-500/10 blur-3xl" />
-      <div className="relative z-10 w-full max-w-3xl">
-        <div className="flex flex-col items-center gap-6 text-center">
-          <Logo size={320} />
-          <div>
-            <h1 className="text-5xl font-bold tracking-tight">{t('app.title')}</h1>
-            <p className="mt-2 text-neutral-600 dark:text-white/60">{t('app.subtitle')}</p>
+    <main className="home-shell">
+      <div className="home-content">
+        <header className="home-header">
+          <div className="brand">
+            <Logo size={64} />
+            <span>
+              watchman<span className="brand-dot">.</span>
+            </span>
           </div>
-
-          <AnimationSelector />
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button variant="ghost" onClick={() => toggle()}>
-              ⛶ {t('home.fullscreen')}
-            </Button>
-            <Button variant="ghost" onClick={() => setSettingsOpen(true)}>
-              ⚙ {t('home.settings')}
-            </Button>
-          </div>
-
-          <Button
-            variant="primary"
-            className="mt-2 px-10 py-3 text-lg"
-            onClick={() => {
-              window.location.hash = '/play';
-            }}
-          >
-            ▶ {t('home.start')}
+          <Button onClick={() => setSettingsOpen(true)}>
+            <SettingsIcon /> {t('home.settings')}
           </Button>
-        </div>
+        </header>
 
-        <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+        <section className="home-hero" aria-labelledby="home-title">
+          <div>
+            <p className="eyebrow">
+              <span /> {t('home.eyebrow')}
+            </p>
+            <h1 id="home-title">
+              {t('home.headline')}
+              <br />
+              <span>{t('home.headlineAccent')}</span>
+            </h1>
+            <p className="hero-description">{t('app.subtitle')}</p>
+            <div className="hero-actions">
+              <Button
+                variant="primary"
+                onClick={() => {
+                  window.location.hash = '/play';
+                }}
+              >
+                <PlayIcon /> {t('home.start')}
+              </Button>
+              <Button onClick={() => toggle()}>
+                <FullscreenIcon /> {t('home.fullscreen')}
+              </Button>
+            </div>
+          </div>
+          <div className="hero-art" aria-hidden="true">
+            <div className="orbit orbit-outer" />
+            <div className="orbit orbit-inner" />
+            <div className="hero-mark">
+              <Logo size={260} />
+            </div>
+            <span className="art-caption">WATCHMAN / SCREENSAVER</span>
+          </div>
+        </section>
+
+        <section className="animation-library" aria-labelledby="animation-title">
+          <div className="library-heading">
+            <div>
+              <p className="eyebrow">{t('home.collection')}</p>
+              <h2 id="animation-title">{t('home.choose')}</h2>
+            </div>
+            <span className="library-note">{t('home.selectionHint')}</span>
+          </div>
+          <AnimationSelector />
+        </section>
+        <footer className="home-footer">
+          <span>{t('home.footer')}</span>
+          <span>
+            WATCHMAN <span className="brand-dot">✦</span>
+          </span>
+        </footer>
       </div>
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </main>
   );
 };

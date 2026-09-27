@@ -6,7 +6,7 @@ import { imageStorage } from '@/services/imageStorage';
 import type { PerModeControl } from '@/types';
 import { Button } from './Button';
 import { IconButton } from './IconButton';
-import { CloseIcon } from './icons';
+import { CloseIcon, SettingsIcon, ResetIcon } from './icons';
 import { ColorInput, Select, Slider, Toggle } from './controls';
 
 interface Props {
@@ -79,14 +79,11 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
     s.set('playlist', next);
   };
 
-  const surface = overlay
-    ? 'border-white/10 bg-neutral-900/80 text-white'
-    : 'border-black/10 bg-white/90 text-neutral-900 dark:border-white/10 dark:bg-neutral-900/80 dark:text-white';
-
   const meta = getAnimation(s.animationId);
   const isRelevant = (control: PerModeControl) => !meta.controls || meta.controls.includes(control);
 
   const handleDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target !== e.currentTarget) return;
     const dialog = dialogRef.current;
     if (!dialog) return;
     const rect = dialog.getBoundingClientRect();
@@ -118,20 +115,24 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         e.preventDefault();
         onClose();
       }}
-      className={`fixed right-0 top-0 z-40 m-0 flex h-full max-h-none w-80 max-w-[90vw] flex-col gap-1 overflow-y-auto border-0 border-l p-4 backdrop-blur-xl ${surface}`}
+      className={`settings-panel ${overlay ? 'dark settings-overlay' : ''}`}
     >
-      <div className="mb-2 flex items-center justify-between">
-        <h2 id="settings-panel-title" className="text-lg font-semibold">
-          {t('settings.title')}
-        </h2>
+      <div className="settings-header">
+        <div className="settings-heading">
+          <span className="settings-heading-icon">
+            <SettingsIcon />
+          </span>
+          <div>
+            <h2 id="settings-panel-title" className="text-lg font-semibold">
+              {t('settings.title')}
+            </h2>
+            <p className="settings-description">{t('settings.subtitle')}</p>
+          </div>
+        </div>
         <IconButton onClick={onClose} label={t('shortcuts.close')} icon={<CloseIcon />} />
       </div>
 
-      <div
-        role="tablist"
-        aria-label={t('settings.title')}
-        className="mb-2 grid grid-cols-2 gap-1 border-b border-black/10 pb-2 dark:border-white/10"
-      >
+      <div role="tablist" aria-label={t('settings.title')} className="settings-tabs">
         {tabs.map((tab, index) => (
           <button
             key={tab}
@@ -159,7 +160,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
               setActiveTab(target);
               document.getElementById(`tab-${target}`)?.focus();
             }}
-            className={`rounded-lg px-2 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${activeTab === tab ? 'bg-sky-600 text-white' : 'hover:bg-black/10 dark:hover:bg-white/10'}`}
+            className="settings-tab"
           >
             {t(`settings.tab.${tab}`)}
           </button>
@@ -169,8 +170,16 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         role="tabpanel"
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
-        className="flex flex-col gap-1"
+        className="settings-body"
       >
+        <div className="settings-context">
+          <span>{t(`settings.tab.${activeTab}`)}</span>
+          <p>
+            {activeTab === 'animation'
+              ? t(`anim.${s.animationId}`)
+              : t(`settings.intro.${activeTab}`)}
+          </p>
+        </div>
         {activeTab === 'animation' && (
           <>
             {isRelevant('speed') && (
@@ -267,9 +276,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
               value={s.antiBurnIn}
               onChange={(v) => s.set('antiBurnIn', v)}
             />
-            <p className="text-xs text-neutral-600 dark:text-white/60">
-              {t('settings.antiBurnIn.desc')}
-            </p>
+            <p className="setting-help">{t('settings.antiBurnIn.desc')}</p>
             <Button
               onClick={() => {
                 s.set('background', '#000000');
@@ -308,8 +315,8 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
               ]}
               onChange={(v) => s.set('lang', v)}
             />
-            <Button className="mt-4" onClick={() => void resetSettings()}>
-              {t('settings.reset')}
+            <Button className="settings-reset" onClick={() => void resetSettings()}>
+              <ResetIcon /> {t('settings.reset')}
             </Button>
           </>
         )}
@@ -317,15 +324,13 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         {/* Custom text + uploads */}
         {activeTab === 'animation' && (
           <>
-            <label className="flex flex-col gap-1 py-1.5 text-sm">
-              <span className="text-neutral-700 dark:text-white/80">
-                {t('settings.customText')}
-              </span>
+            <label className="setting-text">
+              <span className="setting-label">{t('settings.customText')}</span>
               <input
                 type="text"
                 value={s.customText}
                 onChange={(e) => s.set('customText', e.target.value)}
-                className="rounded-lg border border-black/10 bg-black/5 px-2 py-1 outline-none dark:border-white/10 dark:bg-white/10"
+                className="setting-text-input"
               />
             </label>
 
@@ -345,13 +350,11 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
 
         {/* Playlist */}
         {activeTab === 'playlist' && (
-          <div className="mt-3 border-t border-black/10 pt-3 dark:border-white/10">
-            <p className="mb-1 text-sm font-medium text-neutral-700 dark:text-white/80">
-              {t('settings.playlist')}
-            </p>
-            <div className="grid grid-cols-2 gap-1">
+          <div className="settings-playlist">
+            <p className="sr-only">{t('settings.playlist')}</p>
+            <div className="playlist-grid">
               {animations.map((a) => (
-                <label key={a.id} className="flex items-center gap-2 text-xs">
+                <label key={a.id} className="playlist-choice">
                   <input
                     type="checkbox"
                     checked={s.playlist.includes(a.id)}
@@ -399,9 +402,9 @@ const FileField = ({
   onFile: (f: File) => void;
   onClear?: () => void;
 }) => (
-  <label className="flex items-center justify-between gap-2 py-1.5 text-sm">
-    <span className="text-neutral-700 dark:text-white/80">{label}</span>
-    <span className="flex items-center gap-1">
+  <label className="setting-upload">
+    <span className="setting-label">{label}</span>
+    <span className="upload-actions">
       {onClear && (
         <button
           type="button"
@@ -418,7 +421,7 @@ const FileField = ({
           const f = e.target.files?.[0];
           if (f) onFile(f);
         }}
-        className="w-28 text-xs file:mr-1 file:rounded file:border-0 file:bg-sky-500 file:px-2 file:py-1 file:text-white"
+        className="setting-file"
       />
     </span>
   </label>

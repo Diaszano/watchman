@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import type { Lang } from '@/types';
-import { translate } from './i18n';
+import { detectLanguage, translate } from './i18n';
 
 describe('i18n', () => {
+  it.each([
+    [['pt-BR', 'en-US'], 'pt'],
+    [['pt-PT'], 'pt'],
+    [['en-GB', 'pt-BR'], 'en'],
+    [['fr-FR', 'pt-BR'], 'pt'],
+    [['PT-br'], 'pt'],
+    [['es-ES'], 'en'],
+    [[], 'en'],
+  ] as const)('detects the first supported browser language in %j', (languages, expected) => {
+    expect(detectLanguage(languages)).toBe(expected);
+  });
+
   const newKeys: Array<[Lang, string, string]> = [
     ['en', 'settings.playlistMode.sequential', 'Sequential'],
     ['en', 'settings.playlistMode.random', 'Random'],
