@@ -23,7 +23,7 @@ export const Slider = (p: {
       step={p.step}
       value={p.value}
       onChange={(e) => p.onChange(Number(e.target.value))}
-      className="w-40 accent-sky-500"
+      className="w-40 accent-sky-500 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
     />
   </Row>
 );
@@ -34,7 +34,7 @@ export const Toggle = (p: { label: string; value: boolean; onChange: (v: boolean
       type="checkbox"
       checked={p.value}
       onChange={(e) => p.onChange(e.target.checked)}
-      className="h-5 w-5 accent-sky-500"
+      className="h-5 w-5 accent-sky-500 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2"
     />
   </Row>
 );
@@ -45,7 +45,7 @@ export const ColorInput = (p: { label: string; value: string; onChange: (v: stri
       type="color"
       value={p.value}
       onChange={(e) => p.onChange(e.target.value)}
-      className="h-8 w-14 cursor-pointer rounded bg-transparent"
+      className="h-8 w-14 cursor-pointer rounded bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
     />
   </Row>
 );
@@ -60,7 +60,7 @@ export const Select = <T extends string>(p: {
     <select
       value={p.value}
       onChange={(e) => p.onChange(e.target.value as T)}
-      className="rounded-lg border border-black/10 bg-black/5 px-2 py-1 text-neutral-900 outline-none dark:border-white/10 dark:bg-white/10 dark:text-white"
+      className="rounded-lg border border-black/10 bg-black/5 px-2 py-1 text-neutral-900 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 dark:border-white/10 dark:bg-white/10 dark:text-white"
     >
       {p.options.map((o) => (
         <option key={o.value} value={o.value} className="bg-white dark:bg-neutral-900">
@@ -70,3 +70,4 @@ export const Select = <T extends string>(p: {
     </select>
   </Row>
 );
+
