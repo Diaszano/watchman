@@ -17,7 +17,7 @@ export const HomePage = () => {
       <div className="pointer-events-none absolute bottom-0 right-0 h-[60vh] w-[60vh] rounded-full bg-fuchsia-500/10 blur-3xl" />
       <div className="relative z-10 w-full max-w-xl">
         <div className="flex flex-col items-center gap-6 text-center">
-          <Logo size={88} />
+          <Logo size={320} />
           <div>
             <h1 className="text-5xl font-bold tracking-tight">{t('app.title')}</h1>
             <p className="mt-2 text-neutral-600 dark:text-white/60">{t('app.subtitle')}</p>

@@ -1,5 +1,7 @@
 # Watchman
 
+![Watchman](https://raw.githubusercontent.com/Diaszano/watchman/main/public/logo.png)
+
 Interactive browser screensaver that keeps your display visually active to help reduce the risk of **OLED burn-in** — while looking good doing it.
 
 10 animation modes, live-tunable settings, anti burn-in engine, playlists, PWA/offline support.
