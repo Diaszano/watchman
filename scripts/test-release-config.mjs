@@ -104,6 +104,16 @@ assert.equal(
   '.github/scripts/resolve-release-tag.sh resolve "$RUNNER_TEMP/release-tags-before.txt" "$GITHUB_OUTPUT"',
 );
 
+const verifyReleaseFailure = step('Verify release publication on semantic-release failure');
+assert.ok(
+  verifyReleaseFailure,
+  'Release workflow must verify publication if semantic-release fails',
+);
+assert.equal(
+  verifyReleaseFailure.if,
+  "steps.semantic-release.outcome == 'failure' && steps.release.outputs.published != 'true'",
+);
+
 const buildTags = step('Build Docker tags');
 const runBuildTags = async ({ published, version = '', refName = 'main' }) => {
   const outputDirectory = await mkdtemp(join(tmpdir(), 'watchman-docker-tags-'));
@@ -268,20 +278,37 @@ try {
   runChecked('git', ['tag', 'v1000-archive']);
   runChecked('git', ['tag', 'v01.2.3']);
   runChecked('git', ['tag', 'v1.2.3-beta.1']);
+  runChecked('git', ['tag', 'v1.6.0-dev.01']);
   await writeFile(githubOutput, '');
   runChecked(resolver, ['resolve', beforeTags, githubOutput]);
   assert.equal(await readFile(githubOutput, 'utf8'), 'published=false\n');
 
-  runChecked('git', ['tag', 'v1.2.3']);
+  runChecked('git', ['tag', 'v1.6.0-dev.2']);
   await writeFile(githubOutput, '');
   runChecked(resolver, ['resolve', beforeTags, githubOutput]);
-  assert.equal(await readFile(githubOutput, 'utf8'), 'published=true\nversion=1.2.3\n');
+  assert.equal(await readFile(githubOutput, 'utf8'), 'published=true\nversion=1.6.0-dev.2\n');
+
+  runChecked('git', ['tag', 'v1.2.3']);
+  await writeFile(githubOutput, '');
+  const multipleMixedTags = run(resolver, ['resolve', beforeTags, githubOutput]);
+  assert.notEqual(multipleMixedTags.status, 0);
+  assert.match(multipleMixedTags.stderr, /multiple new release tags/i);
+
+  runChecked(resolver, ['snapshot', beforeTags]);
+  await writeFile(githubOutput, '');
+  runChecked(resolver, ['resolve', beforeTags, githubOutput]);
+  assert.equal(await readFile(githubOutput, 'utf8'), 'published=false\n');
 
   runChecked('git', ['tag', 'v2.0.0']);
   await writeFile(githubOutput, '');
-  const multipleTags = run(resolver, ['resolve', beforeTags, githubOutput]);
-  assert.notEqual(multipleTags.status, 0);
-  assert.match(multipleTags.stderr, /multiple new stable release tags/i);
+  runChecked(resolver, ['resolve', beforeTags, githubOutput]);
+  assert.equal(await readFile(githubOutput, 'utf8'), 'published=true\nversion=2.0.0\n');
+
+  runChecked('git', ['tag', 'v2.0.1']);
+  await writeFile(githubOutput, '');
+  const multipleStableTags = run(resolver, ['resolve', beforeTags, githubOutput]);
+  assert.notEqual(multipleStableTags.status, 0);
+  assert.match(multipleStableTags.stderr, /multiple new release tags/i);
 } finally {
   await rm(repository, { recursive: true, force: true });
 }
