@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { analyzeCommits } from '@semantic-release/commit-analyzer';
+import { generateNotes } from '@semantic-release/release-notes-generator';
 import { load } from 'js-yaml';
 
 const ACTIONS = {
@@ -52,6 +53,24 @@ for (const message of [
 
 const npmPlugin = plugin('@semantic-release/npm');
 assert.equal(npmPlugin[1].npmPublish, false);
+
+const notesPlugin = plugin('@semantic-release/release-notes-generator');
+assert.ok(Array.isArray(notesPlugin));
+const generatedNotes = await generateNotes(notesPlugin[1], {
+  commits: [
+    {
+      hash: '1234567890123456789012345678901234567890',
+      message: 'feat(ui): example',
+    },
+  ],
+  cwd: process.cwd(),
+  logger: { log() {} },
+  options: { repositoryUrl: 'https://github.com/Diaszano/watchman' },
+  lastRelease: { gitTag: 'v1.5.0', version: '1.5.0' },
+  nextRelease: { gitTag: 'v1.6.0', version: '1.6.0' },
+});
+assert.match(generatedNotes, /### Features/i);
+assert.match(generatedNotes, /\*\*ui:\*\* example/);
 
 const releaseWorkflow = load(await readFile('.github/workflows/release.yml', 'utf8'));
 assert.deepEqual(Object.keys(releaseWorkflow.on), ['workflow_call']);
