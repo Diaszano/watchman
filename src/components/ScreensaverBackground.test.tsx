@@ -44,4 +44,21 @@ describe('ScreensaverBackground', () => {
       backgroundSize: 'cover',
     });
   });
+
+  it('applies negative 24px inset when antiBurnIn is active and normal inset-0 when disabled', () => {
+    useSettings.setState({ antiBurnIn: true });
+    const { container, rerender } = render(<ScreensaverBackground />);
+    expect(container.firstChild).toHaveClass('-inset-6');
+
+    useSettings.setState({ antiBurnIn: false });
+    rerender(<ScreensaverBackground />);
+    expect(container.firstChild).toHaveClass('inset-0');
+    expect(container.firstChild).not.toHaveClass('-inset-6');
+  });
+
+  it('forwards ref to the background element', () => {
+    const ref = { current: null };
+    render(<ScreensaverBackground ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+  });
 });

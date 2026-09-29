@@ -30,6 +30,8 @@ export const PlayerPage = () => {
   const [fps, setFps] = useState(0);
   const [uiVisible, setUiVisible] = useState(true);
 
+  const backgroundRef = useRef<HTMLDivElement>(null);
+  const brightness = useSettings((s) => s.brightness);
   const animationId = useSettings((s) => s.animationId);
   const showFps = useSettings((s) => s.showFps);
   const customImageId = useSettings((s) => s.customImageId);
@@ -40,7 +42,13 @@ export const PlayerPage = () => {
 
   const handleFps = useCallback((v: number) => setFps(v), []);
   const onFps = showFps ? handleFps : undefined;
-  useAnimationLoop({ canvasRef, paused, onFps, customImageUrl: customImage.url });
+  useAnimationLoop({
+    canvasRef,
+    backgroundRef,
+    paused,
+    onFps,
+    customImageUrl: customImage.url,
+  });
 
   const step = useCallback(
     (dir: 1 | -1) => {
@@ -121,8 +129,14 @@ export const PlayerPage = () => {
 
   return (
     <div className={`relative h-full w-full bg-black ${controlsShown ? '' : 'cursor-none'}`}>
-      <ScreensaverBackground />
-      <canvas ref={canvasRef} className="absolute inset-0 z-10 block h-full w-full" />
+      <div
+        data-testid="screensaver-scene"
+        className="relative h-full w-full overflow-hidden"
+        style={{ filter: `brightness(${brightness})` }}
+      >
+        <ScreensaverBackground ref={backgroundRef} />
+        <canvas ref={canvasRef} className="absolute inset-0 z-10 block h-full w-full" />
+      </div>
 
       {showFps && <FpsMonitor fps={fps} />}
 

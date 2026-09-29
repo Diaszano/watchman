@@ -67,6 +67,7 @@ describe('i18n', () => {
       'settings.tab.playlist',
       'settings.tab.general',
       'settings.antiBurnIn.desc',
+      'settings.brightness.desc',
       'settings.trueBlack',
     ]) {
       expect(translate('en', key)).not.toBe(key);

@@ -144,7 +144,7 @@ describe('useAnimationLoop', () => {
     unmount();
   });
 
-  it('updates brightness and opacity styles only when their settings change', () => {
+  it('updates opacity style only when opacity changes and does not write filter to canvas', () => {
     const { canvas } = createCanvas();
     const runFrame = installAnimationFrames();
     let filterWrites = 0;
@@ -170,13 +170,78 @@ describe('useAnimationLoop', () => {
     runFrame(17);
     runFrame(34);
     runFrame(51);
-    expect(filterWrites).toBe(1);
+    expect(filterWrites).toBe(0);
     expect(opacityWrites).toBe(1);
 
     useSettings.getState().set('brightness', 0.8);
     runFrame(68);
-    expect(filterWrites).toBe(2);
+    expect(filterWrites).toBe(0);
     expect(opacityWrites).toBe(1);
+
+    useSettings.getState().set('opacity', 0.5);
+    runFrame(85);
+    expect(filterWrites).toBe(0);
+    expect(opacityWrites).toBe(2);
+    unmount();
+  });
+
+  it('applies antiBurnIn drift transform to backgroundRef and clears it when disabled', () => {
+    const { canvas, context } = createCanvas();
+    const background = document.createElement('div');
+    const runFrame = installAnimationFrames();
+    useSettings.getState().set('antiBurnIn', true);
+
+    const { unmount } = renderHook(() =>
+      useAnimationLoop({
+        canvasRef: { current: canvas },
+        backgroundRef: { current: background },
+        paused: false,
+        customImageUrl: null,
+      }),
+    );
+
+    // Initial frame
+    runFrame(17);
+
+    // Advance time past 5s to trigger drift target change
+    vi.spyOn(Math, 'random').mockReturnValue(0.8);
+    runFrame(5100);
+    runFrame(5200);
+
+    expect(background.style.transform).toMatch(/^translate\(-?\d+(\.\d+)?px, -?\d+(\.\d+)?px\)$/);
+    expect(context.setTransform).toHaveBeenCalled();
+
+    // Disable antiBurnIn
+    useSettings.getState().set('antiBurnIn', false);
+    runFrame(5300);
+
+    expect(background.style.transform).toBe('');
+
+    unmount();
+  });
+
+  it('resets background transform when antiBurnIn is disabled while paused', () => {
+    const { canvas } = createCanvas();
+    const background = document.createElement('div');
+    background.style.transform = 'translate(10px, 10px)';
+    installAnimationFrames();
+    useSettings.getState().set('antiBurnIn', true);
+
+    const { unmount } = renderHook(() =>
+      useAnimationLoop({
+        canvasRef: { current: canvas },
+        backgroundRef: { current: background },
+        paused: true,
+        customImageUrl: null,
+      }),
+    );
+
+    act(() => {
+      useSettings.getState().set('antiBurnIn', false);
+    });
+
+    expect(background.style.transform).toBe('');
+
     unmount();
   });
 

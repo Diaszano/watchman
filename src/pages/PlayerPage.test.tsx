@@ -143,4 +143,22 @@ describe('PlayerPage HUD', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(window.location.hash).toBe('');
   });
+
+  it('applies brightness filter to the screensaver scene container enclosing canvas and background, leaving HUD controls unaffected', () => {
+    useSettings.setState({ brightness: 0.2 });
+    const { container } = render(<PlayerPage />);
+
+    const scene = container.querySelector('[data-testid="screensaver-scene"]');
+    expect(scene).toBeInTheDocument();
+    expect(scene).toHaveStyle({ filter: 'brightness(0.2)' });
+
+    // Scene encloses canvas
+    const canvas = container.querySelector('canvas');
+    expect(scene).toContainElement(canvas);
+
+    // Controls toolbar is outside the scene container and has no brightness filter
+    const controls = screen.getByRole('toolbar', { name: 'Controls' });
+    expect(scene).not.toContainElement(controls);
+    expect(controls).not.toHaveStyle({ filter: 'brightness(0.2)' });
+  });
 });

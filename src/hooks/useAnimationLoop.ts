@@ -5,6 +5,7 @@ import type { Animation, Settings } from '@/types';
 
 interface Options {
   canvasRef: RefObject<HTMLCanvasElement | null>;
+  backgroundRef?: RefObject<HTMLDivElement | null>;
   paused: boolean;
   onFps?: (fps: number) => void;
   customImageUrl: string | null;
@@ -23,6 +24,7 @@ interface LoopController {
  */
 export const useAnimationLoop = ({
   canvasRef,
+  backgroundRef,
   paused,
   onFps,
   customImageUrl,
@@ -35,6 +37,9 @@ export const useAnimationLoop = ({
 
   const customImageUrlRef = useRef(customImageUrl);
   customImageUrlRef.current = customImageUrl;
+
+  const backgroundRefRef = useRef(backgroundRef);
+  backgroundRefRef.current = backgroundRef;
 
   const controllerRef = useRef<LoopController | null>(null);
   const canvas = canvasRef.current;
@@ -65,7 +70,6 @@ export const useAnimationLoop = ({
     let driftTimer = 0;
 
     // Cached DOM style states to avoid per-frame DOM style recalculation.
-    let lastFilter = '';
     let lastOpacity = '';
 
     let cssW = canvas.clientWidth;
@@ -73,12 +77,6 @@ export const useAnimationLoop = ({
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const applyStyles = (s: Settings) => {
-      const nextFilter = `brightness(${s.brightness})`;
-      if (nextFilter !== lastFilter) {
-        canvas.style.filter = nextFilter;
-        lastFilter = nextFilter;
-      }
-
       const nextOpacity = String(s.opacity);
       if (nextOpacity !== lastOpacity) {
         canvas.style.opacity = nextOpacity;
@@ -96,6 +94,15 @@ export const useAnimationLoop = ({
       }
 
       applyStyles(s);
+
+      const bg = backgroundRefRef.current?.current;
+      if (bg) {
+        if (s.antiBurnIn) {
+          bg.style.transform = `translate(${offX}px, ${offY}px)`;
+        } else if (bg.style.transform) {
+          bg.style.transform = '';
+        }
+      }
 
       ctx.setTransform(dpr, 0, 0, dpr, offX * dpr, offY * dpr);
       // Clear a margin larger than the viewport so drift never exposes edges.
@@ -239,10 +246,13 @@ export const useAnimationLoop = ({
           state.size !== prevState.size ||
           state.color !== prevState.color ||
           state.opacity !== prevState.opacity ||
-          state.brightness !== prevState.brightness ||
           state.customText !== prevState.customText ||
-          state.count !== prevState.count
+          state.count !== prevState.count ||
+          state.antiBurnIn !== prevState.antiBurnIn
         ) {
+          if (!state.antiBurnIn) {
+            offX = offY = 0;
+          }
           drawFrame(0);
         }
       }
@@ -260,6 +270,10 @@ export const useAnimationLoop = ({
       ro.disconnect();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       unsubscribe();
+      const bg = backgroundRefRef.current?.current;
+      if (bg) {
+        bg.style.transform = '';
+      }
     };
   }, [canvas]);
 
