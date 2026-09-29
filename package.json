@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "prepare": "husky",
     "test:commits": "bash scripts/test-commitlint.sh",
-    "test:release": "node scripts/test-release-config.mjs"
+    "test:release": "node scripts/test-release-config.mjs",
+    "test:ci-security": "node scripts/test-ci-branch-policy.mjs"
   },
   "dependencies": {
     "react": "^19.3.0",

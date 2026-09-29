@@ -52,8 +52,10 @@ jobs:
 
       - name: Validate PR target branch policy
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        env:
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
-          if [[ "${{ github.head_ref }}" != "dev" && "${{ github.head_ref }}" != "development" ]]; then
+          if [[ "$GITHUB_HEAD_REF" != "dev" && "$GITHUB_HEAD_REF" != "development" ]]; then
             echo "::error::Only pull requests coming from the 'dev' (or 'development') branch are allowed to be merged into 'main'."
             exit 1
           fi
@@ -108,6 +110,8 @@ jobs:
         run: npm ci
       - name: Test
         run: npm test
+      - name: Test CI branch policy security
+        run: npm run test:ci-security
 
   test-release:
     name: Test release configuration
