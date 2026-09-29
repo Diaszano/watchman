@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 const supported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
 
@@ -7,9 +7,7 @@ const supported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
  * OS releases it (e.g. tab hidden then shown). Degrades silently when the API
  * is unsupported — callers can surface `supported` to the user.
  */
-export const useWakeLock = (enabled: boolean) => {
-  const [active, setActive] = useState(false);
-
+export const useWakeLock = (enabled: boolean): { supported: boolean } => {
   useEffect(() => {
     if (!supported || !enabled) return;
     let sentinel: WakeLockSentinel | null = null;
@@ -22,16 +20,15 @@ export const useWakeLock = (enabled: boolean) => {
           await sentinel.release();
           return;
         }
-        setActive(true);
-        sentinel.addEventListener('release', () => setActive(false));
       } catch {
-        setActive(false);
+        // Degrade silently when acquire fails
       }
     };
 
     const onVisible = () => {
-      if (document.visibilityState === 'visible' && (!sentinel || sentinel.released))
+      if (document.visibilityState === 'visible' && (!sentinel || sentinel.released)) {
         void acquire();
+      }
     };
 
     void acquire();
@@ -41,9 +38,8 @@ export const useWakeLock = (enabled: boolean) => {
       cancelled = true;
       document.removeEventListener('visibilitychange', onVisible);
       void sentinel?.release().catch(() => {});
-      setActive(false);
     };
   }, [enabled]);
 
-  return { supported, active };
+  return { supported };
 };

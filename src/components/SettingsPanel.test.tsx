@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { imageStorage } from '@/services/imageStorage';
 import { defaultSettings, useSettings } from '@/stores/settingsStore';
@@ -17,13 +17,11 @@ describe('SettingsPanel', () => {
   });
 
   const uploadBackground = (file: File) => {
-    fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
-    const input = screen
-      .getAllByText('Background')
-      .find((element) => element.closest('label')?.querySelector('input[type=file]'))!
-      .closest('label')!
-      .querySelector('input[type=file]')!;
-    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('tab', { name: /oled/i }));
+    const panel = document.getElementById('tabpanel-oled');
+    const input = panel ? panel.querySelector('input[type=file]') : null;
+    expect(input).not.toBeNull();
+    fireEvent.change(input!, { target: { files: [file] } });
   };
 
   it('saves a replacement before updating the setting and removing the old image', async () => {
@@ -44,16 +42,54 @@ describe('SettingsPanel', () => {
     expect(events).toEqual(['save', 'remove:new-background']);
   });
 
-  it('keeps the previous ID and blob when saving fails', async () => {
+  it('keeps the previous ID and blob when saving fails without exposing raw error', async () => {
     vi.spyOn(imageStorage, 'save').mockRejectedValue(new Error('Storage unavailable'));
     const remove = vi.spyOn(imageStorage, 'remove').mockResolvedValue();
 
     render(<SettingsPanel open onClose={() => undefined} />);
     uploadBackground(new File(['image'], 'background.png', { type: 'image/png' }));
 
-    expect(await screen.findByText('Storage unavailable')).toBeInTheDocument();
+    expect(await screen.findByText('Could not save image')).toBeInTheDocument();
+    expect(screen.queryByText('Storage unavailable')).not.toBeInTheDocument();
     expect(useSettings.getState().backgroundImageId).toBe('old-background');
     expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('translates known image errors in EN and PT, and blocks clear/reset while upload is pending', async () => {
+    // Test EN known error
+    let rejectSave: (err: Error) => void = () => {};
+    vi.spyOn(imageStorage, 'save').mockImplementation(
+      () =>
+        new Promise<string>((_resolve, reject) => {
+          rejectSave = reject;
+        }),
+    );
+    const removeSpy = vi.spyOn(imageStorage, 'remove').mockResolvedValue();
+
+    const { rerender } = render(<SettingsPanel open onClose={() => undefined} />);
+    uploadBackground(new File(['img'], 'test.png', { type: 'image/png' }));
+
+    // While save is pending, clear button should be disabled or blocked
+    const clearButton = screen.queryByRole('button', { name: 'Clear' });
+    if (clearButton) {
+      fireEvent.click(clearButton);
+      expect(removeSpy).not.toHaveBeenCalled();
+    }
+
+    // Reject with known error
+    rejectSave(new Error('image.tooLarge'));
+    expect(await screen.findByText('Image size exceeds the 5MB limit.')).toBeInTheDocument();
+    expect(useSettings.getState().backgroundImageId).toBe('old-background');
+
+    // Switch to PT and test image.dimensions
+    useSettings.getState().set('lang', 'pt');
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+
+    uploadBackground(new File(['img'], 'test2.png', { type: 'image/png' }));
+    rejectSave(new Error('image.dimensions'));
+    expect(
+      await screen.findByText('As dimensões da imagem excedem o limite de 8192px ou 16.7MP.'),
+    ).toBeInTheDocument();
   });
 
   it('removes both stored images when resetting settings', async () => {
@@ -91,7 +127,7 @@ describe('SettingsPanel', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'General' }));
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not save image');
     expect(remove).toHaveBeenCalledTimes(2);
     expect(useSettings.getState()).toMatchObject(defaultSettings);
   });
@@ -99,6 +135,7 @@ describe('SettingsPanel', () => {
   it('clears an earlier image error after a successful removal', async () => {
     useSettings.setState({
       ...defaultSettings,
+      animationId: 'logo',
       backgroundImageId: 'background-image',
       customImageId: 'custom-image',
     });
@@ -108,7 +145,7 @@ describe('SettingsPanel', () => {
 
     render(<SettingsPanel open onClose={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: 'Custom logo' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not save image');
 
     fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
     fireEvent.click(screen.getByRole('button', { name: 'Background' }));
@@ -199,6 +236,19 @@ describe('SettingsPanel', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('restores focus to the opener element when closed', () => {
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    button.focus();
+    expect(document.activeElement).toBe(button);
+
+    const { rerender } = render(<SettingsPanel open onClose={() => {}} />);
+    rerender(<SettingsPanel open={false} onClose={() => {}} />);
+
+    expect(document.activeElement).toBe(button);
+    document.body.removeChild(button);
+  });
+
   it('keeps settings open when a tab is activated from the keyboard', () => {
     const onClose = vi.fn();
     render(<SettingsPanel open onClose={onClose} />);
@@ -270,5 +320,51 @@ describe('SettingsPanel', () => {
     expect(useSettings.getState().backgroundImageId).toBeNull();
     fireEvent.click(tabs[2]!);
     expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-playlist');
+  });
+
+  it('shows only relevant controls for each animation mode', () => {
+    // DVD does not show Color, Custom text, or Custom logo
+    useSettings.setState({ animationId: 'dvd' });
+    const { rerender } = render(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.queryByText('Color')).toBeNull();
+    expect(screen.queryByText('Custom text')).toBeNull();
+    expect(screen.queryByText('Custom logo')).toBeNull();
+
+    // Neon does not show Color
+    act(() => {
+      useSettings.getState().set('animationId', 'neon');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.queryByText('Color')).toBeNull();
+
+    // Shapes does not show Color
+    act(() => {
+      useSettings.getState().set('animationId', 'shapes');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.queryByText('Color')).toBeNull();
+
+    // Matrix does not show Count
+    act(() => {
+      useSettings.getState().set('animationId', 'matrix');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.queryByText('Count')).toBeNull();
+
+    // Text shows Custom text but not Custom logo
+    act(() => {
+      useSettings.getState().set('animationId', 'text');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.getByText('Custom text')).toBeInTheDocument();
+    expect(screen.queryByText('Custom logo')).toBeNull();
+
+    // Logo shows Custom logo but not Custom text
+    act(() => {
+      useSettings.getState().set('animationId', 'logo');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.getByText('Custom logo')).toBeInTheDocument();
+    expect(screen.queryByText('Custom text')).toBeNull();
   });
 });

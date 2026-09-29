@@ -3,14 +3,13 @@ import { imageStorage } from '@/services/imageStorage';
 
 interface StoredImageState {
   url: string | null;
-  error: Error | null;
 }
 
 interface LoadedImageState extends StoredImageState {
   id: string | null;
 }
 
-const emptyState: StoredImageState = { url: null, error: null };
+const emptyState: StoredImageState = { url: null };
 
 export const useStoredImage = (id: string | null): StoredImageState => {
   const [state, setState] = useState<LoadedImageState>({ id: null, ...emptyState });
@@ -26,14 +25,13 @@ export const useStoredImage = (id: string | null): StoredImageState => {
       .then((blob) => {
         if (!active) return;
         url = blob ? URL.createObjectURL(blob) : null;
-        setState({ id, url, error: null });
+        setState({ id, url });
       })
-      .catch((error: unknown) => {
+      .catch(() => {
         if (active) {
           setState({
             id,
             url: null,
-            error: error instanceof Error ? error : new Error(String(error)),
           });
         }
       });

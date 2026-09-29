@@ -1,5 +1,5 @@
 import type { Animation, AnimationFrame } from '@/types';
-import { densityCount, rand } from '@/utils/math';
+import { rand } from '@/utils/math';
 
 interface Star {
   x: number;
@@ -15,10 +15,10 @@ export const createStarfield = (): Animation => {
   const spawn = (): Star => ({ x: rand(-w, w), y: rand(-h, h), z: rand(1, w) });
 
   return {
-    draw({ ctx, width, height, dt, settings, renderDensity }: AnimationFrame) {
+    draw({ ctx, width, height, dt, settings }: AnimationFrame) {
       w = width;
       h = height;
-      const count = densityCount(settings.count * 2, 1, renderDensity);
+      const count = Math.max(1, Math.round(settings.count * 2));
       while (stars.length < count) stars.push(spawn());
       if (stars.length > count) stars.length = count;
 

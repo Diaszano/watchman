@@ -28,8 +28,8 @@ Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, P
 ## Features
 
 - **10 animation modes** — DVD Logo, Digital Clock, Particle System, Floating Bubbles, Starfield (parallax), Matrix Rain, Neon Lines, Geometric Shapes, Custom Logo (image upload), Custom Text.
-- **Anti burn-in engine** — global drift and per-mode motion so nothing sits static.
-- **Live configuration** — speed, object count, size, colors, background (solid / gradient / image), opacity, brightness, FPS cap. Every control updates in real time.
+- **Anti burn-in engine** — subtle global drift affecting both canvas and background (with an oversized margin to prevent exposed edges), plus per-mode motion to reduce OLED image retention risk (software drift reduces retention risk but cannot guarantee total burn-in prevention; true black background remains available).
+- **Live configuration** — speed, object count, size, colors, background (solid / gradient / image), opacity (canvas), brightness (entire scene: background + canvas, while HUD controls remain unaffected), FPS cap. Every control updates in real time.
 - **Per-animation relevant controls** — each mode only surfaces the settings that affect it.
 - **Automatic playlist** — pick favorites, set a switch interval, sequential or random.
 - **Screen Wake Lock API** — keeps the display awake while protection runs; auto-reacquires; degrades gracefully with a notice when unsupported.
@@ -43,7 +43,7 @@ Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, P
 
 ## Rendering
 
-The canvas follows the display's device pixel ratio, capped at 2 for predictable performance on high-resolution screens. Use the FPS limit setting (30, 60, 120, or unlimited) to balance smoothness and power use. Uploaded background and logo images stay in this browser through IndexedDB and are limited to 5 MiB each.
+The canvas follows the display's device pixel ratio, capped at 2 for predictable performance on high-resolution screens. Use the FPS limit setting (30, 60, 120, or unlimited) to balance smoothness and power use. Uploaded background and logo images stay in this browser through IndexedDB and are limited to 5 MiB, up to 8192 px per side and 16.7 megapixels (16,777,216 pixels) each.
 
 ## Screenshots
 
@@ -167,7 +167,7 @@ When protecting `main`, require the `Commit messages`, `Lint, test, and build`, 
 
 The render pipeline is intentionally **canvas-first and React-light**: React owns the shell (routing, settings UI, overlays, and background); a single `requestAnimationFrame` loop drives animation pixels.
 
-- `useAnimationLoop` reads settings via `zustand`'s `getState()` **each frame**, so tuning is instant without React re-renders. It handles DPR sizing, the FPS cap, tab-visibility pause, and the anti burn-in drift — in one place, so every animation benefits.
+- `useAnimationLoop` reads settings via `zustand`'s `getState()` **each frame**, so tuning is instant without React re-renders. It handles DPR sizing, the FPS cap, tab-visibility pause, and coordinates anti burn-in drift across both canvas and background.
 - Each **animation is an independent module** exposing a factory `() => { draw(frame) }`. State lives in the closure and resets on switch. Adding one requires a new module and a registry entry in `animations/index.ts`.
 - **Navigation** uses the browser's native hash routing, keeping the two-page flow dependency-free.
 - **Settings** are one strongly-typed store persisted to LocalStorage via `zustand/middleware`; uploaded images are stored separately in IndexedDB.

@@ -30,6 +30,8 @@ export const PlayerPage = () => {
   const [fps, setFps] = useState(0);
   const [uiVisible, setUiVisible] = useState(true);
 
+  const backgroundRef = useRef<HTMLDivElement>(null);
+  const brightness = useSettings((s) => s.brightness);
   const animationId = useSettings((s) => s.animationId);
   const showFps = useSettings((s) => s.showFps);
   const customImageId = useSettings((s) => s.customImageId);
@@ -38,8 +40,15 @@ export const PlayerPage = () => {
   const { toggle } = useFullscreen();
   const wake = useWakeLock(!paused);
 
-  const onFps = useCallback((v: number) => setFps(v), []);
-  useAnimationLoop({ canvasRef, paused, onFps, customImageUrl: customImage.url });
+  const handleFps = useCallback((v: number) => setFps(v), []);
+  const onFps = showFps ? handleFps : undefined;
+  useAnimationLoop({
+    canvasRef,
+    backgroundRef,
+    paused,
+    onFps,
+    customImageUrl: customImage.url,
+  });
 
   const step = useCallback(
     (dir: 1 | -1) => {
@@ -65,46 +74,69 @@ export const PlayerPage = () => {
     }
   }, [shortcutsOpen, settingsOpen]);
 
+  const [hudFocused, setHudFocused] = useState(false);
+  const hudFocusedRef = useRef(false);
+  const idleTimerRef = useRef<number>(0);
+
+  const resetIdleTimer = useCallback(() => {
+    window.clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = window.setTimeout(() => {
+      if (!hudFocusedRef.current) {
+        setUiVisible(false);
+      }
+    }, 3000);
+  }, []);
+
   const handlers = useMemo(
     () => ({
       toggleFullscreen: () => toggle(),
       togglePause: () => setPaused((p) => !p),
       nextAnimation: () => step(1),
       prevAnimation: () => step(-1),
-      toggleSettings: () => setSettingsOpen((o) => !o),
-      toggleShortcuts: () => setShortcutsOpen((o) => !o),
+      toggleSettings: () => {
+        setShortcutsOpen(false);
+        setSettingsOpen((o) => !o);
+      },
+      toggleShortcuts: () => {
+        setSettingsOpen(false);
+        setShortcutsOpen((o) => !o);
+      },
       escape: handleEscape,
     }),
     [toggle, step, handleEscape],
   );
-  useKeyboardShortcuts(handlers);
+  useKeyboardShortcuts(handlers, !settingsOpen && !shortcutsOpen);
 
-  // Auto-hide cursor + controls after idle. Panel open keeps them visible.
+  // Auto-hide cursor + controls after idle. Panel open or focused control keeps them visible.
   useEffect(() => {
-    let timer: number;
     const onActivity = () => {
       setUiVisible(true);
-      clearTimeout(timer);
-      timer = window.setTimeout(() => setUiVisible(false), 3000);
+      resetIdleTimer();
     };
     onActivity();
     window.addEventListener('mousemove', onActivity);
     window.addEventListener('touchstart', onActivity);
     window.addEventListener('keydown', onActivity);
     return () => {
-      clearTimeout(timer);
+      window.clearTimeout(idleTimerRef.current);
       window.removeEventListener('mousemove', onActivity);
       window.removeEventListener('touchstart', onActivity);
       window.removeEventListener('keydown', onActivity);
     };
-  }, []);
+  }, [resetIdleTimer]);
 
-  const controlsShown = uiVisible || settingsOpen || shortcutsOpen;
+  const controlsShown = uiVisible || settingsOpen || shortcutsOpen || hudFocused;
 
   return (
     <div className={`relative h-full w-full bg-black ${controlsShown ? '' : 'cursor-none'}`}>
-      <ScreensaverBackground />
-      <canvas ref={canvasRef} className="absolute inset-0 z-10 block h-full w-full" />
+      <div
+        data-testid="screensaver-scene"
+        className="relative h-full w-full overflow-hidden"
+        style={{ filter: `brightness(${brightness})` }}
+      >
+        <ScreensaverBackground ref={backgroundRef} />
+        <canvas ref={canvasRef} className="absolute inset-0 z-10 block h-full w-full" />
+      </div>
 
       {showFps && <FpsMonitor fps={fps} />}
 
@@ -123,6 +155,20 @@ export const PlayerPage = () => {
       )}
 
       <div
+        role="toolbar"
+        aria-label="Controls"
+        onFocus={() => {
+          hudFocusedRef.current = true;
+          setHudFocused(true);
+          setUiVisible(true);
+        }}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            hudFocusedRef.current = false;
+            setHudFocused(false);
+            resetIdleTimer();
+          }
+        }}
         className={`absolute right-3 top-3 z-30 flex gap-2 text-white transition-opacity duration-300 ${
           controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
@@ -135,12 +181,18 @@ export const PlayerPage = () => {
         <IconButton
           label={t('player.shortcuts')}
           icon={<HelpIcon />}
-          onClick={() => setShortcutsOpen(true)}
+          onClick={() => {
+            setSettingsOpen(false);
+            setShortcutsOpen((o) => !o);
+          }}
         />
         <IconButton
           label={t('player.settings')}
           icon={<SettingsIcon />}
-          onClick={() => setSettingsOpen((o) => !o)}
+          onClick={() => {
+            setShortcutsOpen(false);
+            setSettingsOpen((o) => !o);
+          }}
         />
         <IconButton
           label={t('player.fullscreen')}

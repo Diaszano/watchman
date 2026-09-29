@@ -1,5 +1,5 @@
 import type { Animation, AnimationFrame } from '@/types';
-import { densityCount, rand } from '@/utils/math';
+import { rand } from '@/utils/math';
 
 interface P {
   x: number;
@@ -21,10 +21,10 @@ export const createParticles = (): Animation => {
   });
 
   return {
-    draw({ ctx, width, height, dt, settings, renderDensity }: AnimationFrame) {
+    draw({ ctx, width, height, dt, settings }: AnimationFrame) {
       w = width;
       h = height;
-      const count = densityCount(settings.count, 1, renderDensity);
+      const count = Math.max(1, Math.round(settings.count));
       // Reconcile pool to requested count live.
       while (ps.length < count) ps.push(spawn());
       if (ps.length > count) ps.length = count;

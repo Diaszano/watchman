@@ -34,7 +34,6 @@ export interface AnimationFrame {
   dt: number; // seconds since previous frame
   time: number; // total elapsed seconds
   settings: Settings;
-  renderDensity: number;
   customImageUrl: string | null;
 }
 
