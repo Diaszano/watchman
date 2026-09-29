@@ -169,7 +169,7 @@ describe('useKeyboardShortcuts', () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
 
-    const elements = [
+    const elements: HTMLElement[] = [
       document.createElement('select'),
       document.createElement('button'),
       document.createElement('input'),
