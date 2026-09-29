@@ -85,8 +85,14 @@ export const PlayerPage = () => {
       togglePause: () => setPaused((p) => !p),
       nextAnimation: () => step(1),
       prevAnimation: () => step(-1),
-      toggleSettings: () => setSettingsOpen((o) => !o),
-      toggleShortcuts: () => setShortcutsOpen((o) => !o),
+      toggleSettings: () => {
+        setShortcutsOpen(false);
+        setSettingsOpen((o) => !o);
+      },
+      toggleShortcuts: () => {
+        setSettingsOpen(false);
+        setShortcutsOpen((o) => !o);
+      },
       escape: handleEscape,
     }),
     [toggle, step, handleEscape],
@@ -161,12 +167,18 @@ export const PlayerPage = () => {
         <IconButton
           label={t('player.shortcuts')}
           icon={<HelpIcon />}
-          onClick={() => setShortcutsOpen(true)}
+          onClick={() => {
+            setSettingsOpen(false);
+            setShortcutsOpen((o) => !o);
+          }}
         />
         <IconButton
           label={t('player.settings')}
           icon={<SettingsIcon />}
-          onClick={() => setSettingsOpen((o) => !o)}
+          onClick={() => {
+            setShortcutsOpen(false);
+            setSettingsOpen((o) => !o);
+          }}
         />
         <IconButton
           label={t('player.fullscreen')}

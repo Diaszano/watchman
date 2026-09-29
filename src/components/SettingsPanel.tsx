@@ -24,15 +24,38 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsTab>('animation');
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
 
   const [isImageProcessing, setIsImageProcessing] = useState(false);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    else if (!open && dialog.open) dialog.close();
+    if (open) {
+      if (!openerRef.current && document.activeElement) {
+        openerRef.current = document.activeElement as HTMLElement;
+      }
+      const dialog = dialogRef.current;
+      if (dialog && !dialog.open) {
+        dialog.showModal();
+      }
+    } else {
+      const dialog = dialogRef.current;
+      if (dialog?.open) {
+        dialog.close();
+      }
+      if (openerRef.current?.isConnected) {
+        openerRef.current.focus();
+        openerRef.current = null;
+      }
+    }
   }, [open]);
+
+  useEffect(() => {
+    return () => {
+      if (openerRef.current?.isConnected) {
+        openerRef.current.focus();
+      }
+    };
+  }, []);
 
   if (!open) return null;
 

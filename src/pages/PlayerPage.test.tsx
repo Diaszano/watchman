@@ -93,4 +93,54 @@ describe('PlayerPage HUD', () => {
     fireEvent.keyDown(window, { key: 'n' });
     expect(useSettings.getState().animationId).toBe(initialAnim);
   });
+
+  it('enforces mutual exclusion between settings and shortcuts dialogs', () => {
+    render(<PlayerPage />);
+    const settingsBtn = screen.getByRole('button', { name: 'Open settings' });
+    const shortcutsBtn = screen.getByRole('button', { name: 'Show keyboard shortcuts' });
+
+    // Open settings
+    fireEvent.click(settingsBtn);
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument();
+
+    // Opening shortcuts closes settings
+    fireEvent.click(shortcutsBtn);
+    expect(screen.getByRole('dialog', { name: 'Keyboard shortcuts' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Settings' })).not.toBeInTheDocument();
+
+    // Opening settings closes shortcuts
+    fireEvent.click(settingsBtn);
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument();
+  });
+
+  it('closes dialog on Escape without navigating to home, and navigates to home on Escape when no dialog is open', () => {
+    window.location.hash = '#player';
+    render(<PlayerPage />);
+
+    // Open shortcuts
+    fireEvent.click(screen.getByRole('button', { name: 'Show keyboard shortcuts' }));
+    const shortcutsDialog = screen.getByRole('dialog', { name: 'Keyboard shortcuts' });
+    expect(shortcutsDialog).toBeInTheDocument();
+
+    // Press Escape on the shortcuts dialog
+    fireEvent.keyDown(shortcutsDialog, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Keyboard shortcuts' })).not.toBeInTheDocument();
+    expect(window.location.hash).toBe('#player');
+
+    // Open settings
+    fireEvent.click(screen.getByRole('button', { name: 'Open settings' }));
+    const settingsDialog = screen.getByRole('dialog', { name: 'Settings' });
+    expect(settingsDialog).toBeInTheDocument();
+
+    // Press Escape on the settings dialog
+    fireEvent.keyDown(settingsDialog, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Settings' })).not.toBeInTheDocument();
+    expect(window.location.hash).toBe('#player');
+
+    // Now with no dialog open, pressing Escape on window navigates to home
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(window.location.hash).toBe('');
+  });
 });

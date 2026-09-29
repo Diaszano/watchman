@@ -236,6 +236,19 @@ describe('SettingsPanel', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('restores focus to the opener element when closed', () => {
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    button.focus();
+    expect(document.activeElement).toBe(button);
+
+    const { rerender } = render(<SettingsPanel open onClose={() => {}} />);
+    rerender(<SettingsPanel open={false} onClose={() => {}} />);
+
+    expect(document.activeElement).toBe(button);
+    document.body.removeChild(button);
+  });
+
   it('keeps settings open when a tab is activated from the keyboard', () => {
     const onClose = vi.fn();
     render(<SettingsPanel open onClose={onClose} />);
