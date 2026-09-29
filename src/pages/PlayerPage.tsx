@@ -66,6 +66,19 @@ export const PlayerPage = () => {
     }
   }, [shortcutsOpen, settingsOpen]);
 
+  const [hudFocused, setHudFocused] = useState(false);
+  const hudFocusedRef = useRef(false);
+  const idleTimerRef = useRef<number>(0);
+
+  const resetIdleTimer = useCallback(() => {
+    window.clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = window.setTimeout(() => {
+      if (!hudFocusedRef.current) {
+        setUiVisible(false);
+      }
+    }, 3000);
+  }, []);
+
   const handlers = useMemo(
     () => ({
       toggleFullscreen: () => toggle(),
@@ -78,29 +91,27 @@ export const PlayerPage = () => {
     }),
     [toggle, step, handleEscape],
   );
-  useKeyboardShortcuts(handlers);
+  useKeyboardShortcuts(handlers, !settingsOpen && !shortcutsOpen);
 
-  // Auto-hide cursor + controls after idle. Panel open keeps them visible.
+  // Auto-hide cursor + controls after idle. Panel open or focused control keeps them visible.
   useEffect(() => {
-    let timer: number;
     const onActivity = () => {
       setUiVisible(true);
-      clearTimeout(timer);
-      timer = window.setTimeout(() => setUiVisible(false), 3000);
+      resetIdleTimer();
     };
     onActivity();
     window.addEventListener('mousemove', onActivity);
     window.addEventListener('touchstart', onActivity);
     window.addEventListener('keydown', onActivity);
     return () => {
-      clearTimeout(timer);
+      window.clearTimeout(idleTimerRef.current);
       window.removeEventListener('mousemove', onActivity);
       window.removeEventListener('touchstart', onActivity);
       window.removeEventListener('keydown', onActivity);
     };
-  }, []);
+  }, [resetIdleTimer]);
 
-  const controlsShown = uiVisible || settingsOpen || shortcutsOpen;
+  const controlsShown = uiVisible || settingsOpen || shortcutsOpen || hudFocused;
 
   return (
     <div className={`relative h-full w-full bg-black ${controlsShown ? '' : 'cursor-none'}`}>
@@ -124,6 +135,20 @@ export const PlayerPage = () => {
       )}
 
       <div
+        role="toolbar"
+        aria-label="Controls"
+        onFocus={() => {
+          hudFocusedRef.current = true;
+          setHudFocused(true);
+          setUiVisible(true);
+        }}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            hudFocusedRef.current = false;
+            setHudFocused(false);
+            resetIdleTimer();
+          }
+        }}
         className={`absolute right-3 top-3 z-30 flex gap-2 text-white transition-opacity duration-300 ${
           controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
