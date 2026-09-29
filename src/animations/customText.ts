@@ -45,10 +45,8 @@ export const createCustomText = (): Animation => {
         vy = -Math.abs(vy);
       }
 
-      ctx.globalAlpha = settings.opacity;
       ctx.fillStyle = settings.color;
       ctx.fillText(text, x, y);
-      ctx.globalAlpha = 1;
     },
   };
 };

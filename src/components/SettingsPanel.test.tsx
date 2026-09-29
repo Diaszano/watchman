@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { imageStorage } from '@/services/imageStorage';
 import { defaultSettings, useSettings } from '@/stores/settingsStore';
@@ -19,8 +19,9 @@ describe('SettingsPanel', () => {
   const uploadBackground = (file: File) => {
     fireEvent.click(screen.getByRole('tab', { name: /oled/i }));
     const panel = document.getElementById('tabpanel-oled');
-    const input = panel?.querySelector('input[type=file]')!;
-    fireEvent.change(input, { target: { files: [file] } });
+    const input = panel ? panel.querySelector('input[type=file]') : null;
+    expect(input).not.toBeNull();
+    fireEvent.change(input!, { target: { files: [file] } });
   };
 
   it('saves a replacement before updating the setting and removing the old image', async () => {
@@ -134,6 +135,7 @@ describe('SettingsPanel', () => {
   it('clears an earlier image error after a successful removal', async () => {
     useSettings.setState({
       ...defaultSettings,
+      animationId: 'logo',
       backgroundImageId: 'background-image',
       customImageId: 'custom-image',
     });
@@ -305,5 +307,51 @@ describe('SettingsPanel', () => {
     expect(useSettings.getState().backgroundImageId).toBeNull();
     fireEvent.click(tabs[2]!);
     expect(screen.getByRole('tabpanel')).toHaveAttribute('id', 'tabpanel-playlist');
+  });
+
+  it('shows only relevant controls for each animation mode', () => {
+    // DVD does not show Color, Custom text, or Custom logo
+    useSettings.setState({ animationId: 'dvd' });
+    const { rerender } = render(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.queryByText('Color')).toBeNull();
+    expect(screen.queryByText('Custom text')).toBeNull();
+    expect(screen.queryByText('Custom logo')).toBeNull();
+
+    // Neon does not show Color
+    act(() => {
+      useSettings.getState().set('animationId', 'neon');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.queryByText('Color')).toBeNull();
+
+    // Shapes does not show Color
+    act(() => {
+      useSettings.getState().set('animationId', 'shapes');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.queryByText('Color')).toBeNull();
+
+    // Matrix does not show Count
+    act(() => {
+      useSettings.getState().set('animationId', 'matrix');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.queryByText('Count')).toBeNull();
+
+    // Text shows Custom text but not Custom logo
+    act(() => {
+      useSettings.getState().set('animationId', 'text');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.getByText('Custom text')).toBeInTheDocument();
+    expect(screen.queryByText('Custom logo')).toBeNull();
+
+    // Logo shows Custom logo but not Custom text
+    act(() => {
+      useSettings.getState().set('animationId', 'logo');
+    });
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+    expect(screen.getByText('Custom logo')).toBeInTheDocument();
+    expect(screen.queryByText('Custom text')).toBeNull();
   });
 });

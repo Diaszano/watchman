@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultSettings } from '@/stores/settingsStore';
 import type { AnimationFrame, Settings } from '@/types';
 import { densityCount } from '@/utils/math';
+import { createBubbles } from './bubbles';
 import { createClock } from './clock';
+import { createCustomText } from './customText';
 import { createMatrix } from './matrix';
 import { createNeon } from './neon';
 import { createParticles } from './particles';
@@ -14,8 +16,12 @@ type RecordedContext = CanvasRenderingContext2D & {
   fills: number;
   fillTexts: unknown[][];
   moveTos: unknown[][];
+  lineTos: unknown[][];
+  translates: unknown[][];
   shadowBlurs: number[];
   strokes: number;
+  fillStyle: string | CanvasGradient | CanvasPattern;
+  globalAlpha: number;
 };
 
 const context = (): RecordedContext => {
@@ -24,8 +30,12 @@ const context = (): RecordedContext => {
     fills: 0,
     fillTexts: [] as unknown[][],
     moveTos: [] as unknown[][],
+    lineTos: [] as unknown[][],
+    translates: [] as unknown[][],
     shadowBlurs: [] as number[],
     strokes: 0,
+    fillStyle: '',
+    globalAlpha: 1,
     beginPath: vi.fn(),
     arc(...args: unknown[]) {
       this.arcs.push(args);
@@ -39,12 +49,16 @@ const context = (): RecordedContext => {
     moveTo(...args: unknown[]) {
       this.moveTos.push(args);
     },
-    lineTo: vi.fn(),
+    lineTo(...args: unknown[]) {
+      this.lineTos.push(args);
+    },
     rect: vi.fn(),
     closePath: vi.fn(),
     save: vi.fn(),
     restore: vi.fn(),
-    translate: vi.fn(),
+    translate(...args: unknown[]) {
+      this.translates.push(args);
+    },
     rotate: vi.fn(),
     stroke() {
       this.strokes += 1;
@@ -64,11 +78,12 @@ const frame = (
   ctx: CanvasRenderingContext2D,
   renderDensity: number,
   settings: Partial<Settings> = {},
+  dt = 1,
 ): AnimationFrame => ({
   ctx,
   width: 800,
   height: 600,
-  dt: 1,
+  dt,
   time: 1,
   settings: { ...defaultSettings, ...settings },
   renderDensity,
@@ -165,5 +180,66 @@ describe('animation rendering cost', () => {
   it('calculates density count respecting minimum threshold', () => {
     expect(densityCount(100, 10, 0.5)).toBe(50);
     expect(densityCount(10, 10, 0.5)).toBe(10);
+  });
+
+  it('scales bubble sizes proportionally with settings.size without replacing objects or multiplying opacity', () => {
+    const ctx = context();
+    const bubbles = createBubbles();
+
+    bubbles.draw(frame(ctx, 1, { size: 10, opacity: 0.5, color: '#ff0000' }, 0));
+    const firstArcs = [...ctx.arcs];
+    expect(firstArcs.length).toBeGreaterThan(0);
+    const firstPositions = firstArcs.map((a) => [a[0], a[1]]);
+    const firstRadii = firstArcs.map((a) => a[2] as number);
+    const firstFillStyle = ctx.fillStyle;
+
+    ctx.arcs.length = 0;
+    // Draw with size 100, dt: 0
+    bubbles.draw(frame(ctx, 1, { size: 100, opacity: 0.5, color: '#ff0000' }, 0));
+    const secondArcs = [...ctx.arcs];
+    const secondPositions = secondArcs.map((a) => [a[0], a[1]]);
+    const secondRadii = secondArcs.map((a) => a[2] as number);
+
+    expect(secondPositions).toEqual(firstPositions);
+    for (let i = 0; i < firstRadii.length; i++) {
+      expect(secondRadii[i]).toBeCloseTo(firstRadii[i]! * 10, 4);
+    }
+
+    // Changing opacity should not multiply onto fillStyle (alpha is intrinsic)
+    bubbles.draw(frame(ctx, 1, { size: 100, opacity: 0.1, color: '#ff0000' }, 0));
+    expect(ctx.fillStyle).toBe(firstFillStyle);
+  });
+
+  it('scales shape sizes proportionally with settings.size without replacing objects', () => {
+    const ctx = context();
+    const shapes = createShapes();
+
+    shapes.draw(frame(ctx, 1, { size: 10 }, 0));
+    const firstTranslates = [...ctx.translates];
+    const firstLineTos = [...ctx.lineTos];
+    expect(firstLineTos.length).toBeGreaterThan(0);
+
+    ctx.translates.length = 0;
+    ctx.lineTos.length = 0;
+
+    shapes.draw(frame(ctx, 1, { size: 100 }, 0));
+    const secondTranslates = [...ctx.translates];
+    const secondLineTos = [...ctx.lineTos];
+
+    expect(secondTranslates).toEqual(firstTranslates);
+    expect(secondLineTos.length).toBe(firstLineTos.length);
+    for (let i = 0; i < firstLineTos.length; i++) {
+      const [x1, y1] = firstLineTos[i] as [number, number];
+      const [x2, y2] = secondLineTos[i] as [number, number];
+      expect(x2).toBeCloseTo(x1 * 10, 4);
+      expect(y2).toBeCloseTo(y1 * 10, 4);
+    }
+  });
+
+  it('does not multiply settings.opacity onto globalAlpha in customText', () => {
+    const ctx = context();
+    const text = createCustomText();
+    text.draw(frame(ctx, 1, { opacity: 0.5 }));
+    expect(ctx.globalAlpha).toBe(1);
   });
 });

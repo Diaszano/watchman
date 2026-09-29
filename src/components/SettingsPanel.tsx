@@ -364,26 +364,25 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         )}
 
         {/* Custom text + uploads */}
-        {activeTab === 'animation' && (
-          <>
-            <label className="setting-text">
-              <span className="setting-label">{t('settings.customText')}</span>
-              <input
-                type="text"
-                value={s.customText}
-                onChange={(e) => s.set('customText', e.target.value)}
-                className="setting-text-input"
-              />
-            </label>
-
-            <FileField
-              label={t('settings.customImage')}
-              clearLabel={t('settings.clear')}
-              disabled={isImageProcessing}
-              onFile={(file) => void replaceImage('customImageId', file)}
-              onClear={s.customImageId ? () => void clearImage('customImageId') : undefined}
+        {activeTab === 'animation' && s.animationId === 'text' && (
+          <label className="setting-text">
+            <span className="setting-label">{t('settings.customText')}</span>
+            <input
+              type="text"
+              value={s.customText}
+              onChange={(e) => s.set('customText', e.target.value)}
+              className="setting-text-input"
             />
-          </>
+          </label>
+        )}
+        {activeTab === 'animation' && s.animationId === 'logo' && (
+          <FileField
+            label={t('settings.customImage')}
+            clearLabel={t('settings.clear')}
+            disabled={isImageProcessing}
+            onFile={(file) => void replaceImage('customImageId', file)}
+            onClear={s.customImageId ? () => void clearImage('customImageId') : undefined}
+          />
         )}
         {uploadError && (
           <p role="alert" className="text-xs text-red-600 dark:text-red-300">

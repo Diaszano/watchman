@@ -61,9 +61,7 @@ export const createCustomLogo = (): Animation => {
         vy = -Math.abs(vy);
       }
 
-      ctx.globalAlpha = settings.opacity;
       ctx.drawImage(img, x, y, w, h);
-      ctx.globalAlpha = 1;
     },
   };
 };
