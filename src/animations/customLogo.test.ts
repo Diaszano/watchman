@@ -8,6 +8,7 @@ const frame = (customImageUrl: string | null): AnimationFrame =>
     ctx: {
       fillText: vi.fn(),
       drawImage: vi.fn(),
+      measureText: vi.fn(() => ({ width: 100 })),
     },
     width: 800,
     height: 600,
