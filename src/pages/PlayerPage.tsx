@@ -38,7 +38,8 @@ export const PlayerPage = () => {
   const { toggle } = useFullscreen();
   const wake = useWakeLock(!paused);
 
-  const onFps = useCallback((v: number) => setFps(v), []);
+  const handleFps = useCallback((v: number) => setFps(v), []);
+  const onFps = showFps ? handleFps : undefined;
   useAnimationLoop({ canvasRef, paused, onFps, customImageUrl: customImage.url });
 
   const step = useCallback(

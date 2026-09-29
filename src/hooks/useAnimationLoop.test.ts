@@ -58,15 +58,39 @@ const createCanvas = (width = 800, height = 600) => {
 
 const installAnimationFrames = () => {
   let callback: FrameRequestCallback | undefined;
+  let nextId = 1;
+  const activeCallbacks = new Map<number, FrameRequestCallback>();
+
   vi.spyOn(window, 'requestAnimationFrame').mockImplementation((next) => {
+    const id = nextId++;
     callback = next;
-    return 1;
+    activeCallbacks.set(id, next);
+    return id;
   });
-  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
-  return (now: number) => {
+
+  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => {
+    activeCallbacks.delete(id);
+    if (activeCallbacks.size === 0) {
+      callback = undefined;
+    }
+  });
+
+  const runner = (now: number) => {
     if (!callback) throw new Error('animation frame callback was not scheduled');
-    act(() => callback?.(now));
+    const cb = callback;
+    callback = undefined;
+    for (const [id, fn] of activeCallbacks.entries()) {
+      if (fn === cb) {
+        activeCallbacks.delete(id);
+        break;
+      }
+    }
+    act(() => cb(now));
   };
+
+  runner.runFrame = runner;
+  runner.hasPendingFrame = () => activeCallbacks.size > 0;
+  return runner;
 };
 
 describe('useAnimationLoop', () => {
@@ -173,6 +197,115 @@ describe('useAnimationLoop', () => {
     expect(context.fillRect).not.toHaveBeenCalled();
     expect(context.drawImage).not.toHaveBeenCalled();
     expect(draw.mock.calls[0]?.[0].customImageUrl).toBe('blob:custom-logo');
+    unmount();
+  });
+
+  it('draws, pauses, and resumes preserving animation instance, canvas size, and excluding pause time from dt', () => {
+    const { canvas } = createCanvas(800, 600);
+    const frames = installAnimationFrames();
+    let widthSetCount = 0;
+    let currentW = 800;
+    Object.defineProperty(canvas, 'width', {
+      get: () => currentW,
+      set: (v: number) => {
+        widthSetCount++;
+        currentW = v;
+      },
+      configurable: true,
+    });
+
+    const { rerender, unmount } = renderHook(
+      ({ paused }) =>
+        useAnimationLoop({
+          canvasRef: { current: canvas },
+          paused,
+          customImageUrl: null,
+        }),
+      { initialProps: { paused: false } },
+    );
+
+    expect(getAnimation).toHaveBeenCalledTimes(1);
+    const initialWidthSets = widthSetCount;
+
+    frames.runFrame(17);
+    expect(draw).toHaveBeenCalledTimes(1);
+
+    // Pause
+    rerender({ paused: true });
+
+    // Instance not recreated, canvas width not re-set, no active rAF callback
+    expect(getAnimation).toHaveBeenCalledTimes(1);
+    expect(widthSetCount).toBe(initialWidthSets);
+    expect(frames.hasPendingFrame()).toBe(false);
+
+    // Resume after 500ms
+    vi.spyOn(performance, 'now').mockReturnValue(517);
+    rerender({ paused: false });
+    expect(frames.hasPendingFrame()).toBe(true);
+
+    frames.runFrame(534);
+    expect(getAnimation).toHaveBeenCalledTimes(1);
+    const lastDrawCall = draw.mock.calls.at(-1)![0];
+    expect(lastDrawCall.dt).toBeCloseTo(0.017, 2);
+
+    unmount();
+  });
+
+  it('redraws with dt = 0 upon visual setting change while paused without advancing time or playlist', () => {
+    const { canvas } = createCanvas();
+    installAnimationFrames();
+    useSettings.getState().set('autoSwitch', 10);
+    useSettings.getState().set('playlist', ['dvd', 'clock']);
+
+    const { unmount } = renderHook(() =>
+      useAnimationLoop({
+        canvasRef: { current: canvas },
+        paused: true,
+        customImageUrl: null,
+      }),
+    );
+
+    draw.mockClear();
+
+    // Visual setting change while paused
+    act(() => {
+      useSettings.getState().set('size', 80);
+    });
+
+    expect(draw).toHaveBeenCalledTimes(1);
+    const call = draw.mock.calls[0]![0];
+    expect(call.dt).toBe(0);
+    expect(call.time).toBe(0);
+    expect(useSettings.getState().animationId).toBe('dvd');
+
+    unmount();
+  });
+
+  it('does not recreate animation instance when toggling onFps or customImageUrl', () => {
+    const { canvas } = createCanvas();
+    installAnimationFrames();
+    const fpsCallback1 = vi.fn();
+    const fpsCallback2 = vi.fn();
+
+    const { rerender, unmount } = renderHook(
+      ({ onFps, customImageUrl }: { onFps?: (fps: number) => void; customImageUrl: string | null }) =>
+        useAnimationLoop({
+          canvasRef: { current: canvas },
+          paused: false,
+          onFps,
+          customImageUrl,
+        }),
+      { initialProps: { onFps: fpsCallback1, customImageUrl: 'url1' } },
+    );
+
+    expect(getAnimation).toHaveBeenCalledTimes(1);
+
+    rerender({ onFps: fpsCallback2, customImageUrl: 'url2' });
+    expect(getAnimation).toHaveBeenCalledTimes(1);
+
+    rerender({ onFps: undefined, customImageUrl: 'url2' });
+    expect(getAnimation).toHaveBeenCalledTimes(1);
+
     unmount();
   });
 });
