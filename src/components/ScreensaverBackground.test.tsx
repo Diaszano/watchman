@@ -9,7 +9,7 @@ vi.mock('@/hooks/useStoredImage', () => ({ useStoredImage: vi.fn() }));
 describe('ScreensaverBackground', () => {
   beforeEach(() => {
     useSettings.setState(defaultSettings);
-    vi.mocked(useStoredImage).mockReturnValue({ url: null, error: null });
+    vi.mocked(useStoredImage).mockReturnValue({ url: null });
   });
 
   it('renders the configured solid color', () => {
@@ -34,7 +34,7 @@ describe('ScreensaverBackground', () => {
 
   it('renders a resolved stored image above the color or gradient choice', () => {
     useSettings.setState({ backgroundImageId: 'background-1', gradientBackground: true });
-    vi.mocked(useStoredImage).mockReturnValue({ url: 'blob:background-1', error: null });
+    vi.mocked(useStoredImage).mockReturnValue({ url: 'blob:background-1' });
     const { container } = render(<ScreensaverBackground />);
 
     expect(useStoredImage).toHaveBeenCalledWith('background-1');

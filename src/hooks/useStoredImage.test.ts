@@ -53,7 +53,14 @@ describe('useStoredImage', () => {
 
     rerender({ id: 'second' });
 
-    expect(result.current).toEqual({ url: null, error: null });
+    expect(result.current).toEqual({ url: null });
     await act(async () => resolveSecondImage?.(null));
+  });
+
+  it('sets url to null when image loading fails', async () => {
+    vi.spyOn(imageStorage, 'get').mockRejectedValue(new Error('storage failure'));
+    const { result } = renderHook(() => useStoredImage('failed-id'));
+
+    await waitFor(() => expect(result.current).toEqual({ url: null }));
   });
 });
