@@ -43,7 +43,7 @@ Ten animation modes, live-tunable settings, an anti burn-in engine, playlists, P
 
 ## Rendering
 
-The canvas follows the display's device pixel ratio, capped at 2 for predictable performance on high-resolution screens. Use the FPS limit setting (30, 60, 120, or unlimited) to balance smoothness and power use. Uploaded background and logo images stay in this browser through IndexedDB and are limited to 5 MiB each.
+The canvas follows the display's device pixel ratio, capped at 2 for predictable performance on high-resolution screens. Use the FPS limit setting (30, 60, 120, or unlimited) to balance smoothness and power use. Uploaded background and logo images stay in this browser through IndexedDB and are limited to 5 MiB, up to 8192 px per side and 16.7 megapixels (16,777,216 pixels) each.
 
 ## Screenshots
 

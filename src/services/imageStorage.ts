@@ -1,8 +1,50 @@
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_SIDE_PIXELS = 8192;
+const MAX_IMAGE_TOTAL_PIXELS = 16_777_216; // 16.7MP (4096 * 4096)
 
-const validateImageFile = (file: File): void => {
-  if (!file.type.startsWith('image/')) throw new Error('Not an image file');
-  if (file.size > MAX_IMAGE_SIZE_BYTES) throw new Error('Image size exceeds 5MB limit');
+export const validateImageFile = async (file: File): Promise<void> => {
+  if (!file.type || !file.type.startsWith('image/')) {
+    throw new Error('image.invalid');
+  }
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    throw new Error('image.tooLarge');
+  }
+
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+
+    if (typeof img.decode === 'function') {
+      try {
+        await img.decode();
+      } catch {
+        throw new Error('image.invalid');
+      }
+    } else {
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('image.invalid'));
+      });
+    }
+
+    const width = img.naturalWidth || img.width;
+    const height = img.naturalHeight || img.height;
+
+    if (!width || !height || width <= 0 || height <= 0) {
+      throw new Error('image.invalid');
+    }
+
+    if (
+      width > MAX_IMAGE_SIDE_PIXELS ||
+      height > MAX_IMAGE_SIDE_PIXELS ||
+      width * height > MAX_IMAGE_TOTAL_PIXELS
+    ) {
+      throw new Error('image.dimensions');
+    }
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 };
 
 const DATABASE_NAME = 'watchman-assets';
@@ -63,7 +105,7 @@ const runTransaction = async <T>(
 
 export const imageStorage = {
   async save(file: File): Promise<string> {
-    validateImageFile(file);
+    await validateImageFile(file);
     const id = crypto.randomUUID();
     await runTransaction('readwrite', (store) =>
       store.put({ id, blob: file } satisfies StoredImage),

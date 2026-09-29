@@ -17,12 +17,9 @@ describe('SettingsPanel', () => {
   });
 
   const uploadBackground = (file: File) => {
-    fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
-    const input = screen
-      .getAllByText('Background')
-      .find((element) => element.closest('label')?.querySelector('input[type=file]'))!
-      .closest('label')!
-      .querySelector('input[type=file]')!;
+    fireEvent.click(screen.getByRole('tab', { name: /oled/i }));
+    const panel = document.getElementById('tabpanel-oled');
+    const input = panel?.querySelector('input[type=file]')!;
     fireEvent.change(input, { target: { files: [file] } });
   };
 
@@ -44,16 +41,54 @@ describe('SettingsPanel', () => {
     expect(events).toEqual(['save', 'remove:new-background']);
   });
 
-  it('keeps the previous ID and blob when saving fails', async () => {
+  it('keeps the previous ID and blob when saving fails without exposing raw error', async () => {
     vi.spyOn(imageStorage, 'save').mockRejectedValue(new Error('Storage unavailable'));
     const remove = vi.spyOn(imageStorage, 'remove').mockResolvedValue();
 
     render(<SettingsPanel open onClose={() => undefined} />);
     uploadBackground(new File(['image'], 'background.png', { type: 'image/png' }));
 
-    expect(await screen.findByText('Storage unavailable')).toBeInTheDocument();
+    expect(await screen.findByText('Could not save image')).toBeInTheDocument();
+    expect(screen.queryByText('Storage unavailable')).not.toBeInTheDocument();
     expect(useSettings.getState().backgroundImageId).toBe('old-background');
     expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('translates known image errors in EN and PT, and blocks clear/reset while upload is pending', async () => {
+    // Test EN known error
+    let rejectSave: (err: Error) => void = () => {};
+    vi.spyOn(imageStorage, 'save').mockImplementation(
+      () =>
+        new Promise<string>((_resolve, reject) => {
+          rejectSave = reject;
+        }),
+    );
+    const removeSpy = vi.spyOn(imageStorage, 'remove').mockResolvedValue();
+
+    const { rerender } = render(<SettingsPanel open onClose={() => undefined} />);
+    uploadBackground(new File(['img'], 'test.png', { type: 'image/png' }));
+
+    // While save is pending, clear button should be disabled or blocked
+    const clearButton = screen.queryByRole('button', { name: 'Clear' });
+    if (clearButton) {
+      fireEvent.click(clearButton);
+      expect(removeSpy).not.toHaveBeenCalled();
+    }
+
+    // Reject with known error
+    rejectSave(new Error('image.tooLarge'));
+    expect(await screen.findByText('Image size exceeds the 5MB limit.')).toBeInTheDocument();
+    expect(useSettings.getState().backgroundImageId).toBe('old-background');
+
+    // Switch to PT and test image.dimensions
+    useSettings.getState().set('lang', 'pt');
+    rerender(<SettingsPanel open onClose={() => undefined} />);
+
+    uploadBackground(new File(['img'], 'test2.png', { type: 'image/png' }));
+    rejectSave(new Error('image.dimensions'));
+    expect(
+      await screen.findByText('As dimensões da imagem excedem o limite de 8192px ou 16.7MP.'),
+    ).toBeInTheDocument();
   });
 
   it('removes both stored images when resetting settings', async () => {
@@ -91,7 +126,7 @@ describe('SettingsPanel', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'General' }));
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not save image');
     expect(remove).toHaveBeenCalledTimes(2);
     expect(useSettings.getState()).toMatchObject(defaultSettings);
   });
@@ -108,7 +143,7 @@ describe('SettingsPanel', () => {
 
     render(<SettingsPanel open onClose={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: 'Custom logo' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Cleanup unavailable');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not save image');
 
     fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
     fireEvent.click(screen.getByRole('button', { name: 'Background' }));

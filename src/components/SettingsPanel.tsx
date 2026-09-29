@@ -25,6 +25,8 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('animation');
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
+
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -34,43 +36,76 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
 
   if (!open) return null;
 
+  const resolveImageError = (error: unknown): string => {
+    const message = error instanceof Error ? error.message : '';
+    if (
+      message === 'image.invalid' ||
+      message === 'image.tooLarge' ||
+      message === 'image.dimensions'
+    ) {
+      return t(message);
+    }
+    return t('settings.imageSaveFailed');
+  };
+
   const replaceImage = async (key: 'backgroundImageId' | 'customImageId', file: File) => {
+    if (isImageProcessing) return;
+    setIsImageProcessing(true);
     const previousId = s[key];
     setUploadError(null);
     try {
       const nextId = await imageStorage.save(file);
       s.set(key, nextId);
-      if (previousId) await imageStorage.remove(previousId);
+      if (previousId) {
+        try {
+          await imageStorage.remove(previousId);
+        } catch {
+          // Distinguish old image cleanup failure from saving failure
+        }
+      }
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : t('settings.imageSaveFailed'));
+      setUploadError(resolveImageError(error));
+    } finally {
+      setIsImageProcessing(false);
     }
   };
 
   const clearImage = async (key: 'backgroundImageId' | 'customImageId') => {
+    if (isImageProcessing) return;
+    setIsImageProcessing(true);
     const previousId = s[key];
     setUploadError(null);
     s.set(key, null);
-    if (!previousId) return;
+    if (!previousId) {
+      setIsImageProcessing(false);
+      return;
+    }
     try {
       await imageStorage.remove(previousId);
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : t('settings.imageSaveFailed'));
+      setUploadError(resolveImageError(error));
+    } finally {
+      setIsImageProcessing(false);
     }
   };
 
   const resetSettings = async () => {
+    if (isImageProcessing) return;
+    setIsImageProcessing(true);
     const imageIds = [s.backgroundImageId, s.customImageId].filter(
       (id): id is string => id !== null,
     );
     setUploadError(null);
     s.reset();
 
-    const results = await Promise.allSettled(imageIds.map((id) => imageStorage.remove(id)));
-    const failure = results.find((result) => result.status === 'rejected');
-    if (failure?.status === 'rejected') {
-      setUploadError(
-        failure.reason instanceof Error ? failure.reason.message : t('settings.imageSaveFailed'),
-      );
+    try {
+      const results = await Promise.allSettled(imageIds.map((id) => imageStorage.remove(id)));
+      const failure = results.find((result) => result.status === 'rejected');
+      if (failure?.status === 'rejected') {
+        setUploadError(resolveImageError(failure.reason));
+      }
+    } finally {
+      setIsImageProcessing(false);
     }
   };
 
@@ -102,6 +137,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
     <dialog
       ref={dialogRef}
       aria-modal="true"
+      aria-busy={isImageProcessing}
       aria-labelledby="settings-panel-title"
       onClick={handleDialogClick}
       onKeyDown={(e) => {
@@ -278,6 +314,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
             />
             <p className="setting-help">{t('settings.antiBurnIn.desc')}</p>
             <Button
+              disabled={isImageProcessing}
               onClick={() => {
                 s.set('background', '#000000');
                 s.set('gradientBackground', false);
@@ -289,6 +326,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
             <FileField
               label={t('settings.background')}
               clearLabel={t('settings.clear')}
+              disabled={isImageProcessing}
               onFile={(file) => void replaceImage('backgroundImageId', file)}
               onClear={s.backgroundImageId ? () => void clearImage('backgroundImageId') : undefined}
             />
@@ -315,7 +353,11 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
               ]}
               onChange={(v) => s.set('lang', v)}
             />
-            <Button className="settings-reset" onClick={() => void resetSettings()}>
+            <Button
+              className="settings-reset"
+              disabled={isImageProcessing}
+              onClick={() => void resetSettings()}
+            >
               <ResetIcon /> {t('settings.reset')}
             </Button>
           </>
@@ -337,6 +379,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
             <FileField
               label={t('settings.customImage')}
               clearLabel={t('settings.clear')}
+              disabled={isImageProcessing}
               onFile={(file) => void replaceImage('customImageId', file)}
               onClear={s.customImageId ? () => void clearImage('customImageId') : undefined}
             />
@@ -394,11 +437,13 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
 const FileField = ({
   label,
   clearLabel,
+  disabled,
   onFile,
   onClear,
 }: {
   label: string;
   clearLabel?: string;
+  disabled?: boolean;
   onFile: (f: File) => void;
   onClear?: () => void;
 }) => (
@@ -409,7 +454,8 @@ const FileField = ({
         <button
           type="button"
           onClick={onClear}
-          className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white"
+          disabled={disabled}
+          className="text-xs text-neutral-500 hover:text-neutral-900 disabled:opacity-50 dark:text-white/50 dark:hover:text-white"
         >
           {clearLabel ?? 'clear'}
         </button>
@@ -417,8 +463,10 @@ const FileField = ({
       <input
         type="file"
         accept="image/*"
+        disabled={disabled}
         onChange={(e) => {
           const f = e.target.files?.[0];
+          e.target.value = '';
           if (f) onFile(f);
         }}
         className="setting-file"

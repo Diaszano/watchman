@@ -43,7 +43,7 @@ Dez modos de animação, configurações ajustáveis em tempo real, mecanismo an
 
 ## Renderização
 
-O canvas acompanha a proporção de pixels do dispositivo, limitada a 2 para manter o desempenho previsível em telas de alta resolução. Use o limite de FPS (30, 60, 120 ou ilimitado) para equilibrar fluidez e consumo de energia. Imagens de fundo e logos enviados permanecem neste navegador por meio do IndexedDB e são limitados a 5 MiB cada.
+O canvas acompanha a proporção de pixels do dispositivo, limitada a 2 para manter o desempenho previsível em telas de alta resolução. Use o limite de FPS (30, 60, 120 ou ilimitado) para equilibrar fluidez e consumo de energia. Imagens de fundo e logos enviados permanecem neste navegador por meio do IndexedDB e são limitados a 5 MiB, até 8192 px por lado e 16,7 megapixels (16.777.216 pixels) cada.
 
 ## Capturas de tela
 
