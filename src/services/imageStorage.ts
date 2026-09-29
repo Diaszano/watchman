@@ -3,7 +3,7 @@ const MAX_IMAGE_SIDE_PIXELS = 8192;
 const MAX_IMAGE_TOTAL_PIXELS = 16_777_216; // 16.7MP (4096 * 4096)
 
 export const validateImageFile = async (file: File): Promise<void> => {
-  if (!file.type || !file.type.startsWith('image/')) {
+  if (!file.type?.startsWith('image/')) {
     throw new Error('image.invalid');
   }
   if (file.size > MAX_IMAGE_SIZE_BYTES) {

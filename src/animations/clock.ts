@@ -34,7 +34,11 @@ export const createClock = (): Animation => {
         initialized = true;
         x = width / 2;
         y = height / 2;
-      } else if (lastWidth > 0 && lastHeight > 0 && (width !== lastWidth || height !== lastHeight)) {
+      } else if (
+        lastWidth > 0 &&
+        lastHeight > 0 &&
+        (width !== lastWidth || height !== lastHeight)
+      ) {
         x = (x / lastWidth) * width;
         y = (y / lastHeight) * height;
       }

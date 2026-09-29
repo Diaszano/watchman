@@ -353,7 +353,13 @@ describe('useAnimationLoop', () => {
     const fpsCallback2 = vi.fn();
 
     const { rerender, unmount } = renderHook(
-      ({ onFps, customImageUrl }: { onFps?: (fps: number) => void; customImageUrl: string | null }) =>
+      ({
+        onFps,
+        customImageUrl,
+      }: {
+        onFps?: (fps: number) => void;
+        customImageUrl: string | null;
+      }) =>
         useAnimationLoop({
           canvasRef: { current: canvas },
           paused: false,

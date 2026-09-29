@@ -39,7 +39,11 @@ export const createDvd = (): Animation => {
         const a = rand(0, Math.PI * 2);
         vx = Math.cos(a);
         vy = Math.sin(a);
-      } else if (lastWidth > 0 && lastHeight > 0 && (width !== lastWidth || height !== lastHeight)) {
+      } else if (
+        lastWidth > 0 &&
+        lastHeight > 0 &&
+        (width !== lastWidth || height !== lastHeight)
+      ) {
         x = (x / lastWidth) * width;
         y = (y / lastHeight) * height;
       }

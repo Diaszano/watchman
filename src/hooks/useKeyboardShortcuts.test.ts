@@ -141,7 +141,11 @@ describe('useKeyboardShortcuts', () => {
     };
     renderHook(() => useKeyboardShortcuts(handlers));
 
-    const preventedEvent = new KeyboardEvent('keydown', { key: 'n', bubbles: true, cancelable: true });
+    const preventedEvent = new KeyboardEvent('keydown', {
+      key: 'n',
+      bubbles: true,
+      cancelable: true,
+    });
     preventedEvent.preventDefault();
     fireEvent(window, preventedEvent);
 
@@ -184,7 +188,11 @@ describe('useKeyboardShortcuts', () => {
       if (el !== editableChild) {
         container.appendChild(el);
       }
-      const spaceEvent = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+      const spaceEvent = new KeyboardEvent('keydown', {
+        key: ' ',
+        bubbles: true,
+        cancelable: true,
+      });
       el.dispatchEvent(spaceEvent);
       expect(spaceEvent.defaultPrevented).toBe(false);
 
