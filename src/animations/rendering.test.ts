@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultSettings } from '@/stores/settingsStore';
 import type { AnimationFrame, Settings } from '@/types';
-import { densityCount } from '@/utils/math';
 import { createBubbles } from './bubbles';
 import { createClock } from './clock';
 import { createCustomText } from './customText';
@@ -76,7 +75,6 @@ const context = (): RecordedContext => {
 
 const frame = (
   ctx: CanvasRenderingContext2D,
-  renderDensity: number,
   settings: Partial<Settings> = {},
   dt = 1,
 ): AnimationFrame => ({
@@ -86,7 +84,6 @@ const frame = (
   dt,
   time: 1,
   settings: { ...defaultSettings, ...settings },
-  renderDensity,
   customImageUrl: null,
 });
 
@@ -95,61 +92,57 @@ describe('animation rendering cost', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
   });
 
-  it('batches density-adjusted particles into one fill', () => {
+  it('batches particles into one fill', () => {
     const ctx = context();
 
-    createParticles().draw(frame(ctx, 0.5, { count: 100 }));
-
-    expect(ctx.arcs).toHaveLength(50);
-    expect(ctx.moveTos).toHaveLength(50);
-    expect(ctx.fills).toBe(1);
-  });
-
-  it('batches density-adjusted visible stars into one fill', () => {
-    const ctx = context();
-
-    createStarfield().draw(frame(ctx, 0.5, { count: 100, speed: 0 }));
+    createParticles().draw(frame(ctx, { count: 100 }));
 
     expect(ctx.arcs).toHaveLength(100);
     expect(ctx.moveTos).toHaveLength(100);
     expect(ctx.fills).toBe(1);
   });
 
-  it('disables neon glow at economy density', () => {
+  it('batches visible stars into one fill', () => {
     const ctx = context();
 
-    createNeon().draw(frame(ctx, 0.5, { count: 100 }));
+    createStarfield().draw(frame(ctx, { count: 100, speed: 0 }));
 
-    expect(ctx.shadowBlurs.filter((blur) => blur > 0)).toEqual([]);
+    expect(ctx.arcs).toHaveLength(200);
+    expect(ctx.moveTos).toHaveLength(200);
+    expect(ctx.fills).toBe(1);
   });
 
-  it('reduces matrix text work without leaving the right side uncovered', () => {
-    const economyCtx = context();
-    const fullCtx = context();
-    const economy = createMatrix();
-    const full = createMatrix();
+  it('applies neon glow shadow blur', () => {
+    const ctx = context();
+
+    createNeon().draw(frame(ctx, { count: 100 }));
+
+    expect(ctx.shadowBlurs.filter((blur) => blur > 0)).toEqual([24]);
+  });
+
+  it('covers the matrix viewport across all columns with font spacing', () => {
+    const ctx = context();
+    const matrix = createMatrix();
     const settings = { size: 40, speed: 1 };
 
-    economy.draw(frame(economyCtx, 0.5, settings));
-    economy.draw(frame(economyCtx, 0.5, settings));
-    economy.draw(frame(economyCtx, 0.5, settings));
-    full.draw(frame(fullCtx, 1, settings));
-    full.draw(frame(fullCtx, 1, settings));
-    full.draw(frame(fullCtx, 1, settings));
+    matrix.draw(frame(ctx, settings));
+    matrix.draw(frame(ctx, settings));
+    matrix.draw(frame(ctx, settings));
 
-    expect(economyCtx.fillTexts.length).toBeLessThan(fullCtx.fillTexts.length);
-    const economyXs = economyCtx.fillTexts.map((call) => call[1] as number);
-    expect(Math.max(...economyXs)).toBeGreaterThanOrEqual(760);
+    const xs = ctx.fillTexts.map((call) => call[1] as number);
+    expect(Math.max(...xs)).toBeGreaterThanOrEqual(780);
+    expect(xs).toContain(0);
+    expect(xs).toContain(20);
   });
 
-  it('applies density to shapes while preserving the six-shape minimum', () => {
-    const denseCtx = context();
+  it('applies count to shapes while preserving the six-shape minimum', () => {
+    const fullCtx = context();
     const minimumCtx = context();
 
-    createShapes().draw(frame(denseCtx, 0.5, { count: 200 }));
-    createShapes().draw(frame(minimumCtx, 0.1, { count: 8 }));
+    createShapes().draw(frame(fullCtx, { count: 200 }));
+    createShapes().draw(frame(minimumCtx, { count: 8 }));
 
-    expect(denseCtx.strokes).toBe(13);
+    expect(fullCtx.strokes).toBe(25);
     expect(minimumCtx.strokes).toBe(6);
   });
 
@@ -163,8 +156,8 @@ describe('animation rendering cost', () => {
 
     const clock = createClock();
     const ctx = context();
-    clock.draw(frame(ctx, 1));
-    clock.draw(frame(ctx, 1));
+    clock.draw(frame(ctx));
+    clock.draw(frame(ctx));
 
     expect(dateTimeFormatSpy).toHaveBeenCalledTimes(1);
     expect(dateTimeFormatSpy).toHaveBeenCalledWith('en-GB', {
@@ -177,16 +170,11 @@ describe('animation rendering cost', () => {
     dateTimeFormatSpy.mockRestore();
   });
 
-  it('calculates density count respecting minimum threshold', () => {
-    expect(densityCount(100, 10, 0.5)).toBe(50);
-    expect(densityCount(10, 10, 0.5)).toBe(10);
-  });
-
   it('scales bubble sizes proportionally with settings.size without replacing objects or multiplying opacity', () => {
     const ctx = context();
     const bubbles = createBubbles();
 
-    bubbles.draw(frame(ctx, 1, { size: 10, opacity: 0.5, color: '#ff0000' }, 0));
+    bubbles.draw(frame(ctx, { size: 10, opacity: 0.5, color: '#ff0000' }, 0));
     const firstArcs = [...ctx.arcs];
     expect(firstArcs.length).toBeGreaterThan(0);
     const firstPositions = firstArcs.map((a) => [a[0], a[1]]);
@@ -195,7 +183,7 @@ describe('animation rendering cost', () => {
 
     ctx.arcs.length = 0;
     // Draw with size 100, dt: 0
-    bubbles.draw(frame(ctx, 1, { size: 100, opacity: 0.5, color: '#ff0000' }, 0));
+    bubbles.draw(frame(ctx, { size: 100, opacity: 0.5, color: '#ff0000' }, 0));
     const secondArcs = [...ctx.arcs];
     const secondPositions = secondArcs.map((a) => [a[0], a[1]]);
     const secondRadii = secondArcs.map((a) => a[2] as number);
@@ -206,7 +194,7 @@ describe('animation rendering cost', () => {
     }
 
     // Changing opacity should not multiply onto fillStyle (alpha is intrinsic)
-    bubbles.draw(frame(ctx, 1, { size: 100, opacity: 0.1, color: '#ff0000' }, 0));
+    bubbles.draw(frame(ctx, { size: 100, opacity: 0.1, color: '#ff0000' }, 0));
     expect(ctx.fillStyle).toBe(firstFillStyle);
   });
 
@@ -214,7 +202,7 @@ describe('animation rendering cost', () => {
     const ctx = context();
     const shapes = createShapes();
 
-    shapes.draw(frame(ctx, 1, { size: 10 }, 0));
+    shapes.draw(frame(ctx, { size: 10 }, 0));
     const firstTranslates = [...ctx.translates];
     const firstLineTos = [...ctx.lineTos];
     expect(firstLineTos.length).toBeGreaterThan(0);
@@ -222,7 +210,7 @@ describe('animation rendering cost', () => {
     ctx.translates.length = 0;
     ctx.lineTos.length = 0;
 
-    shapes.draw(frame(ctx, 1, { size: 100 }, 0));
+    shapes.draw(frame(ctx, { size: 100 }, 0));
     const secondTranslates = [...ctx.translates];
     const secondLineTos = [...ctx.lineTos];
 
@@ -239,7 +227,7 @@ describe('animation rendering cost', () => {
   it('does not multiply settings.opacity onto globalAlpha in customText', () => {
     const ctx = context();
     const text = createCustomText();
-    text.draw(frame(ctx, 1, { opacity: 0.5 }));
+    text.draw(frame(ctx, { opacity: 0.5 }));
     expect(ctx.globalAlpha).toBe(1);
   });
 });

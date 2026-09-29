@@ -15,7 +15,6 @@ const frame = (customImageUrl: string | null): AnimationFrame =>
     dt: 0.016,
     time: 1,
     settings: defaultSettings,
-    renderDensity: 1,
     customImageUrl,
   }) as unknown as AnimationFrame;
 

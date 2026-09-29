@@ -1,6 +1,6 @@
 import type { Animation, AnimationFrame } from '@/types';
 import { rgba } from '@/utils/color';
-import { densityCount, rand } from '@/utils/math';
+import { rand } from '@/utils/math';
 
 interface B {
   x: number;
@@ -28,10 +28,10 @@ export const createBubbles = (): Animation => {
   });
 
   return {
-    draw({ ctx, width, height, dt, time, settings, renderDensity }: AnimationFrame) {
+    draw({ ctx, width, height, dt, time, settings }: AnimationFrame) {
       w = width;
       h = height;
-      const count = densityCount(settings.count / 4, 10, renderDensity);
+      const count = Math.max(10, Math.round(settings.count / 4));
       while (bs.length < count) bs.push(spawn());
       if (bs.length > count) bs.length = count;
 

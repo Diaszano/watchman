@@ -128,7 +128,7 @@ describe('useAnimationLoop', () => {
     unmount();
   });
 
-  it('caps canvas allocation to DPR 2 and passes density 1', () => {
+  it('caps canvas allocation to DPR 2', () => {
     const { canvas } = createCanvas(800, 600);
     const runFrame = installAnimationFrames();
     Object.defineProperty(window, 'devicePixelRatio', { value: 3, configurable: true });
@@ -140,7 +140,6 @@ describe('useAnimationLoop', () => {
 
     expect(canvas.width).toBe(1600);
     expect(canvas.height).toBe(1200);
-    expect(draw.mock.calls[0]?.[0].renderDensity).toBe(1);
     unmount();
   });
 

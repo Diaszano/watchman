@@ -70,7 +70,6 @@ const makeFrame = (
   dt,
   time: 1,
   settings: { ...defaultSettings, ...settings },
-  renderDensity: 1,
   customImageUrl,
 });
 

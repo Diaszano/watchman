@@ -11,19 +11,16 @@ export const createMatrix = (): Animation => {
   let heads: number[] = [];
   let cols = 0;
   let font = 0;
-  let spacing = 0;
   let styleColor = '';
   let tailStyles: string[] = [];
 
   return {
-    draw({ ctx, width, height, dt, settings, renderDensity }: AnimationFrame) {
+    draw({ ctx, width, height, dt, settings }: AnimationFrame) {
       const f = Math.max(10, settings.size / 2);
-      const columnSpacing = f / renderDensity;
-      const newCols = Math.max(1, Math.ceil(width / columnSpacing));
-      if (newCols !== cols || f !== font || columnSpacing !== spacing) {
+      const newCols = Math.max(1, Math.ceil(width / f));
+      if (newCols !== cols || f !== font) {
         cols = newCols;
         font = f;
-        spacing = columnSpacing;
         heads = Array.from({ length: cols }, () => rand(-40, 0));
       }
 
@@ -31,7 +28,7 @@ export const createMatrix = (): Animation => {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       const step = 12 * settings.speed;
-      const tail = Math.max(4, Math.round(18 * renderDensity));
+      const tail = 18;
       if (settings.color !== styleColor || tailStyles.length !== tail) {
         styleColor = settings.color;
         tailStyles = Array.from({ length: tail }, (_, j) =>
@@ -47,7 +44,7 @@ export const createMatrix = (): Animation => {
           const y = row * font;
           if (y > height) continue;
           ctx.fillStyle = tailStyles[j]!;
-          ctx.fillText(glyph(), i * columnSpacing, y);
+          ctx.fillText(glyph(), i * font, y);
         }
         heads[i]! += step * dt;
         if ((Math.floor(head) - tail) * font > height && Math.random() > 0.96) {

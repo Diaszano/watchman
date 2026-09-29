@@ -114,7 +114,6 @@ export const useAnimationLoop = ({
         dt,
         time,
         settings: s,
-        renderDensity: 1,
         customImageUrl: customImageUrlRef.current,
       });
     };

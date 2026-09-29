@@ -1,6 +1,6 @@
 import type { Animation, AnimationFrame } from '@/types';
 import { randomColor } from '@/utils/color';
-import { densityCount, pick, rand } from '@/utils/math';
+import { pick, rand } from '@/utils/math';
 
 type Kind = 'square' | 'circle' | 'triangle' | 'hexagon';
 const KINDS: Kind[] = ['square', 'circle', 'triangle', 'hexagon'];
@@ -54,10 +54,10 @@ export const createShapes = (): Animation => {
   });
 
   return {
-    draw({ ctx, width, height, dt, settings, renderDensity }: AnimationFrame) {
+    draw({ ctx, width, height, dt, settings }: AnimationFrame) {
       w = width;
       h = height;
-      const count = densityCount(settings.count / 8, 6, renderDensity);
+      const count = Math.max(6, Math.round(settings.count / 8));
       while (shapes.length < count) shapes.push(spawn());
       if (shapes.length > count) shapes.length = count;
 
