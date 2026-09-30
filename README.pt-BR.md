@@ -145,9 +145,11 @@ Para implantação remota, sirva a aplicação por HTTPS, normalmente por meio d
 
 ## Implantação em produção
 
-O `Dockerfile` usa uma compilação reproduzível em múltiplos estágios: Node.js 24 LTS gera os arquivos estáticos e o NGINX 1.30.3 Alpine Slim serve apenas o conteúdo de `dist/`. O contêiner é executado com o usuário não root `nginx` na porta 8080, fornece o endpoint `/health`, usa um sistema de arquivos raiz somente leitura no Compose e envia cabeçalhos básicos de segurança para o navegador. O `nginx.conf` também configura compressão, cache imutável para arquivos com hash, fallback da SPA e revalidação do shell da aplicação e dos metadados da PWA.
+O `Dockerfile` usa uma compilação em múltiplos estágios com imagens-base fixadas por digest: Node.js 24 LTS gera os arquivos estáticos e o NGINX 1.30.3 Alpine Slim serve apenas o conteúdo de `dist/`. O contêiner é executado com o usuário não root `nginx` na porta 8080, fornece o endpoint `/health`, usa um sistema de arquivos raiz somente leitura no Compose e envia cabeçalhos básicos de segurança para o navegador. O `nginx.conf` também configura compressão, cache imutável para arquivos com hash, fallback da SPA e revalidação do shell da aplicação e dos metadados da PWA.
 
 As imagens-base usam tags fixadas por hashes imutáveis no `Dockerfile` e no `Dockerfile.dev`. Ao atualizar um hash, reconstrua a imagem e execute a verificação local do contêiner e a análise do Trivy antes da publicação.
+
+A compilação de produção também atualiza pacotes Alpine com `apk upgrade`. Essas atualizações dependem dos pacotes disponíveis no repositório Alpine no momento da compilação, portanto fixar o digest da imagem-base não garante resultados idênticos.
 
 ### Publicação de imagens
 

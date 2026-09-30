@@ -154,7 +154,7 @@ availability, and PWA installation is browser-dependent.
 
 ## Production deployment
 
-`Dockerfile` uses a reproducible multi-stage build: Node.js 24 LTS compiles the
+`Dockerfile` uses a multi-stage build with digest-pinned base images: Node.js 24 LTS compiles the
 static bundle, then NGINX 1.30.3 Alpine Slim serves only `dist/`. The runtime
 runs as the non-root `nginx` user on port 8080, provides `/health`, uses a
 read-only root filesystem under Compose, and sends baseline browser security
@@ -165,6 +165,10 @@ and PWA metadata.
 Base image tags are pinned to immutable digests in `Dockerfile` and
 `Dockerfile.dev`. When updating a digest, rebuild the image and run the local
 container verification and Trivy scan before publishing it.
+
+The production build also upgrades Alpine packages with `apk upgrade`. Those
+updates depend on the packages available in the Alpine repository at build
+time, so pinning the base image digest does not guarantee identical results.
 
 ### Container image publication
 
