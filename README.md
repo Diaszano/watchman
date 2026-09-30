@@ -18,11 +18,6 @@
   <a href="LICENSE">
     <img alt="License: MIT" src="https://img.shields.io/github/license/Diaszano/watchman?style=flat-square">
   </a>
-  <a href="https://hub.docker.com/r/diaszano/watchman">
-    <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/diaszano/watchman?style=flat-square&logo=docker">
-    <img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/diaszano/watchman?style=flat-square&logo=docker">
-    <img alt="Docker Image Version" src="https://img.shields.io/docker/v/diaszano/watchman?style=flat-square&logo=docker">
-  </a>
   <a href="https://github.com/diaszano/watchman/pkgs/container/watchman">
     <img alt="GHCR" src="https://img.shields.io/badge/GHCR-available-blue?style=flat-square&logo=github">
   </a>
@@ -148,9 +143,18 @@ Both Compose services bind to `127.0.0.1` by default, so they are not exposed
 to other devices on the network. Add an explicit reverse proxy or change the
 host binding when remote access is intentional.
 
+For remote deployment, serve the app over HTTPS, usually through a reverse
+proxy. [Wake Lock](https://developer.mozilla.org/en-US/docs/Web/API/WakeLock)
+and the [service worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
+require a secure context: changing the host binding alone does not enable
+them over HTTP at a LAN IP address. Browsers treat `http://localhost` as
+trustworthy, so the local examples above remain valid. HTTPS meets the
+transport requirement; browser support and permissions still determine
+availability, and PWA installation is browser-dependent.
+
 ## Production deployment
 
-`Dockerfile` uses a reproducible multi-stage build: Node.js 24 LTS compiles the
+`Dockerfile` uses a multi-stage build with digest-pinned base images: Node.js 24 LTS compiles the
 static bundle, then NGINX 1.30.3 Alpine Slim serves only `dist/`. The runtime
 runs as the non-root `nginx` user on port 8080, provides `/health`, uses a
 read-only root filesystem under Compose, and sends baseline browser security
@@ -161,6 +165,10 @@ and PWA metadata.
 Base image tags are pinned to immutable digests in `Dockerfile` and
 `Dockerfile.dev`. When updating a digest, rebuild the image and run the local
 container verification and Trivy scan before publishing it.
+
+The production build also upgrades Alpine packages with `apk upgrade`. Those
+updates depend on the packages available in the Alpine repository at build
+time, so pinning the base image digest does not guarantee identical results.
 
 ### Container image publication
 
@@ -181,7 +189,7 @@ Protect `main` and `dev` with pull requests and the `Commit messages`, `Lint, te
 The render pipeline is intentionally **canvas-first and React-light**: React owns the shell (routing, settings UI, overlays, and background); a single `requestAnimationFrame` loop drives animation pixels.
 
 - `useAnimationLoop` reads settings via `zustand`'s `getState()` **each frame**, so tuning is instant without React re-renders. It handles DPR sizing, the FPS cap, tab-visibility pause, and coordinates anti burn-in drift across both canvas and background.
-- Each **animation is an independent module** exposing a factory `() => { draw(frame) }`. State lives in the closure and resets on switch. Adding one requires a new module and a registry entry in `animations/index.ts`.
+- Each **animation is an independent module** exposing a factory `() => { draw(frame) }`. State lives in the closure and resets on switch. Adding one requires a module, a registry entry in `src/animations/index.ts`, and English/Portuguese names in `src/services/i18n.ts`; see the [animation contribution guide](CONTRIBUTING.md#adding-an-animation).
 - **Navigation** uses the browser's native hash routing, keeping the two-page flow dependency-free.
 - **Settings** are one strongly-typed store persisted to LocalStorage via `zustand/middleware`; uploaded images are stored separately in IndexedDB.
 

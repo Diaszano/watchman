@@ -95,12 +95,33 @@ perf: reduce particle system memory allocations
 ## Branch Strategy
 
 1. **Fork** the repository
-2. Create a focused branch from `dev`:
+2. Add the original repository as `upstream`, fetch its `dev` branch, and
+   create a focused branch:
    ```bash
-   git switch -c feat/my-new-feature dev
+   git remote add upstream https://github.com/Diaszano/watchman.git
+   git fetch upstream dev
+   git switch -c feat/my-new-feature upstream/dev
    ```
+   `origin` points to your fork; `upstream` points to the original repository.
+   If `upstream` already exists, check its URL with `git remote -v` and skip
+   `git remote add` when it already points to the original repository.
 3. Make your changes and commit using Conventional Commits
-4. Push to your fork and **open a Pull Request** against `dev`
+4. Push to your fork and **open a Pull Request** against the original
+   repository's `dev` branch:
+   ```bash
+   git push -u origin feat/my-new-feature
+   ```
+
+To update an existing working branch, first commit or stash local changes,
+then fetch and merge the original repository's latest `dev`:
+
+```bash
+git fetch upstream dev
+git merge upstream/dev
+```
+
+Resolve any merge conflicts before continuing; this workflow does not require
+a force-push.
 
 The stable `main` branch only accepts promotion pull requests from `dev` (or
 `development`) in this repository; CI rejects promotion branches from forks.
@@ -168,7 +189,25 @@ Watchman uses a **canvas-first, React-light** approach:
   for instant tuning without React re-renders
 - Each **animation is an independent module** exposing a factory
   `() => { draw(frame) }` — state lives in the closure
-- Adding a new animation = one new module + one registry entry in `animations/index.ts`
+
+### Adding an animation
+
+1. Create a module in `src/animations/` exporting a factory that returns an
+   `Animation` with `draw(frame: AnimationFrame): void`; import these types
+   from `@/types`.
+2. Import the factory and add an entry with a unique `id` and `create` in
+   `src/animations/index.ts`. Set `controls` to the relevant subset of
+   `speed`, `count`, `size`, `opacity`, `brightness`, and `color`; omitting it
+   exposes all these controls.
+3. Add `anim.<id>` to both the `en` and `pt` dictionaries in
+   `src/services/i18n.ts`. Missing translations display the raw key.
+4. Optionally add an entry to `previews` in `src/components/AnimationSelector.tsx`
+   to customize the icon and category (`classic`, `effects`, or `custom`).
+   Without one, the selector uses the `✦` icon and `effects` category.
+
+For example, `clock` connects `createClock` to its registry entry, has
+`anim.clock` in both dictionaries, and exposes only speed, size, brightness,
+and color controls.
 
 See the [README](README.md) for the full architecture overview.
 
