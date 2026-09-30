@@ -15,6 +15,7 @@
 .mcp/
 .mcp.json
 mcp.json
+.opencode/
 .superpowers/
 .worktrees/
 .windsurf/
