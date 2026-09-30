@@ -18,11 +18,6 @@
   <a href="LICENSE">
     <img alt="License: MIT" src="https://img.shields.io/github/license/Diaszano/watchman?style=flat-square">
   </a>
-  <a href="https://hub.docker.com/r/diaszano/watchman">
-    <img alt="Downloads no Docker" src="https://img.shields.io/docker/pulls/diaszano/watchman?style=flat-square&logo=docker">
-    <img alt="Tamanho da imagem Docker" src="https://img.shields.io/docker/image-size/diaszano/watchman?style=flat-square&logo=docker">
-    <img alt="Versão da imagem Docker" src="https://img.shields.io/docker/v/diaszano/watchman?style=flat-square&logo=docker">
-  </a>
   <a href="https://github.com/diaszano/watchman/pkgs/container/watchman">
     <img alt="GHCR" src="https://img.shields.io/badge/GHCR-disponível-blue?style=flat-square&logo=github">
   </a>
