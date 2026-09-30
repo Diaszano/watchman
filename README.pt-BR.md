@@ -9,10 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://hub.docker.com/r/diaszano/watchman">
-    <img alt="Downloads no Docker" src="https://img.shields.io/docker/pulls/diaszano/watchman?style=flat-square&logo=docker">
-    <img alt="Tamanho da imagem Docker" src="https://img.shields.io/docker/image-size/diaszano/watchman?style=flat-square&logo=docker">
-    <img alt="Versão da imagem Docker" src="https://img.shields.io/docker/v/diaszano/watchman?style=flat-square&logo=docker">
+  <a href="https://github.com/Diaszano/watchman/actions/workflows/ci.yml">
+    <img alt="CI" src="https://github.com/Diaszano/watchman/actions/workflows/ci.yml/badge.svg?branch=main">
+  </a>
+  <a href="https://github.com/Diaszano/watchman/releases">
+    <img alt="GitHub release" src="https://img.shields.io/github/v/release/Diaszano/watchman?style=flat-square">
+  </a>
+  <a href="LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/github/license/Diaszano/watchman?style=flat-square">
   </a>
   <a href="https://github.com/diaszano/watchman/pkgs/container/watchman">
     <img alt="GHCR" src="https://img.shields.io/badge/GHCR-disponível-blue?style=flat-square&logo=github">
@@ -76,6 +80,8 @@ TypeScript · React 19 · Vite · Tailwind CSS v4 · Zustand · Vitest · Biome 
 Requer Node.js 24 (execute `nvm use` se o nvm estiver instalado).
 
 ```bash
+git clone https://github.com/Diaszano/watchman.git
+cd watchman
 npm ci
 ```
 
@@ -99,6 +105,8 @@ npm test             # executa o Vitest
 npm run test:watch   # executa o Vitest em modo de observação
 npm run test:commits # valida as mensagens dos commits locais
 npm run test:release # valida a configuração de release
+npm run test:ci-security # valida a política de branches e os checks obrigatórios
+npm run audit:production # verifica vulnerabilidades nas dependências de produção
 ```
 
 ## Como contribuir
@@ -133,11 +141,15 @@ docker compose --profile dev up --build   # http://localhost:5173
 
 Por padrão, os dois serviços do Compose escutam apenas em `127.0.0.1`, portanto não ficam expostos a outros dispositivos da rede. Adicione um proxy reverso explícito ou altere o endereço de escuta quando o acesso remoto for intencional.
 
+Para implantação remota, sirva a aplicação por HTTPS, normalmente por meio de um proxy reverso. O [Wake Lock](https://developer.mozilla.org/en-US/docs/Web/API/WakeLock) e o [service worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) exigem um contexto seguro: alterar apenas o endereço de escuta não habilita esses recursos por HTTP em um IP da rede local. Os navegadores consideram `http://localhost` confiável, portanto os exemplos locais acima continuam válidos. HTTPS atende ao requisito de transporte; suporte e permissões do navegador ainda determinam a disponibilidade dos recursos, e a instalação da PWA depende do navegador.
+
 ## Implantação em produção
 
-O `Dockerfile` usa uma compilação reproduzível em múltiplos estágios: Node.js 24 LTS gera os arquivos estáticos e o NGINX 1.30.3 Alpine Slim serve apenas o conteúdo de `dist/`. O contêiner é executado com o usuário não root `nginx` na porta 8080, fornece o endpoint `/health`, usa um sistema de arquivos raiz somente leitura no Compose e envia cabeçalhos básicos de segurança para o navegador. O `nginx.conf` também configura compressão, cache imutável para arquivos com hash, fallback da SPA e revalidação do shell da aplicação e dos metadados da PWA.
+O `Dockerfile` usa uma compilação em múltiplos estágios com imagens-base fixadas por digest: Node.js 24 LTS gera os arquivos estáticos e o NGINX 1.30.3 Alpine Slim serve apenas o conteúdo de `dist/`. O contêiner é executado com o usuário não root `nginx` na porta 8080, fornece o endpoint `/health`, usa um sistema de arquivos raiz somente leitura no Compose e envia cabeçalhos básicos de segurança para o navegador. O `nginx.conf` também configura compressão, cache imutável para arquivos com hash, fallback da SPA e revalidação do shell da aplicação e dos metadados da PWA.
 
 As imagens-base usam tags fixadas por hashes imutáveis no `Dockerfile` e no `Dockerfile.dev`. Ao atualizar um hash, reconstrua a imagem e execute a verificação local do contêiner e a análise do Trivy antes da publicação.
+
+A compilação de produção também atualiza pacotes Alpine com `apk upgrade`. Essas atualizações dependem dos pacotes disponíveis no repositório Alpine no momento da compilação, portanto fixar o digest da imagem-base não garante resultados idênticos.
 
 ### Publicação de imagens
 
@@ -147,9 +159,9 @@ Pushes para `dev` publicam a tag móvel `dev` no GHCR. Commits que geram um rele
 
 Conventional Commits determina a próxima versão: `fix`, `perf` e `revert` geram uma correção; `feat` gera uma versão secundária; e uma mudança incompatível gera uma versão principal. O workflow cria a tag Git e publica o GitHub Release automaticamente.
 
-O repositório deve permitir que o GitHub Actions grave seu conteúdo e pacotes para que o Semantic Release possa criar tags e GitHub Releases, além de publicar as imagens no GHCR.
+Mantenha as permissões padrão do GitHub Actions em somente leitura. O workflow de release solicita explicitamente escrita em conteúdo e pacotes para criar tags, GitHub Releases e imagens no GHCR.
 
-Ao proteger `main`, exija as verificações `Commit messages`, `Lint, test, and build` e `Pull request title`.
+Proteja `main` e `dev` com pull requests e as verificações `Commit messages`, `Lint, test, and build` e `Pull request title`. O check agregado também exige análise das dependências de produção, revisão de dependências nos PRs, configuração de release e segurança do contêiner. Promoções para `main` devem partir de `dev` ou `development` deste mesmo repositório.
 
 ---
 
@@ -158,7 +170,7 @@ Ao proteger `main`, exija as verificações `Commit messages`, `Lint, test, and 
 O pipeline de renderização é intencionalmente baseado em canvas e usa pouco React: o React controla a estrutura da aplicação (navegação, configurações, sobreposições e fundo), enquanto um único loop de `requestAnimationFrame` desenha os pixels das animações.
 
 - O `useAnimationLoop` lê as configurações com `getState()` do Zustand a cada quadro. Assim, os ajustes aparecem imediatamente sem novas renderizações do React. O hook centraliza o dimensionamento por DPR, o limite de FPS, a pausa quando a aba fica oculta e coordena o deslocamento anti burn-in em conjunto entre canvas e fundo.
-- Cada **animação é um módulo independente** que expõe uma fábrica `() => { draw(frame) }`. O estado permanece no fechamento da função e é reiniciado ao trocar de animação. Para adicionar uma, crie um módulo e uma entrada no registro em `animations/index.ts`.
+- Cada **animação é um módulo independente** que expõe uma fábrica `() => { draw(frame) }`. O estado permanece no fechamento da função e é reiniciado ao trocar de animação. Para adicionar uma, crie um módulo, uma entrada no registro em `src/animations/index.ts` e nomes em inglês/português em `src/services/i18n.ts`; consulte o [guia de contribuição de animações](CONTRIBUTING.md#adding-an-animation).
 - A **navegação** usa o hash nativo do navegador e mantém o fluxo de duas páginas sem dependências adicionais.
 - As **configurações** ficam em um único store fortemente tipado e persistido no LocalStorage por `zustand/middleware`; imagens enviadas são armazenadas separadamente no IndexedDB.
 
@@ -179,6 +191,10 @@ src/
 ```
 
 ---
+
+## Segurança
+
+Para relatar uma vulnerabilidade em privado, consulte a [política de segurança](SECURITY.md). Execute `npm audit` para verificar também as ferramentas de desenvolvimento; `npm run audit:production` verifica as dependências de execução.
 
 ## Licença
 

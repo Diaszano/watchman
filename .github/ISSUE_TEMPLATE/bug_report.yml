@@ -47,6 +47,15 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: version
+    attributes:
+      label: Watchman Version
+      description: Release tag, container tag or digest, or Git commit (avoid only saying latest).
+      placeholder: v1.6.0, sha256:..., or commit SHA
+    validations:
+      required: true
+
   - type: dropdown
     id: browser
     attributes:

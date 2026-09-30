@@ -16,7 +16,8 @@
     "prepare": "husky",
     "test:commits": "bash scripts/test-commitlint.sh",
     "test:release": "node scripts/test-release-config.mjs",
-    "test:ci-security": "node scripts/test-ci-branch-policy.mjs"
+    "test:ci-security": "node scripts/test-ci-branch-policy.mjs",
+    "audit:production": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
     "react": "^19.3.0",
@@ -55,5 +56,16 @@
   "overrides": {
     "@babel/core": "^7.29.0",
     "@babel/plugin-transform-runtime": "^7.29.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Diaszano/watchman.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Diaszano/watchman/issues"
+  },
+  "homepage": "https://github.com/Diaszano/watchman#readme",
+  "engines": {
+    "node": ">=24 <25"
   }
 }

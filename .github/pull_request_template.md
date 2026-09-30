@@ -18,9 +18,11 @@
 - [ ] Code follows the project's style guidelines
 - [ ] Self-review performed
 - [ ] Tests added/updated for changes
+- [ ] `npm run format:check` passes
 - [ ] `npm run lint` passes
 - [ ] `npm test` passes
 - [ ] `npm run build` passes
+- [ ] CI security and release configuration checks pass
 - [ ] Documentation updated (if applicable)
 
 ## Screenshots
