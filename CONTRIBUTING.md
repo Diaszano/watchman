@@ -95,12 +95,33 @@ perf: reduce particle system memory allocations
 ## Branch Strategy
 
 1. **Fork** the repository
-2. Create a focused branch from `dev`:
+2. Add the original repository as `upstream`, fetch its `dev` branch, and
+   create a focused branch:
    ```bash
-   git switch -c feat/my-new-feature dev
+   git remote add upstream https://github.com/Diaszano/watchman.git
+   git fetch upstream dev
+   git switch -c feat/my-new-feature upstream/dev
    ```
+   `origin` points to your fork; `upstream` points to the original repository.
+   If `upstream` already exists, check its URL with `git remote -v` and skip
+   `git remote add` when it already points to the original repository.
 3. Make your changes and commit using Conventional Commits
-4. Push to your fork and **open a Pull Request** against `dev`
+4. Push to your fork and **open a Pull Request** against the original
+   repository's `dev` branch:
+   ```bash
+   git push -u origin feat/my-new-feature
+   ```
+
+To update an existing working branch, first commit or stash local changes,
+then fetch and merge the original repository's latest `dev`:
+
+```bash
+git fetch upstream dev
+git merge upstream/dev
+```
+
+Resolve any merge conflicts before continuing; this workflow does not require
+a force-push.
 
 The stable `main` branch only accepts promotion pull requests from `dev` (or
 `development`) in this repository; CI rejects promotion branches from forks.
