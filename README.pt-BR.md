@@ -9,6 +9,15 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Diaszano/watchman/actions/workflows/ci.yml">
+    <img alt="CI" src="https://github.com/Diaszano/watchman/actions/workflows/ci.yml/badge.svg?branch=main">
+  </a>
+  <a href="https://github.com/Diaszano/watchman/releases">
+    <img alt="GitHub release" src="https://img.shields.io/github/v/release/Diaszano/watchman?style=flat-square">
+  </a>
+  <a href="LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/github/license/Diaszano/watchman?style=flat-square">
+  </a>
   <a href="https://hub.docker.com/r/diaszano/watchman">
     <img alt="Downloads no Docker" src="https://img.shields.io/docker/pulls/diaszano/watchman?style=flat-square&logo=docker">
     <img alt="Tamanho da imagem Docker" src="https://img.shields.io/docker/image-size/diaszano/watchman?style=flat-square&logo=docker">
@@ -76,6 +85,8 @@ TypeScript · React 19 · Vite · Tailwind CSS v4 · Zustand · Vitest · Biome 
 Requer Node.js 24 (execute `nvm use` se o nvm estiver instalado).
 
 ```bash
+git clone https://github.com/Diaszano/watchman.git
+cd watchman
 npm ci
 ```
 
@@ -99,6 +110,8 @@ npm test             # executa o Vitest
 npm run test:watch   # executa o Vitest em modo de observação
 npm run test:commits # valida as mensagens dos commits locais
 npm run test:release # valida a configuração de release
+npm run test:ci-security # valida a política de branches e os checks obrigatórios
+npm run audit:production # verifica vulnerabilidades nas dependências de produção
 ```
 
 ## Como contribuir
@@ -147,9 +160,9 @@ Pushes para `dev` publicam a tag móvel `dev` no GHCR. Commits que geram um rele
 
 Conventional Commits determina a próxima versão: `fix`, `perf` e `revert` geram uma correção; `feat` gera uma versão secundária; e uma mudança incompatível gera uma versão principal. O workflow cria a tag Git e publica o GitHub Release automaticamente.
 
-O repositório deve permitir que o GitHub Actions grave seu conteúdo e pacotes para que o Semantic Release possa criar tags e GitHub Releases, além de publicar as imagens no GHCR.
+Mantenha as permissões padrão do GitHub Actions em somente leitura. O workflow de release solicita explicitamente escrita em conteúdo e pacotes para criar tags, GitHub Releases e imagens no GHCR.
 
-Ao proteger `main`, exija as verificações `Commit messages`, `Lint, test, and build` e `Pull request title`.
+Proteja `main` e `dev` com pull requests e as verificações `Commit messages`, `Lint, test, and build` e `Pull request title`. O check agregado também exige análise das dependências de produção, revisão de dependências nos PRs, configuração de release e segurança do contêiner. Promoções para `main` devem partir de `dev` ou `development` deste mesmo repositório.
 
 ---
 
@@ -179,6 +192,10 @@ src/
 ```
 
 ---
+
+## Segurança
+
+Para relatar uma vulnerabilidade em privado, consulte a [política de segurança](SECURITY.md). Execute `npm audit` para verificar também as ferramentas de desenvolvimento; `npm run audit:production` verifica as dependências de execução.
 
 ## Licença
 

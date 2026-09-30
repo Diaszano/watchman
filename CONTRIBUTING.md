@@ -23,7 +23,7 @@ you get started.
    cd watchman
    ```
 
-2. **Install the locked dependencies** (this also sets up Husky git hooks):
+2. **Use Node.js 24** (`nvm use`), then **install the locked dependencies** (this also sets up Husky git hooks):
 
    ```bash
    npm ci
@@ -103,7 +103,7 @@ perf: reduce particle system memory allocations
 4. Push to your fork and **open a Pull Request** against `dev`
 
 The stable `main` branch only accepts promotion pull requests from `dev` (or
-`development`); CI enforces this policy.
+`development`) in this repository; CI rejects promotion branches from forks.
 
 > [!IMPORTANT]
 > When merging promotion PRs from `dev` into `main`, always select GitHub's
@@ -131,6 +131,8 @@ Run the test suite:
 npm test              # Run tests once
 npm run test:watch    # Watch mode for development
 npm run test:release  # Validate semantic-release configuration
+npm run test:ci-security # Validate branch policy and required checks
+npm run audit:production # Audit runtime dependencies
 npm run build         # Type-check and build the production bundle
 ```
 
