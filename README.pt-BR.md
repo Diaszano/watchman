@@ -173,7 +173,7 @@ Proteja `main` e `dev` com pull requests e as verificações `Commit messages`, 
 O pipeline de renderização é intencionalmente baseado em canvas e usa pouco React: o React controla a estrutura da aplicação (navegação, configurações, sobreposições e fundo), enquanto um único loop de `requestAnimationFrame` desenha os pixels das animações.
 
 - O `useAnimationLoop` lê as configurações com `getState()` do Zustand a cada quadro. Assim, os ajustes aparecem imediatamente sem novas renderizações do React. O hook centraliza o dimensionamento por DPR, o limite de FPS, a pausa quando a aba fica oculta e coordena o deslocamento anti burn-in em conjunto entre canvas e fundo.
-- Cada **animação é um módulo independente** que expõe uma fábrica `() => { draw(frame) }`. O estado permanece no fechamento da função e é reiniciado ao trocar de animação. Para adicionar uma, crie um módulo e uma entrada no registro em `animations/index.ts`.
+- Cada **animação é um módulo independente** que expõe uma fábrica `() => { draw(frame) }`. O estado permanece no fechamento da função e é reiniciado ao trocar de animação. Para adicionar uma, crie um módulo, uma entrada no registro em `src/animations/index.ts` e nomes em inglês/português em `src/services/i18n.ts`; consulte o [guia de contribuição de animações](CONTRIBUTING.md#adding-an-animation).
 - A **navegação** usa o hash nativo do navegador e mantém o fluxo de duas páginas sem dependências adicionais.
 - As **configurações** ficam em um único store fortemente tipado e persistido no LocalStorage por `zustand/middleware`; imagens enviadas são armazenadas separadamente no IndexedDB.
 

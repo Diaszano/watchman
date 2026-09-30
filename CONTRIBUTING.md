@@ -189,7 +189,25 @@ Watchman uses a **canvas-first, React-light** approach:
   for instant tuning without React re-renders
 - Each **animation is an independent module** exposing a factory
   `() => { draw(frame) }` — state lives in the closure
-- Adding a new animation = one new module + one registry entry in `animations/index.ts`
+
+### Adding an animation
+
+1. Create a module in `src/animations/` exporting a factory that returns an
+   `Animation` with `draw(frame: AnimationFrame): void`; import these types
+   from `@/types`.
+2. Import the factory and add an entry with a unique `id` and `create` in
+   `src/animations/index.ts`. Set `controls` to the relevant subset of
+   `speed`, `count`, `size`, `opacity`, `brightness`, and `color`; omitting it
+   exposes all these controls.
+3. Add `anim.<id>` to both the `en` and `pt` dictionaries in
+   `src/services/i18n.ts`. Missing translations display the raw key.
+4. Optionally add an entry to `previews` in `src/components/AnimationSelector.tsx`
+   to customize the icon and category (`classic`, `effects`, or `custom`).
+   Without one, the selector uses the `✦` icon and `effects` category.
+
+For example, `clock` connects `createClock` to its registry entry, has
+`anim.clock` in both dictionaries, and exposes only speed, size, brightness,
+and color controls.
 
 See the [README](README.md) for the full architecture overview.
 

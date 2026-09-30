@@ -190,7 +190,7 @@ Protect `main` and `dev` with pull requests and the `Commit messages`, `Lint, te
 The render pipeline is intentionally **canvas-first and React-light**: React owns the shell (routing, settings UI, overlays, and background); a single `requestAnimationFrame` loop drives animation pixels.
 
 - `useAnimationLoop` reads settings via `zustand`'s `getState()` **each frame**, so tuning is instant without React re-renders. It handles DPR sizing, the FPS cap, tab-visibility pause, and coordinates anti burn-in drift across both canvas and background.
-- Each **animation is an independent module** exposing a factory `() => { draw(frame) }`. State lives in the closure and resets on switch. Adding one requires a new module and a registry entry in `animations/index.ts`.
+- Each **animation is an independent module** exposing a factory `() => { draw(frame) }`. State lives in the closure and resets on switch. Adding one requires a module, a registry entry in `src/animations/index.ts`, and English/Portuguese names in `src/services/i18n.ts`; see the [animation contribution guide](CONTRIBUTING.md#adding-an-animation).
 - **Navigation** uses the browser's native hash routing, keeping the two-page flow dependency-free.
 - **Settings** are one strongly-typed store persisted to LocalStorage via `zustand/middleware`; uploaded images are stored separately in IndexedDB.
 
