@@ -18,15 +18,21 @@ assert.ok(policyStep.run, 'Policy step must have a run script');
 const vulnerableBranch = '$(echo$IFS"WATCHMAN_REVIEW_MARKER">&2)';
 
 const testCases = [
-  { branch: 'dev', expectedExit: 0 },
+  { branch: 'dev', repository: 'Diaszano/watchman', expectedExit: 0 },
+  { branch: 'dev', repository: 'attacker/watchman', expectedExit: 1 },
+  { branch: 'development', repository: 'attacker/watchman', expectedExit: 1 },
   { branch: 'development', expectedExit: 0 },
   { branch: 'feature/example', expectedExit: 1 },
   { branch: vulnerableBranch, expectedExit: 1 },
 ];
 
-for (const { branch, expectedExit } of testCases) {
+for (const { branch, repository = 'Diaszano/watchman', expectedExit } of testCases) {
   let script = policyStep.run;
-  const env = { ...process.env };
+  const env = {
+    ...process.env,
+    HEAD_REPOSITORY: repository,
+    GITHUB_REPOSITORY: 'Diaszano/watchman',
+  };
 
   if (policyStep.run.includes('${{ github.head_ref }}')) {
     // Simulate runner context interpolation
@@ -67,4 +73,59 @@ assert.equal(
   'Workflow step must pass GITHUB_HEAD_REF via env',
 );
 
-console.log('CI branch policy security tests passed.');
+assert.equal(
+  policyStep.env?.HEAD_REPOSITORY,
+  '${{ github.event.pull_request.head.repo.full_name }}',
+);
+
+const aggregate = ci.jobs['lint-test-build'];
+const requiredJobs = ['commitlint', 'format', 'lint', 'test', 'test-release', 'build', 'container'];
+for (const job of [...requiredJobs, 'dependency-review']) {
+  assert.ok(aggregate.needs.includes(job), `Required check must wait for ${job}`);
+}
+assert.equal(aggregate.if, 'always()');
+const aggregateStep = aggregate.steps[0];
+for (const job of requiredJobs) {
+  assert.ok(aggregateStep.env.REQUIRED_RESULTS.includes('${{ needs.' + job + '.result }}'));
+}
+assert.equal(aggregateStep.env.DEPENDENCY_REVIEW_RESULT, '${{ needs.dependency-review.result }}');
+assert.equal(aggregateStep.env.EVENT_NAME, '${{ github.event_name }}');
+assert.ok(ci.jobs.test.steps.some((step) => step.run === 'npm run audit:production'));
+
+const runAggregate = (results, review, event) =>
+  spawnSync('bash', ['-c', aggregateStep.run], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      REQUIRED_RESULTS: results.join(' '),
+      DEPENDENCY_REVIEW_RESULT: review,
+      EVENT_NAME: event,
+    },
+  });
+const successful = requiredJobs.map(() => 'success');
+assert.equal(runAggregate(successful, 'success', 'pull_request').status, 0);
+assert.equal(runAggregate(successful, 'skipped', 'push').status, 0);
+for (const result of ['failure', 'cancelled', 'skipped']) {
+  for (const index of requiredJobs.keys()) {
+    const results = [...successful];
+    results[index] = result;
+    assert.equal(
+      runAggregate(results, 'success', 'pull_request').status,
+      1,
+      `${requiredJobs[index]} ${result} must block merging`,
+    );
+  }
+  assert.equal(runAggregate(successful, result, 'pull_request').status, 1);
+}
+for (const job of Object.values(ci.jobs)) {
+  for (const step of job.steps ?? []) {
+    if (step.uses?.startsWith('actions/checkout@')) {
+      assert.equal(
+        step.with?.['persist-credentials'],
+        false,
+        'Validation jobs must not persist credentials',
+      );
+    }
+  }
+}
+console.log('CI branch policy and required checks security tests passed.');

@@ -9,6 +9,15 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Diaszano/watchman/actions/workflows/ci.yml">
+    <img alt="CI" src="https://github.com/Diaszano/watchman/actions/workflows/ci.yml/badge.svg?branch=main">
+  </a>
+  <a href="https://github.com/Diaszano/watchman/releases">
+    <img alt="GitHub release" src="https://img.shields.io/github/v/release/Diaszano/watchman?style=flat-square">
+  </a>
+  <a href="LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/github/license/Diaszano/watchman?style=flat-square">
+  </a>
   <a href="https://hub.docker.com/r/diaszano/watchman">
     <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/diaszano/watchman?style=flat-square&logo=docker">
     <img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/diaszano/watchman?style=flat-square&logo=docker">
@@ -76,6 +85,8 @@ TypeScript · React 19 · Vite · Tailwind CSS v4 · Zustand · Vitest · Biome 
 Requires Node.js 24 (run `nvm use` when nvm is installed).
 
 ```bash
+git clone https://github.com/Diaszano/watchman.git
+cd watchman
 npm ci
 ```
 
@@ -99,6 +110,8 @@ npm test           # Vitest
 npm run test:watch # Vitest watch mode
 npm run test:commits # validate local commit messages
 npm run test:release # validate the release configuration
+npm run test:ci-security # validate branch policy and required checks
+npm run audit:production # audit runtime dependencies
 ```
 
 ## Contributing
@@ -157,9 +170,9 @@ Pushes to `dev` publish the moving `dev` tag to GHCR. Commits that qualify for a
 
 Conventional Commits determine the next version: `fix`, `perf`, and `revert` create a patch; `feat` creates a minor; and a breaking change creates a major. The release workflow creates the Git tag and publishes the GitHub Release automatically.
 
-The repository must allow GitHub Actions to write repository contents and packages so Semantic Release can create tags and GitHub Releases, and publish images to GHCR.
+Keep the default GitHub Actions permissions read-only. The release workflow explicitly requests contents and packages write access to create tags, GitHub Releases, and GHCR images.
 
-When protecting `main`, require the `Commit messages`, `Lint, test, and build`, and `Pull request title` checks.
+Protect `main` and `dev` with pull requests and the `Commit messages`, `Lint, test, and build`, and `Pull request title` checks. The aggregate check also requires the production dependency audit, dependency review on PRs, release configuration, and container security. Promotions to `main` must originate from this repository’s `dev` or `development` branch.
 
 ---
 
@@ -189,6 +202,10 @@ src/
 ```
 
 ---
+
+## Security
+
+To report a vulnerability privately, see the [security policy](SECURITY.md). Run `npm audit` to inspect development tools too; `npm run audit:production` checks runtime dependencies.
 
 ## License
 

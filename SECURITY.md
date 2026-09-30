@@ -2,10 +2,9 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.x.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+Security fixes target the latest stable GitHub release and the `main` branch.
+Older releases and container tags do not receive backported fixes. The `dev`
+branch and prerelease images are for testing and may change without notice.
 
 ## Reporting a Vulnerability
 
@@ -61,6 +60,7 @@ This project implements the following security hardening:
 - **Read-only filesystem** — production containers use `read_only: true`
 - **Pinned dependencies** — Docker base images pinned to immutable SHA digests,
   GitHub Actions pinned to commit SHAs
+- **Production dependency audit** — CI rejects HIGH/CRITICAL runtime advisories
 - **Trivy vulnerability scanning** — CI gates on fixable HIGH/CRITICAL CVEs
 - **SBOM generation** — Software Bill of Materials attached to every release
 - **`no-new-privileges`** — Docker security option prevents privilege escalation
