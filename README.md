@@ -148,6 +148,15 @@ Both Compose services bind to `127.0.0.1` by default, so they are not exposed
 to other devices on the network. Add an explicit reverse proxy or change the
 host binding when remote access is intentional.
 
+For remote deployment, serve the app over HTTPS, usually through a reverse
+proxy. [Wake Lock](https://developer.mozilla.org/en-US/docs/Web/API/WakeLock)
+and the [service worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
+require a secure context: changing the host binding alone does not enable
+them over HTTP at a LAN IP address. Browsers treat `http://localhost` as
+trustworthy, so the local examples above remain valid. HTTPS meets the
+transport requirement; browser support and permissions still determine
+availability, and PWA installation is browser-dependent.
+
 ## Production deployment
 
 `Dockerfile` uses a reproducible multi-stage build: Node.js 24 LTS compiles the

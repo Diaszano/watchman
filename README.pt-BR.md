@@ -146,6 +146,8 @@ docker compose --profile dev up --build   # http://localhost:5173
 
 Por padrão, os dois serviços do Compose escutam apenas em `127.0.0.1`, portanto não ficam expostos a outros dispositivos da rede. Adicione um proxy reverso explícito ou altere o endereço de escuta quando o acesso remoto for intencional.
 
+Para implantação remota, sirva a aplicação por HTTPS, normalmente por meio de um proxy reverso. O [Wake Lock](https://developer.mozilla.org/en-US/docs/Web/API/WakeLock) e o [service worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) exigem um contexto seguro: alterar apenas o endereço de escuta não habilita esses recursos por HTTP em um IP da rede local. Os navegadores consideram `http://localhost` confiável, portanto os exemplos locais acima continuam válidos. HTTPS atende ao requisito de transporte; suporte e permissões do navegador ainda determinam a disponibilidade dos recursos, e a instalação da PWA depende do navegador.
+
 ## Implantação em produção
 
 O `Dockerfile` usa uma compilação reproduzível em múltiplos estágios: Node.js 24 LTS gera os arquivos estáticos e o NGINX 1.30.3 Alpine Slim serve apenas o conteúdo de `dist/`. O contêiner é executado com o usuário não root `nginx` na porta 8080, fornece o endpoint `/health`, usa um sistema de arquivos raiz somente leitura no Compose e envia cabeçalhos básicos de segurança para o navegador. O `nginx.conf` também configura compressão, cache imutável para arquivos com hash, fallback da SPA e revalidação do shell da aplicação e dos metadados da PWA.
