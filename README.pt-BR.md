@@ -28,8 +28,8 @@ Dez modos de animação, configurações ajustáveis em tempo real, mecanismo an
 ## Recursos
 
 - **10 modos de animação** — Logo DVD, Relógio Digital, Sistema de Partículas, Bolhas Flutuantes, Campo Estelar (paralaxe), Chuva Matrix, Linhas Neon, Formas Geométricas, Logo Personalizado (envio de imagem) e Texto Personalizado.
-- **Mecanismo anti burn-in** — deslocamento global e movimento próprio de cada modo para que nada fique estático.
-- **Configuração em tempo real** — velocidade, quantidade de objetos, tamanho, cores, fundo (sólido, gradiente ou imagem), opacidade, brilho e limite de FPS.
+- **Mecanismo anti burn-in** — deslocamento sutil abrangendo o canvas e o fundo (com margem ampliada para evitar bordas expostas) e movimento próprio de cada modo para reduzir o risco de retenção em telas OLED (a movimentação por software reduz o risco de retenção, mas não garante eliminação total de burn-in; fundo preto puro permanece disponível).
+- **Configuração em tempo real** — velocidade, quantidade de objetos, tamanho, cores, fundo (sólido, gradiente ou imagem), opacidade (canvas), brilho (toda a cena: fundo + canvas, mantendo controles legíveis fora do filtro) e limite de FPS.
 - **Controles relevantes por animação** — cada modo exibe somente as configurações que o afetam.
 - **Playlist automática** — selecione favoritos, defina o intervalo de troca e escolha a ordem sequencial ou aleatória.
 - **Screen Wake Lock API** — mantém a tela ligada durante a execução, recupera o bloqueio automaticamente e exibe um aviso quando o recurso não é suportado.
@@ -43,7 +43,7 @@ Dez modos de animação, configurações ajustáveis em tempo real, mecanismo an
 
 ## Renderização
 
-O canvas acompanha a proporção de pixels do dispositivo, limitada a 2 para manter o desempenho previsível em telas de alta resolução. Use o limite de FPS (30, 60, 120 ou ilimitado) para equilibrar fluidez e consumo de energia. Imagens de fundo e logos enviados permanecem neste navegador por meio do IndexedDB e são limitados a 5 MiB cada.
+O canvas acompanha a proporção de pixels do dispositivo, limitada a 2 para manter o desempenho previsível em telas de alta resolução. Use o limite de FPS (30, 60, 120 ou ilimitado) para equilibrar fluidez e consumo de energia. Imagens de fundo e logos enviados permanecem neste navegador por meio do IndexedDB e são limitados a 5 MiB, até 8192 px por lado e 16,7 megapixels (16.777.216 pixels) cada.
 
 ## Capturas de tela
 
@@ -157,7 +157,7 @@ Ao proteger `main`, exija as verificações `Commit messages`, `Lint, test, and 
 
 O pipeline de renderização é intencionalmente baseado em canvas e usa pouco React: o React controla a estrutura da aplicação (navegação, configurações, sobreposições e fundo), enquanto um único loop de `requestAnimationFrame` desenha os pixels das animações.
 
-- O `useAnimationLoop` lê as configurações com `getState()` do Zustand a cada quadro. Assim, os ajustes aparecem imediatamente sem novas renderizações do React. O hook centraliza o dimensionamento por DPR, o limite de FPS, a pausa quando a aba fica oculta e o deslocamento anti burn-in.
+- O `useAnimationLoop` lê as configurações com `getState()` do Zustand a cada quadro. Assim, os ajustes aparecem imediatamente sem novas renderizações do React. O hook centraliza o dimensionamento por DPR, o limite de FPS, a pausa quando a aba fica oculta e coordena o deslocamento anti burn-in em conjunto entre canvas e fundo.
 - Cada **animação é um módulo independente** que expõe uma fábrica `() => { draw(frame) }`. O estado permanece no fechamento da função e é reiniciado ao trocar de animação. Para adicionar uma, crie um módulo e uma entrada no registro em `animations/index.ts`.
 - A **navegação** usa o hash nativo do navegador e mantém o fluxo de duas páginas sem dependências adicionais.
 - As **configurações** ficam em um único store fortemente tipado e persistido no LocalStorage por `zustand/middleware`; imagens enviadas são armazenadas separadamente no IndexedDB.

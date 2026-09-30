@@ -15,7 +15,7 @@ export const animations: AnimationMeta[] = [
   {
     id: 'dvd',
     create: createDvd,
-    controls: ['speed', 'size', 'opacity', 'brightness', 'color'],
+    controls: ['speed', 'size', 'opacity', 'brightness'],
   },
   {
     id: 'clock',
@@ -40,17 +40,17 @@ export const animations: AnimationMeta[] = [
   {
     id: 'matrix',
     create: createMatrix,
-    controls: ['count', 'size', 'speed', 'brightness', 'color'],
+    controls: ['size', 'speed', 'brightness', 'color'],
   },
   {
     id: 'neon',
     create: createNeon,
-    controls: ['count', 'size', 'speed', 'brightness', 'color'],
+    controls: ['count', 'size', 'speed', 'brightness'],
   },
   {
     id: 'shapes',
     create: createShapes,
-    controls: ['count', 'size', 'speed', 'opacity', 'brightness', 'color'],
+    controls: ['count', 'size', 'speed', 'opacity', 'brightness'],
   },
   {
     id: 'logo',

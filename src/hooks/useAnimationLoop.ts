@@ -1,13 +1,20 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { getAnimation, getNextInPlaylist } from '@/animations';
-import type { Animation } from '@/types';
+import type { Animation, Settings } from '@/types';
 
 interface Options {
   canvasRef: RefObject<HTMLCanvasElement | null>;
+  backgroundRef?: RefObject<HTMLDivElement | null>;
   paused: boolean;
   onFps?: (fps: number) => void;
   customImageUrl: string | null;
+}
+
+interface LoopController {
+  start: () => void;
+  stop: () => void;
+  invalidate: () => void;
 }
 
 /**
@@ -15,9 +22,29 @@ interface Options {
  * so tuning is live without triggering React re-renders. Handles DPR/4K sizing,
  * FPS cap, tab-visibility pause, anti-burn-in drift, and playlist auto-switch.
  */
-export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: Options): void => {
+export const useAnimationLoop = ({
+  canvasRef,
+  backgroundRef,
+  paused,
+  onFps,
+  customImageUrl,
+}: Options): void => {
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+
+  const onFpsRef = useRef(onFps);
+  onFpsRef.current = onFps;
+
+  const customImageUrlRef = useRef(customImageUrl);
+  customImageUrlRef.current = customImageUrl;
+
+  const backgroundRefRef = useRef(backgroundRef);
+  backgroundRefRef.current = backgroundRef;
+
+  const controllerRef = useRef<LoopController | null>(null);
+  const canvas = canvasRef.current;
+
   useEffect(() => {
-    const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -31,21 +58,8 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
     let fpsFrames = 0;
     let visible = !document.hidden;
 
-    // Sync visible state with page visibility to pause/resume the loop.
-    // Browsers throttle rAF when hidden, but explicit pause avoids
-    // large dt spikes when the user returns to the tab.
-    const handleVisibilityChange = () => {
-      visible = !document.hidden;
-      if (visible && !raf) {
-        lastCallbackTime = performance.now();
-        lastRenderTime = lastCallbackTime;
-        raf = requestAnimationFrame(frame);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    let currentId = '';
-    let instance: Animation | null = null;
+    let currentId = useSettings.getState().animationId;
+    let instance: Animation = getAnimation(currentId).create();
     let switchTimer = 0;
 
     // Anti burn-in drift state.
@@ -56,34 +70,64 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
     let driftTimer = 0;
 
     // Cached DOM style states to avoid per-frame DOM style recalculation.
-    let lastFilter = '';
     let lastOpacity = '';
 
-    let cssW = 0;
-    let cssH = 0;
+    let cssW = canvas.clientWidth;
+    let cssH = canvas.clientHeight;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const resize = () => {
-      cssW = canvas.clientWidth;
-      cssH = canvas.clientHeight;
-      if (cssW <= 0 || cssH <= 0) return;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.floor(cssW * dpr);
-      canvas.height = Math.floor(cssH * dpr);
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
 
-    const frame = (now: number) => {
-      if (!visible) {
-        cancelAnimationFrame(raf);
-        raf = 0;
+    const applyStyles = (s: Settings) => {
+      const nextOpacity = String(s.opacity);
+      if (nextOpacity !== lastOpacity) {
+        canvas.style.opacity = nextOpacity;
+        lastOpacity = nextOpacity;
+      }
+    };
+
+    const drawFrame = (dt: number) => {
+      if (cssW <= 0 || cssH <= 0) return;
+      const s = useSettings.getState();
+
+      if (s.animationId !== currentId) {
+        currentId = s.animationId;
+        instance = getAnimation(currentId).create();
+      }
+
+      applyStyles(s);
+
+      const bg = backgroundRefRef.current?.current;
+      if (bg) {
+        if (s.antiBurnIn) {
+          bg.style.transform = `translate(${offX}px, ${offY}px)`;
+        } else if (bg.style.transform) {
+          bg.style.transform = '';
+        }
+      }
+
+      ctx.setTransform(dpr, 0, 0, dpr, offX * dpr, offY * dpr);
+      // Clear a margin larger than the viewport so drift never exposes edges.
+      ctx.clearRect(-30, -30, cssW + 60, cssH + 60);
+      instance.draw({
+        ctx,
+        width: cssW,
+        height: cssH,
+        dt,
+        time,
+        settings: s,
+        customImageUrl: customImageUrlRef.current,
+      });
+    };
+
+    const loop = (now: number) => {
+      raf = 0;
+      if (!visible || pausedRef.current) {
         return;
       }
-      raf = requestAnimationFrame(frame);
+
+      raf = requestAnimationFrame(loop);
+
       const callbackElapsed = Math.max(0, (now - lastCallbackTime) / 1000);
       lastCallbackTime = now;
-      if (paused) return;
 
       const s = useSettings.getState();
 
@@ -94,17 +138,20 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
         if (accum < interval) return;
         accum = accum % interval;
       }
+
       const dt = Math.min(Math.max(0, now - lastRenderTime) / 1000, 0.1);
       lastRenderTime = now;
       time += dt;
 
-      // FPS report (~4x/sec).
-      fpsAccum += dt;
-      fpsFrames++;
-      if (fpsAccum >= 0.25) {
-        onFps?.(Math.round(fpsFrames / fpsAccum));
-        fpsAccum = 0;
-        fpsFrames = 0;
+      // FPS report (~4x/sec) only when subscriber exists
+      if (onFpsRef.current) {
+        fpsAccum += dt;
+        fpsFrames++;
+        if (fpsAccum >= 0.25) {
+          onFpsRef.current(Math.round(fpsFrames / fpsAccum));
+          fpsAccum = 0;
+          fpsFrames = 0;
+        }
       }
 
       // Playlist auto-switch.
@@ -116,14 +163,7 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
         }
       }
 
-      // (Re)create animation on id change.
-      if (s.animationId !== currentId || !instance) {
-        currentId = s.animationId;
-        instance = getAnimation(currentId).create();
-      }
-
       // Anti burn-in: slow global drift so nothing sits still.
-      const brightness = s.brightness;
       if (s.antiBurnIn) {
         driftTimer += dt;
         if (driftTimer > 5) {
@@ -137,39 +177,116 @@ export const useAnimationLoop = ({ canvasRef, paused, onFps, customImageUrl }: O
         offX = offY = 0;
       }
 
-      // Only update DOM styles when the computed string actually changes.
-      const nextFilter = `brightness(${brightness})`;
-      if (nextFilter !== lastFilter) {
-        canvas.style.filter = nextFilter;
-        lastFilter = nextFilter;
-      }
-
-      const nextOpacity = String(s.opacity);
-      if (nextOpacity !== lastOpacity) {
-        canvas.style.opacity = nextOpacity;
-        lastOpacity = nextOpacity;
-      }
-
-      ctx.setTransform(dpr, 0, 0, dpr, offX * dpr, offY * dpr);
-      // Clear a margin larger than the viewport so drift never exposes edges.
-      ctx.clearRect(-30, -30, cssW + 60, cssH + 60);
-      instance.draw({
-        ctx,
-        width: cssW,
-        height: cssH,
-        dt,
-        time,
-        settings: s,
-        renderDensity: 1,
-        customImageUrl,
-      });
+      drawFrame(dt);
     };
 
-    raf = requestAnimationFrame(frame);
+    const startLoop = () => {
+      if (raf !== 0 || !visible || pausedRef.current) return;
+      lastCallbackTime = performance.now();
+      lastRenderTime = lastCallbackTime;
+      accum = 0;
+      raf = requestAnimationFrame(loop);
+    };
+
+    const stopLoop = () => {
+      if (raf !== 0) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+
+    controllerRef.current = {
+      start: startLoop,
+      stop: stopLoop,
+      invalidate: () => drawFrame(0),
+    };
+
+    const resize = () => {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (w <= 0 || h <= 0) return;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const targetW = Math.floor(w * dpr);
+      const targetH = Math.floor(h * dpr);
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+      cssW = w;
+      cssH = h;
+      if (pausedRef.current) {
+        drawFrame(0);
+      }
+    };
+
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const handleVisibilityChange = () => {
+      visible = !document.hidden;
+      if (visible && !pausedRef.current) {
+        startLoop();
+      } else {
+        stopLoop();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const unsubscribe = useSettings.subscribe((state, prevState) => {
+      if (state.animationId !== currentId) {
+        currentId = state.animationId;
+        instance = getAnimation(currentId).create();
+        if (pausedRef.current) {
+          drawFrame(0);
+        }
+      } else if (pausedRef.current) {
+        if (
+          state.size !== prevState.size ||
+          state.color !== prevState.color ||
+          state.opacity !== prevState.opacity ||
+          state.customText !== prevState.customText ||
+          state.count !== prevState.count ||
+          state.antiBurnIn !== prevState.antiBurnIn
+        ) {
+          if (!state.antiBurnIn) {
+            offX = offY = 0;
+          }
+          drawFrame(0);
+        }
+      }
+    });
+
+    if (!pausedRef.current) {
+      startLoop();
+    } else {
+      drawFrame(0);
+    }
+
     return () => {
-      cancelAnimationFrame(raf);
+      stopLoop();
+      controllerRef.current = null;
       ro.disconnect();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      unsubscribe();
+      const bg = backgroundRefRef.current?.current;
+      if (bg) {
+        bg.style.transform = '';
+      }
     };
-  }, [canvasRef, paused, onFps, customImageUrl]);
+  }, [canvas]);
+
+  useEffect(() => {
+    if (paused) {
+      controllerRef.current?.stop();
+    } else {
+      controllerRef.current?.start();
+    }
+  }, [paused]);
+
+  useEffect(() => {
+    if (pausedRef.current && customImageUrl !== undefined) {
+      controllerRef.current?.invalidate();
+    }
+  }, [customImageUrl]);
 };

@@ -105,6 +105,14 @@ perf: reduce particle system memory allocations
 The stable `main` branch only accepts promotion pull requests from `dev` (or
 `development`); CI enforces this policy.
 
+> [!IMPORTANT]
+> When merging promotion PRs from `dev` into `main`, always select GitHub's
+> **Create a merge commit** option. Avoid squashing promotion PRs: squashing
+> condenses individual commit history into a single PR merge commit (e.g.,
+> `chore: merge dev into main`), causing semantic-release to miss the underlying
+> `feat` or `fix` commits and skip release generation. Ordinary feature PRs
+> targeting `dev` may continue using the repository's standard squash-merge policy.
+
 ## Pull Request Guidelines
 
 - **PR titles** must follow Conventional Commits (validated by CI)

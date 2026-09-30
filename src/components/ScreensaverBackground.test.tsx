@@ -9,7 +9,7 @@ vi.mock('@/hooks/useStoredImage', () => ({ useStoredImage: vi.fn() }));
 describe('ScreensaverBackground', () => {
   beforeEach(() => {
     useSettings.setState(defaultSettings);
-    vi.mocked(useStoredImage).mockReturnValue({ url: null, error: null });
+    vi.mocked(useStoredImage).mockReturnValue({ url: null });
   });
 
   it('renders the configured solid color', () => {
@@ -34,7 +34,7 @@ describe('ScreensaverBackground', () => {
 
   it('renders a resolved stored image above the color or gradient choice', () => {
     useSettings.setState({ backgroundImageId: 'background-1', gradientBackground: true });
-    vi.mocked(useStoredImage).mockReturnValue({ url: 'blob:background-1', error: null });
+    vi.mocked(useStoredImage).mockReturnValue({ url: 'blob:background-1' });
     const { container } = render(<ScreensaverBackground />);
 
     expect(useStoredImage).toHaveBeenCalledWith('background-1');
@@ -43,5 +43,22 @@ describe('ScreensaverBackground', () => {
       backgroundPosition: 'center',
       backgroundSize: 'cover',
     });
+  });
+
+  it('applies negative 24px inset when antiBurnIn is active and normal inset-0 when disabled', () => {
+    useSettings.setState({ antiBurnIn: true });
+    const { container, rerender } = render(<ScreensaverBackground />);
+    expect(container.firstChild).toHaveClass('-inset-6');
+
+    useSettings.setState({ antiBurnIn: false });
+    rerender(<ScreensaverBackground />);
+    expect(container.firstChild).toHaveClass('inset-0');
+    expect(container.firstChild).not.toHaveClass('-inset-6');
+  });
+
+  it('forwards ref to the background element', () => {
+    const ref = { current: null };
+    render(<ScreensaverBackground ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });
 });

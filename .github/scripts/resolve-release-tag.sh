@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-stable_semver_tags() {
-  git tag --list | LC_ALL=C awk '/^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/'
+release_semver_tags() {
+  git tag --list | LC_ALL=C awk '/^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-dev\.(0|[1-9][0-9]*))?$/'
 }
 
 if [[ $# -lt 2 ]]; then
@@ -20,7 +20,7 @@ case "$mode" in
       exit 2
     fi
 
-    stable_semver_tags | LC_ALL=C sort -u > "$snapshot_file"
+    release_semver_tags | LC_ALL=C sort -u > "$snapshot_file"
     ;;
   resolve)
     if [[ $# -ne 3 ]]; then
@@ -35,7 +35,7 @@ case "$mode" in
     github_output="$3"
     current_tags="$(mktemp)"
     trap 'rm -f "$current_tags"' EXIT
-    stable_semver_tags | LC_ALL=C sort -u > "$current_tags"
+    release_semver_tags | LC_ALL=C sort -u > "$current_tags"
     new_tags_output="$(comm -13 "$snapshot_file" "$current_tags")"
     new_tags=()
     if [[ -n "$new_tags_output" ]]; then
@@ -51,7 +51,7 @@ case "$mode" in
         echo "version=${new_tags[0]#v}" >> "$github_output"
         ;;
       *)
-        echo "Multiple new stable release tags detected: ${new_tags[*]}" >&2
+        echo "Multiple new release tags detected: ${new_tags[*]}" >&2
         exit 1
         ;;
     esac

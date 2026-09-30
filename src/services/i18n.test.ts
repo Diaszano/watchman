@@ -22,12 +22,18 @@ describe('i18n', () => {
     ['en', 'settings.theme.light', 'Light'],
     ['en', 'settings.clear', 'Clear'],
     ['en', 'logo.uploadPrompt', 'Upload a logo in Settings'],
+    ['en', 'image.invalid', 'Invalid image format. Please select a valid image.'],
+    ['en', 'image.tooLarge', 'Image size exceeds the 5MB limit.'],
+    ['en', 'image.dimensions', 'Image dimensions exceed the 8192px or 16.7MP limit.'],
     ['pt', 'settings.playlistMode.sequential', 'Sequencial'],
     ['pt', 'settings.playlistMode.random', 'Aleatório'],
     ['pt', 'settings.theme.dark', 'Escuro'],
     ['pt', 'settings.theme.light', 'Claro'],
     ['pt', 'settings.clear', 'Limpar'],
     ['pt', 'logo.uploadPrompt', 'Envie um logo nas Configurações'],
+    ['pt', 'image.invalid', 'Formato de imagem inválido. Selecione uma imagem válida.'],
+    ['pt', 'image.tooLarge', 'O tamanho da imagem excede o limite de 5MB.'],
+    ['pt', 'image.dimensions', 'As dimensões da imagem excedem o limite de 8192px ou 16.7MP.'],
   ];
 
   it.each(newKeys)('translates %s %s to %s', (lang, key, expected) => {
@@ -61,6 +67,7 @@ describe('i18n', () => {
       'settings.tab.playlist',
       'settings.tab.general',
       'settings.antiBurnIn.desc',
+      'settings.brightness.desc',
       'settings.trueBlack',
     ]) {
       expect(translate('en', key)).not.toBe(key);

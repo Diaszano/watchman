@@ -1,6 +1,6 @@
 import type { Animation, AnimationFrame } from '@/types';
 import { hueShift } from '@/utils/color';
-import { densityCount, rand } from '@/utils/math';
+import { rand } from '@/utils/math';
 
 interface Node {
   x: number;
@@ -22,10 +22,10 @@ export const createNeon = (): Animation => {
   });
 
   return {
-    draw({ ctx, width, height, dt, time, settings, renderDensity }: AnimationFrame) {
+    draw({ ctx, width, height, dt, time, settings }: AnimationFrame) {
       w = width;
       h = height;
-      const count = densityCount(settings.count / 25, 4, renderDensity);
+      const count = Math.max(4, Math.round(settings.count / 25));
       while (nodes.length < count) nodes.push(spawn());
       if (nodes.length > count) nodes.length = count;
 
@@ -39,14 +39,13 @@ export const createNeon = (): Animation => {
 
       ctx.lineCap = 'round';
       ctx.lineWidth = Math.max(2, settings.size / 12);
-      const shadowBlur = renderDensity <= 0.5 ? 0 : 24;
-      ctx.shadowBlur = shadowBlur;
+      ctx.shadowBlur = 24;
       for (let i = 0; i < nodes.length; i++) {
         const a = nodes[i]!;
         const b = nodes[(i + 1) % nodes.length]!;
         const color = hueShift((time * 40 + i * 40) % 360);
         ctx.strokeStyle = color;
-        if (shadowBlur > 0) ctx.shadowColor = color;
+        ctx.shadowColor = color;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
