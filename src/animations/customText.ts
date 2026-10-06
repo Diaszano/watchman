@@ -85,7 +85,7 @@ export const createCustomText = (): Animation => {
       }
 
       ctx.fillStyle = settings.color;
-      ctx.fillText(text, x, y);
+      ctx.fillText(text, Math.round(x), Math.round(y));
     },
   };
 };
