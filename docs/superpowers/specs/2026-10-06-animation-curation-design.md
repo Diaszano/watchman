@@ -1,6 +1,6 @@
 # Animation curation and color modes
 
-**Status:** Draft for user review  
+**Status:** Approved
 **Date:** 2026-10-06
 
 ## Goal
