@@ -77,7 +77,7 @@ export const useAnimationLoop = ({
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const applyStyles = (s: Settings) => {
-      const nextOpacity = String(s.opacity);
+      const nextOpacity = String(s.animationId === 'solid' ? 1 : s.opacity);
       if (nextOpacity !== lastOpacity) {
         canvas.style.opacity = nextOpacity;
         lastOpacity = nextOpacity;
@@ -95,16 +95,22 @@ export const useAnimationLoop = ({
 
       applyStyles(s);
 
+      if (s.animationId === 'solid' || s.animationId === 'colorCycle') {
+        offX = offY = targetX = targetY = driftTimer = 0;
+      }
+
       const bg = backgroundRefRef.current?.current;
+      const snappedOffX = Math.round(offX);
+      const snappedOffY = Math.round(offY);
       if (bg) {
         if (s.antiBurnIn) {
-          bg.style.transform = `translate(${offX}px, ${offY}px)`;
+          bg.style.transform = `translate(${snappedOffX}px, ${snappedOffY}px)`;
         } else if (bg.style.transform) {
           bg.style.transform = '';
         }
       }
 
-      ctx.setTransform(dpr, 0, 0, dpr, offX * dpr, offY * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, snappedOffX * dpr, snappedOffY * dpr);
       // Clear a margin larger than the viewport so drift never exposes edges.
       ctx.clearRect(-30, -30, cssW + 60, cssH + 60);
       instance.draw({
@@ -135,11 +141,12 @@ export const useAnimationLoop = ({
       if (s.fpsLimit > 0) {
         accum += callbackElapsed;
         const interval = 1 / s.fpsLimit;
-        if (accum < interval) return;
+        if (accum < interval - 0.001) return;
         accum = accum % interval;
       }
 
       const dt = Math.min(Math.max(0, now - lastRenderTime) / 1000, 0.1);
+
       lastRenderTime = now;
       time += dt;
 
@@ -164,7 +171,7 @@ export const useAnimationLoop = ({
       }
 
       // Anti burn-in: slow global drift so nothing sits still.
-      if (s.antiBurnIn) {
+      if (s.antiBurnIn && s.animationId !== 'solid' && s.animationId !== 'colorCycle') {
         driftTimer += dt;
         if (driftTimer > 5) {
           driftTimer = 0;
@@ -175,6 +182,7 @@ export const useAnimationLoop = ({
         offY += (targetY - offY) * dt * 0.5;
       } else {
         offX = offY = 0;
+        targetX = targetY = 0;
       }
 
       drawFrame(dt);
@@ -244,6 +252,8 @@ export const useAnimationLoop = ({
         if (
           state.size !== prevState.size ||
           state.color !== prevState.color ||
+          state.colorPaletteId !== prevState.colorPaletteId ||
+          state.customColorPalette !== prevState.customColorPalette ||
           state.opacity !== prevState.opacity ||
           state.customText !== prevState.customText ||
           state.count !== prevState.count ||

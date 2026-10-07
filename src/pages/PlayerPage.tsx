@@ -68,7 +68,7 @@ export const PlayerPage = () => {
       setSettingsOpen(false);
       return;
     }
-    // Se não estiver em fullscreen nativo (o browser já trata fullscreen), volta para a Home
+    // Return to Home if not in browser native fullscreen
     if (!document.fullscreenElement) {
       window.location.hash = '';
     }
@@ -142,14 +142,15 @@ export const PlayerPage = () => {
 
       {paused && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-          <span className="rounded-2xl bg-black/50 px-8 py-4 text-2xl font-semibold text-white/90 backdrop-blur">
-            ⏸ {t('player.paused')}
+          <span className="rounded-3xl border border-white/10 bg-black/60 px-8 py-4 text-xl font-semibold text-white/95 backdrop-blur-2xl shadow-2xl flex items-center gap-3">
+            <span className="text-xl">⏸</span>
+            <span>{t('player.paused')}</span>
           </span>
         </div>
       )}
 
       {!wake.supported && controlsShown && (
-        <div className="pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-lg bg-amber-500/20 px-3 py-1.5 text-center text-xs text-amber-200 backdrop-blur">
+        <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-amber-500/30 bg-amber-950/40 px-3.5 py-1.5 text-center text-xs font-medium text-amber-200 backdrop-blur-xl shadow-lg">
           {t('settings.wakeLockUnsupported')}
         </div>
       )}
@@ -169,7 +170,7 @@ export const PlayerPage = () => {
             resetIdleTimer();
           }
         }}
-        className={`absolute right-3 top-3 z-30 flex gap-2 text-white transition-opacity duration-300 ${
+        className={`absolute right-4 top-4 z-30 flex items-center gap-1.5 p-1.5 rounded-2xl bg-black/50 border border-white/10 text-white backdrop-blur-xl shadow-2xl transition-opacity duration-300 ${
           controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
@@ -213,11 +214,12 @@ export const PlayerPage = () => {
 
       <div
         aria-live="polite"
-        className={`absolute bottom-3 left-3 z-30 rounded-md bg-black/50 px-2 py-1 text-xs text-white/90 backdrop-blur transition-opacity duration-300 ${
+        className={`absolute bottom-4 left-4 z-30 flex items-center gap-2 rounded-xl border border-white/10 bg-black/60 px-3.5 py-1.5 text-xs font-medium text-white/90 backdrop-blur-xl shadow-lg transition-opacity duration-300 ${
           controlsShown ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
-        {t(`anim.${animationId}`)}
+        <span className="w-2 h-2 rounded-full bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]" />
+        <span>{t(`anim.${animationId}`)}</span>
       </div>
     </div>
   );
