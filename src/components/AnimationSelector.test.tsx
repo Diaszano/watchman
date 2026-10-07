@@ -6,9 +6,9 @@ import { AnimationSelector } from './AnimationSelector';
 describe('AnimationSelector', () => {
   beforeEach(() => useSettings.setState(defaultSettings));
 
-  it('shows ten choices and selects Matrix with a click', () => {
+  it('shows twelve choices and selects Matrix with a click', () => {
     render(<AnimationSelector />);
-    expect(screen.getAllByRole('button')).toHaveLength(10);
+    expect(screen.getAllByRole('button')).toHaveLength(12);
     fireEvent.click(screen.getByRole('button', { name: /Matrix Rain/ }));
     expect(useSettings.getState().animationId).toBe('matrix');
     expect(screen.getByRole('button', { name: /Matrix Rain/ })).toHaveAttribute(

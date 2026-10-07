@@ -1,21 +1,29 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist, type PersistStorage } from 'zustand/middleware';
-import type { Lang, PlaylistMode, Settings, Theme } from '@/types';
+import type {
+  ColorPaletteId,
+  ColorPaletteStops,
+  Lang,
+  PlaylistMode,
+  Settings,
+  Theme,
+} from '@/types';
 import { detectLanguage } from '@/services/i18n';
 import * as animationsModule from '@/animations';
+import { COLOR_PALETTES, DEFAULT_COLOR_PALETTE } from '@/animations/colorPalettes';
 
 export const defaultSettings: Settings = {
   animationId: 'dvd',
   speed: 1,
   count: 200,
   size: 40,
-  color: '#38bdf8',
-  background: '#0a0a0a',
+  color: '#ffffff',
+  background: '#000000',
   gradientBackground: false,
   opacity: 1,
   brightness: 1,
   fpsLimit: 60,
-  theme: 'dark',
+  theme: 'system',
   lang: detectLanguage(),
   showFps: false,
   antiBurnIn: true,
@@ -25,6 +33,8 @@ export const defaultSettings: Settings = {
   customText: 'Watchman',
   backgroundImageId: null,
   customImageId: null,
+  colorPaletteId: 'watchman',
+  customColorPalette: [...DEFAULT_COLOR_PALETTE],
 };
 
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
@@ -125,7 +135,9 @@ export function sanitizeSettings(value: unknown): Settings {
       : defaultSettings.fpsLimit;
 
   const theme: Theme =
-    raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : defaultSettings.theme;
+    raw.theme === 'light' || raw.theme === 'dark' || raw.theme === 'system'
+      ? raw.theme
+      : defaultSettings.theme;
 
   const lang: Lang = raw.lang === 'en' || raw.lang === 'pt' ? raw.lang : defaultSettings.lang;
 
@@ -170,6 +182,17 @@ export function sanitizeSettings(value: unknown): Settings {
       ? raw.customImageId
       : null;
 
+  const paletteIds = [...Object.keys(COLOR_PALETTES), 'custom'] as ColorPaletteId[];
+  const colorPaletteId = paletteIds.includes(raw.colorPaletteId as ColorPaletteId)
+    ? (raw.colorPaletteId as ColorPaletteId)
+    : defaultSettings.colorPaletteId;
+  const customColorPalette: ColorPaletteStops =
+    Array.isArray(raw.customColorPalette) &&
+    raw.customColorPalette.length === 4 &&
+    raw.customColorPalette.every(isValidHex)
+      ? (raw.customColorPalette.map((color) => color.toLowerCase()) as ColorPaletteStops)
+      : [...DEFAULT_COLOR_PALETTE];
+
   return {
     animationId,
     speed,
@@ -191,6 +214,8 @@ export function sanitizeSettings(value: unknown): Settings {
     customText,
     backgroundImageId,
     customImageId,
+    colorPaletteId,
+    customColorPalette,
   };
 }
 

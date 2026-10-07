@@ -177,9 +177,9 @@ describe('SettingsPanel', () => {
     render(<SettingsPanel open onClose={() => undefined} />);
     fireEvent.click(screen.getByRole('tab', { name: 'General' }));
 
-    const options = within(screen.getByDisplayValue('Dark')).getAllByRole('option');
+    const options = within(screen.getByRole('combobox', { name: 'Theme' })).getAllByRole('option');
 
-    expect(options.map((option) => option.textContent)).toEqual(['Dark', 'Light']);
+    expect(options.map((option) => option.textContent)).toEqual(['Dark', 'Light', 'System']);
   });
 
   it('renders a theme-aware light surface when not used as an overlay', () => {

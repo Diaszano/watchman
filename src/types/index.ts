@@ -1,6 +1,8 @@
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'system';
 export type Lang = 'en' | 'pt';
 export type PlaylistMode = 'sequential' | 'random';
+export type ColorPaletteId = 'watchman' | 'aurora' | 'sunset' | 'ocean' | 'custom';
+export type ColorPaletteStops = [string, string, string, string];
 
 /** User-tunable settings shared by all animations. Persisted to LocalStorage. */
 export interface Settings {
@@ -24,6 +26,8 @@ export interface Settings {
   customText: string;
   backgroundImageId: string | null;
   customImageId: string | null;
+  colorPaletteId: ColorPaletteId;
+  customColorPalette: ColorPaletteStops;
 }
 
 /** Per-frame context handed to every animation. Canvas-native, no React. */
@@ -45,7 +49,8 @@ export interface Animation {
   draw(frame: AnimationFrame): void;
 }
 
-export type PerModeControl = 'speed' | 'count' | 'size' | 'opacity' | 'brightness' | 'color';
+export type PerModeControl =
+  'speed' | 'count' | 'size' | 'opacity' | 'brightness' | 'color' | 'palette';
 
 export interface AnimationMeta {
   id: string;
