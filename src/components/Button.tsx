@@ -1,22 +1,41 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type Variant = 'primary' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   children: ReactNode;
 }
 
-const styles: Record<Variant, string> = {
+const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-sky-700 text-white hover:bg-sky-600 active:bg-sky-800 shadow-lg shadow-sky-900/15 dark:bg-sky-300 dark:text-slate-950 dark:hover:bg-sky-200',
+    'bg-[var(--accent)] text-[var(--accent-text)] hover:brightness-105 active:brightness-95 shadow-sm font-semibold border border-transparent',
+  secondary:
+    'bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-hover)] shadow-sm font-medium',
   ghost:
-    'bg-black/5 text-neutral-900 hover:bg-black/10 backdrop-blur border border-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:border-white/10',
+    'bg-[var(--surface-hover)]/70 text-[var(--text-primary)] border border-[var(--border)]/70 hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)] font-medium backdrop-blur-sm',
+  destructive:
+    'bg-[var(--danger)] text-white hover:brightness-105 active:brightness-95 shadow-sm font-semibold border border-transparent',
 };
 
-export const Button = ({ variant = 'ghost', className = '', children, ...rest }: Props) => (
+const sizeStyles: Record<ButtonSize, string> = {
+  sm: 'px-3 py-1.5 text-xs rounded-lg gap-1.5 min-h-[32px]',
+  md: 'px-4 py-2 text-xs sm:text-[13px] rounded-xl gap-2 min-h-[40px]',
+  lg: 'px-5 py-2.5 text-sm rounded-xl gap-2.5 min-h-[46px]',
+};
+
+export const Button = ({
+  variant = 'ghost',
+  size = 'md',
+  className = '',
+  children,
+  ...rest
+}: Props) => (
   <button
-    className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 disabled:opacity-50 ${styles[variant]} ${className}`}
+    type={rest.type ?? 'button'}
+    className={`inline-flex items-center justify-center select-none transition-all duration-150 cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-app)] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     {...rest}
   >
     {children}
