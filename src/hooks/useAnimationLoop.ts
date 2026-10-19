@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { getAnimation, getNextInPlaylist } from '@/animations';
 import type { Animation, Settings } from '@/types';
@@ -42,7 +42,16 @@ export const useAnimationLoop = ({
   backgroundRefRef.current = backgroundRef;
 
   const controllerRef = useRef<LoopController | null>(null);
-  const canvas = canvasRef.current;
+
+  const [canvasNode, setCanvasNode] = useState<HTMLCanvasElement | null>(() => canvasRef.current);
+
+  useEffect(() => {
+    if (!canvasNode && canvasRef.current) {
+      setCanvasNode(canvasRef.current);
+    }
+  });
+
+  const canvas = canvasNode ?? canvasRef.current;
 
   useEffect(() => {
     if (!canvas) return;

@@ -70,7 +70,10 @@ export const AnimationSelector = ({ searchQuery = '', category = 'all', onClearS
           category={t(`home.category.${previews[a.id]?.[1] ?? 'effects'}`)}
           icon={previews[a.id]?.[0] ?? '✦'}
           selected={animationId === a.id}
-          onSelect={() => set('animationId', a.id)}
+          onSelect={() => {
+            set('animationId', a.id);
+            window.location.hash = '/play';
+          }}
         />
       ))}
     </fieldset>

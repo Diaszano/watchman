@@ -4,13 +4,19 @@ import { CloseIcon } from './icons';
 import { IconButton } from './IconButton';
 
 describe('IconButton', () => {
-  it('has a square target and accessible name', () => {
+  it('has an accessible name and activates on click', () => {
     const onClick = vi.fn();
     render(<IconButton label="Close" icon={<CloseIcon />} onClick={onClick} />);
     const button = screen.getByRole('button', { name: 'Close' });
     expect(button).toHaveAttribute('title', 'Close');
-    expect(button).toHaveClass('h-10', 'w-10');
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('provides at least 44px touch targets', () => {
+    render(<IconButton label="Close" icon={<CloseIcon />} />);
+    const button = screen.getByRole('button', { name: 'Close' });
+    expect(button.className).toContain('h-11');
+    expect(button.className).toContain('w-11');
   });
 });

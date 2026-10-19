@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
 import { animations, getAnimation } from '@/animations';
@@ -194,6 +194,16 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         </div>
         <IconButton onClick={onClose} label={t('shortcuts.close')} icon={<CloseIcon />} />
       </div>
+
+      {isImageProcessing && (
+        <p
+          role="status"
+          aria-live="polite"
+          className="px-[22px] pt-3 text-xs text-[var(--text-secondary)]"
+        >
+          {t('settings.imageProcessing')}
+        </p>
+      )}
 
       <div role="tablist" aria-label={t('settings.title')} className="settings-tabs">
         {tabs.map((tab, index) => (
@@ -500,31 +510,38 @@ const FileField = ({
   disabled?: boolean;
   onFile: (f: File) => void;
   onClear?: () => void;
-}) => (
-  <label className="setting-upload">
-    <span className="setting-label">{label}</span>
-    <span className="upload-actions">
-      {onClear && (
-        <button
-          type="button"
-          onClick={onClear}
+}) => {
+  const inputId = useId();
+  return (
+    <div className="setting-upload">
+      <label htmlFor={inputId} className="setting-label">
+        {label}
+      </label>
+      <span className="upload-actions">
+        {onClear && (
+          <button
+            type="button"
+            aria-label={`${clearLabel ?? 'clear'} ${label}`}
+            onClick={onClear}
+            disabled={disabled}
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-50 transition-colors"
+          >
+            {clearLabel ?? 'clear'}
+          </button>
+        )}
+        <input
+          id={inputId}
+          type="file"
+          accept="image/*"
           disabled={disabled}
-          className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-50 transition-colors"
-        >
-          {clearLabel ?? 'clear'}
-        </button>
-      )}
-      <input
-        type="file"
-        accept="image/*"
-        disabled={disabled}
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          e.target.value = '';
-          if (f) onFile(f);
-        }}
-        className="setting-file"
-      />
-    </span>
-  </label>
-);
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) onFile(f);
+          }}
+          className="setting-file"
+        />
+      </span>
+    </div>
+  );
+};
