@@ -8,4 +8,11 @@ describe('Button accessibility', () => {
     const btn = screen.getByRole('button', { name: /click me/i });
     expect(btn.className).toContain('focus-visible:ring-2');
   });
+
+  it('provides at least 44px touch targets on small buttons', () => {
+    render(<Button size="sm">Small action</Button>);
+    const btn = screen.getByRole('button', { name: /small action/i });
+    expect(btn.className).toContain('min-h-[44px]');
+    expect(btn.className).toContain('min-w-[44px]');
+  });
 });

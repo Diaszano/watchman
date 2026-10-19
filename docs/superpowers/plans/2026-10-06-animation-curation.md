@@ -40,10 +40,10 @@
 - Consumes: current `Animation.draw(frame: AnimationFrame)` contract and each registry entry's `controls` list.
 - Produces: the same ten modes with any verified quality corrections and accurate control declarations.
 
-- [ ] Inspect each mode for clipping, resize handling, visual balance, and whether its declared settings match its actual behavior.
-- [ ] Fix only confirmed defects; keep intentional random-color modes and recognizable motion intact.
-- [ ] Run `npm run build`.
-- [ ] Preview all ten modes at a wide viewport and a phone-sized portrait viewport; record no clipping or dead controls.
+- [x] Inspect each mode for clipping, resize handling, visual balance, and whether its declared settings match its actual behavior.
+- [x] Fix only confirmed defects; keep intentional random-color modes and recognizable motion intact.
+- [x] Run `npm run build`.
+- [x] Preview all ten modes at a wide viewport and a phone-sized portrait viewport; record no clipping or dead controls.
 
 ### Task 2: Add validated palette preferences
 
@@ -58,10 +58,10 @@
 - Export `COLOR_PALETTES` for the four built-in IDs and `DEFAULT_COLOR_PALETTE` from `colorPalettes.ts`.
 - Use these stop orders: Watchman `#7AA2F7, #BB9AF7, #7DCFFF, #9ECE6A`; Aurora `#80D6C4, #79C7E3, #8D9CF7, #C7A0F6`; Sunset `#ECA580, #E0AF68, #E58BA6, #B29BE7`; Ocean `#70C1CE, #4E9FA3, #6996CB, #8BAFCB`.
 
-- [ ] Define the four built-in palettes and set Watchman as the default palette ID and custom-color fallback.
-- [ ] Validate stored IDs against the five allowed values and accept custom colors only when exactly four valid hex colors are present; otherwise use safe defaults.
-- [ ] Preserve compatibility with settings saved before these fields existed.
-- [ ] Run `npm run build` and manually confirm absent and malformed values resolve to the Watchman defaults.
+- [x] Define the four built-in palettes and set Watchman as the default palette ID and custom-color fallback.
+- [x] Validate stored IDs against the five allowed values and accept custom colors only when exactly four valid hex colors are present; otherwise use safe defaults.
+- [x] Preserve compatibility with settings saved before these fields existed.
+- [x] Run `npm run build` and manually confirm absent and malformed values resolve to the Watchman defaults.
 
 ### Task 3: Implement and register both full-screen scenes
 
@@ -74,11 +74,11 @@
 - `createColorCycle(): Animation` blends the four resolved palette stops using `settings.speed` and frame `time`.
 - Registry IDs are `solid` and `colorCycle`; solid exposes color and brightness controls, color cycle exposes palette and speed controls.
 
-- [ ] Implement solid fill without allocating per-frame state; keep it fully opaque regardless of the shared opacity setting.
-- [ ] Implement smoothstep RGB interpolation between consecutive stops, with 20 seconds per stop at speed 1 and a continuous wrap after 80 seconds.
-- [ ] Skip positional anti-burn-in drift for both uniform full-screen scenes so it cannot reveal edges.
-- [ ] Register both scenes without changing the animation interface.
-- [ ] Run `npm run build`; visually confirm no edge bands when switching between these scenes and existing scenes.
+- [x] Implement solid fill without allocating per-frame state; keep it fully opaque regardless of the shared opacity setting.
+- [x] Implement smoothstep RGB interpolation between consecutive stops, with 20 seconds per stop at speed 1 and a continuous wrap after 80 seconds.
+- [x] Skip positional anti-burn-in drift for both uniform full-screen scenes so it cannot reveal edges.
+- [x] Register both scenes without changing the animation interface.
+- [x] Run `npm run build`; visually confirm no edge bands when switching between these scenes and existing scenes.
 
 ### Task 4: Add localized settings controls and live updates
 
@@ -90,10 +90,10 @@
 - Color Cycle settings show a built-in palette selector and four native color inputs when `custom` is selected.
 - Solid Color settings show the existing single-color input and a note that this scene remains static.
 
-- [ ] Connect built-in palette selection and custom color edits to the persisted settings fields from Task 2.
-- [ ] Add localized English and Portuguese text for both mode names, all palette names, each custom color input, and the solid-mode note.
-- [ ] Include palette field changes in the paused-player invalidation check so edits redraw immediately.
-- [ ] Run `npm run build`; verify palette changes are live while playing and paused, and survive a reload.
+- [x] Connect built-in palette selection and custom color edits to the persisted settings fields from Task 2.
+- [x] Add localized English and Portuguese text for both mode names, all palette names, each custom color input, and the solid-mode note.
+- [x] Include palette field changes in the paused-player invalidation check so edits redraw immediately.
+- [x] Run `npm run build`; verify palette changes are live while playing and paused, and survive a reload.
 
 ### Task 5: Curate collection previews and verify the full flow
 
@@ -105,7 +105,7 @@
 - Add both new IDs to preview metadata; classify `solid` as `classic` and `colorCycle` as `effects`.
 - Search, category filters, and playlist validation use the shared animation registry.
 
-- [ ] Give each new mode a preview that communicates its actual solid or color-cycling output.
-- [ ] Check all twelve modes by search, category filter, selection, settings, and playlist after addition.
-- [ ] Capture and inspect desktop, small-screen, and portrait previews; confirm the color scenes cover every edge and the controls remain usable.
-- [ ] Run `npm run lint`, `npm run build`, and `git diff --check`.
+- [x] Give each new mode a preview that communicates its actual solid or color-cycling output.
+- [x] Check all twelve modes by search, category filter, selection, settings, and playlist after addition.
+- [x] Capture and inspect desktop, small-screen, and portrait previews; confirm the color scenes cover every edge and the controls remain usable.
+- [x] Run `npm run lint`, `npm run build`, and `git diff --check`.

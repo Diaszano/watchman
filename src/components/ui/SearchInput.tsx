@@ -3,6 +3,8 @@ import { useEffect, useRef, type ChangeEvent } from 'react';
 interface Props {
   value: string;
   onChange: (value: string) => void;
+  label: string;
+  clearLabel: string;
   placeholder?: string;
   className?: string;
   onClear?: () => void;
@@ -11,6 +13,8 @@ interface Props {
 export const SearchInput = ({
   value,
   onChange,
+  label,
+  clearLabel,
   placeholder = 'Search...',
   className = '',
   onClear,
@@ -53,10 +57,11 @@ export const SearchInput = ({
       <input
         ref={inputRef}
         type="search"
+        aria-label={label}
         value={value}
         onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-9 pl-9 pr-14 text-xs sm:text-[13px] rounded-lg bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+        className="w-full h-11 pl-9 pr-14 text-xs sm:text-[13px] rounded-lg bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
       />
       <div className="absolute right-2.5 flex items-center gap-1">
         {value ? (
@@ -67,9 +72,9 @@ export const SearchInput = ({
               onClear?.();
               inputRef.current?.focus();
             }}
-            className="p-1 rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-            title="Clear search"
-            aria-label="Clear search"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            title={clearLabel}
+            aria-label={clearLabel}
           >
             <svg
               viewBox="0 0 24 24"
