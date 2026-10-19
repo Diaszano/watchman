@@ -20,4 +20,19 @@ describe('AnimationPreviewCard', () => {
     fireEvent.click(card);
     expect(onSelect).toHaveBeenCalledOnce();
   });
+
+  it('uses unified CSS classes without conflicting height classes', () => {
+    render(
+      <AnimationPreviewCard
+        title="DVD"
+        category="Classic"
+        icon="📀"
+        selected={false}
+        onSelect={() => {}}
+      />,
+    );
+    const card = screen.getByRole('button', { name: /DVD/ });
+    expect(card.className).toContain('animation-card');
+    expect(card.className).not.toContain('h-28');
+  });
 });

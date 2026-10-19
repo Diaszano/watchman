@@ -423,7 +423,7 @@ body {
   --border: rgba(187, 154, 247, 0.12);
   --text-primary: #e2e6fa;
   --text-secondary: #a9b1d6;
-  --text-muted: #6b7296;
+  --text-muted: #9299b8;
   --accent: #bb9af7;
   --accent-text: #0f101d;
   --line: rgba(187, 154, 247, 0.12);
@@ -486,7 +486,7 @@ body {
 }
 
 .settings-tab {
-  min-height: 36px;
+  min-height: 44px;
   border-radius: var(--radius-md);
   padding: 6px 4px;
   font-size: 11px;
@@ -590,14 +590,17 @@ body {
   appearance: none;
   -webkit-appearance: none;
   width: 100%;
-  height: 5px;
-  margin: 10px 0;
+  height: 44px;
+  margin: 0;
   border-radius: var(--radius-full);
   background: linear-gradient(
     to right,
     var(--accent) var(--range-progress),
     var(--border) var(--range-progress)
   );
+  background-size: 100% 5px;
+  background-position: center;
+  background-repeat: no-repeat;
   cursor: pointer;
   outline: none;
 }
@@ -672,7 +675,7 @@ body {
 /* Form inputs & Selects */
 .setting-select,
 .setting-text-input {
-  min-height: 38px;
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 8px 12px;
@@ -710,8 +713,8 @@ input[type='search']::-webkit-search-results-decoration {
 }
 
 .setting-swatch {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   padding: 2px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -745,9 +748,15 @@ input[type='search']::-webkit-search-results-decoration {
   gap: 10px;
 }
 
+.upload-actions button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 .setting-file {
   width: 100%;
   min-width: 0;
+  min-height: 44px;
   color: var(--text-muted);
   font-size: 12px;
   border: 1px dashed var(--border);
@@ -910,11 +919,11 @@ input[type='search']::-webkit-search-results-decoration {
   .library-controls > :first-child {
     width: 100%;
   }
-  .library-controls [role='tablist'] {
+  .library-controls fieldset {
     max-width: 100%;
     justify-content: space-between;
   }
-  .library-controls [role='tab'] {
+  .library-controls fieldset > button {
     padding-inline: 8px;
   }
 }
