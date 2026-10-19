@@ -55,6 +55,25 @@ describe('SettingsPanel', () => {
     expect(remove).not.toHaveBeenCalled();
   });
 
+  it('announces image processing until the save finishes', async () => {
+    let finishSave: (id: string) => void = () => {};
+    vi.spyOn(imageStorage, 'save').mockImplementation(
+      () =>
+        new Promise<string>((resolve) => {
+          finishSave = resolve;
+        }),
+    );
+    vi.spyOn(imageStorage, 'remove').mockResolvedValue();
+
+    render(<SettingsPanel open onClose={() => undefined} />);
+    uploadBackground(new File(['image'], 'background.png', { type: 'image/png' }));
+
+    expect(screen.getByRole('status')).toHaveTextContent('Processing image');
+    expect(screen.getByRole('button', { name: 'Clear Background' })).toBeDisabled();
+    await act(async () => finishSave('new-background'));
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+  });
+
   it('translates known image errors in EN and PT, and blocks clear/reset while upload is pending', async () => {
     // Test EN known error
     let rejectSave: (err: Error) => void = () => {};
@@ -70,7 +89,7 @@ describe('SettingsPanel', () => {
     uploadBackground(new File(['img'], 'test.png', { type: 'image/png' }));
 
     // While save is pending, clear button should be disabled or blocked
-    const clearButton = screen.queryByRole('button', { name: 'Clear' });
+    const clearButton = screen.queryByRole('button', { name: 'Clear Background' });
     if (clearButton) {
       fireEvent.click(clearButton);
       expect(removeSpy).not.toHaveBeenCalled();
@@ -144,11 +163,11 @@ describe('SettingsPanel', () => {
       .mockResolvedValueOnce();
 
     render(<SettingsPanel open onClose={() => undefined} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Custom logo' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Custom logo' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not save image');
 
     fireEvent.click(screen.getByRole('tab', { name: 'OLED & Display' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Background' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Background' }));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
   });
 
