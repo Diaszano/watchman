@@ -60,9 +60,12 @@ export const HomePage = () => {
                 <SearchInput
                   value={searchQuery}
                   onChange={setSearchQuery}
+                  label={t('home.search')}
+                  clearLabel={t('home.clearSearch')}
                   placeholder={t('home.search')}
                 />
                 <SegmentedControl<CategoryFilter>
+                  aria-label={t('home.animation')}
                   size="sm"
                   value={category}
                   options={[

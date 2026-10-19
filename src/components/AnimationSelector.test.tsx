@@ -15,5 +15,6 @@ describe('AnimationSelector', () => {
       'aria-pressed',
       'true',
     );
+    expect(window.location.hash).toBe('#/play');
   });
 });
