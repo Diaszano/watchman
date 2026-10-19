@@ -88,14 +88,14 @@ export const createDvd = (): Animation => {
       ctx.fillStyle = color;
       const r = Math.min(12, h / 3);
       ctx.beginPath();
-      ctx.roundRect(x, y, w, h, r);
+      ctx.roundRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h), r);
       ctx.fill();
 
       ctx.fillStyle = settings.background;
       ctx.font = `bold ${h * 0.5}px system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('DVD', x + w / 2, y + h / 2);
+      ctx.fillText('DVD', Math.round(x + w / 2), Math.round(y + h / 2));
     },
   };
 };

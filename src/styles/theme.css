@@ -1,0 +1,120 @@
+/* ==========================================================================
+   Watchman Design Tokens — macOS × Tokyo Night × Catppuccin Macchiato
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces & Backgrounds */
+  --bg-app: #f4f5fa;
+  --bg-sidebar: #ebedf5;
+  --bg-header: rgba(244, 245, 250, 0.82);
+  --surface: #ffffff;
+  --surface-hover: #f7f8fd;
+  --surface-active: #edf0f8;
+  --surface-elevated: #ffffff;
+  --surface-overlay: rgba(255, 255, 255, 0.88);
+  --panel: #ffffff;
+
+  /* Typography */
+  --text-primary: #181926;
+  --text-secondary: #4c4f69;
+  --text-muted: #656879;
+  --ink: #181926;
+  --muted: #4c4f69;
+
+  /* Borders & Dividers */
+  --border: rgba(24, 25, 38, 0.08);
+  --border-hover: rgba(24, 25, 38, 0.16);
+  --border-focus: #7c3aed;
+  --line: rgba(24, 25, 38, 0.08);
+
+  /* Accents (macOS Violet & Tokyo Night Day) */
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-subtle: rgba(124, 58, 237, 0.08);
+  --accent-text: #ffffff;
+  --accent-secondary: #2563eb;
+
+  /* Status Colors */
+  --success: #16a34a;
+  --success-subtle: rgba(22, 163, 74, 0.1);
+  --warning: #d97706;
+  --warning-subtle: rgba(217, 119, 6, 0.1);
+  --danger: #dc2626;
+  --danger-subtle: rgba(220, 38, 38, 0.1);
+  --info: #0284c7;
+  --info-subtle: rgba(2, 132, 199, 0.1);
+
+  /* Elevation & Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --shadow-sheet: -12px 0 40px rgba(0, 0, 0, 0.1);
+
+  /* Radii hierarchy */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  /* Surfaces & Backgrounds (Tokyo Night + Catppuccin Macchiato) */
+  --bg-app: #0e101a;
+  --bg-sidebar: #131522;
+  --bg-header: rgba(14, 16, 26, 0.82);
+  --surface: #181a2b;
+  --surface-hover: #20233a;
+  --surface-active: #272a46;
+  --surface-elevated: #1e2035;
+  --surface-overlay: rgba(26, 28, 46, 0.88);
+  --panel: #181a2b;
+
+  /* Typography */
+  --text-primary: #e2e6fa;
+  --text-secondary: #a9b1d6;
+  --text-muted: #9299b8;
+  --ink: #e2e6fa;
+  --muted: #a9b1d6;
+
+  /* Borders & Dividers */
+  --border: rgba(187, 154, 247, 0.09);
+  --border-hover: rgba(187, 154, 247, 0.18);
+  --border-focus: #bb9af7;
+  --line: rgba(187, 154, 247, 0.09);
+
+  /* Accents (Tokyo Night lavender / Catppuccin Macchiato mauve) */
+  --accent: #bb9af7;
+  --accent-hover: #caa9fc;
+  --accent-subtle: rgba(187, 154, 247, 0.12);
+  --accent-text: #0f101d;
+  --accent-secondary: #7aa2f7;
+
+  /* Status Colors */
+  --success: #9ece6a;
+  --success-subtle: rgba(158, 206, 106, 0.12);
+  --warning: #e0af68;
+  --warning-subtle: rgba(224, 175, 104, 0.12);
+  --danger: #f7768e;
+  --danger-subtle: rgba(247, 118, 142, 0.12);
+  --info: #7dcfff;
+  --info-subtle: rgba(125, 207, 255, 0.12);
+
+  /* Elevation & Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --shadow-sheet: -16px 0 60px rgba(0, 0, 0, 0.55);
+}

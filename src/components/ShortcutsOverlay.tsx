@@ -86,23 +86,38 @@ export const ShortcutsOverlay = ({ open, onClose }: Props) => {
         e.preventDefault();
         onClose();
       }}
-      className="fixed inset-0 m-auto h-fit w-80 max-w-[90vw] rounded-2xl border border-white/10 bg-neutral-900/90 p-6 text-white backdrop-blur-xl backdrop:bg-black/60 backdrop:backdrop-blur-sm"
+      className="fixed inset-0 m-auto h-fit w-96 max-w-[92vw] rounded-3xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-[var(--text-primary)] shadow-2xl backdrop-blur-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm"
     >
       <div className="relative">
-        <IconButton
-          onClick={onClose}
-          label={t('shortcuts.close')}
-          icon={<CloseIcon />}
-          className="absolute -right-2 -top-2 border-white/10 bg-white/10 text-white hover:bg-white/20"
-        />
-        <h2 id="shortcuts-dialog-title" className="mb-4 pr-6 text-lg font-semibold">
-          {t('shortcuts.title')}
-        </h2>
-        <ul className="flex flex-col gap-3">
+        <div className="flex items-center justify-between pb-3.5 mb-2 border-b border-[var(--border)]">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent-subtle)] text-[var(--accent)] text-sm font-semibold">
+              ⌘
+            </span>
+            <h2
+              id="shortcuts-dialog-title"
+              className="text-base font-semibold text-[var(--text-primary)]"
+            >
+              {t('shortcuts.title')}
+            </h2>
+          </div>
+          <IconButton
+            onClick={onClose}
+            label={t('shortcuts.close')}
+            icon={<CloseIcon />}
+            className="border-transparent bg-transparent hover:bg-[var(--surface-hover)] text-[var(--text-secondary)]"
+          />
+        </div>
+        <ul className="flex flex-col divide-y divide-[var(--border)]/50">
           {rows.map(([key, label]) => (
-            <li key={label} className="flex items-center justify-between gap-4 text-sm">
-              <span className="text-white/80">{label}</span>
-              <kbd className="rounded bg-white/10 px-2 py-0.5 font-mono text-xs">{key}</kbd>
+            <li
+              key={label}
+              className="flex items-center justify-between py-2.5 text-xs sm:text-[13px]"
+            >
+              <span className="text-[var(--text-secondary)] font-medium">{label}</span>
+              <kbd className="inline-flex items-center justify-center min-w-[28px] h-6 px-2 text-[11px] font-mono font-medium rounded-md bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-primary)] shadow-[0_1px_1px_rgba(0,0,0,0.1)]">
+                {key}
+              </kbd>
             </li>
           ))}
         </ul>

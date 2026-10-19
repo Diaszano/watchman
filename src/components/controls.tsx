@@ -17,7 +17,7 @@ export const Slider = (p: {
 }) => (
   <label className="setting-slider">
     <span className="slider-heading">
-      <span>{p.label}</span>
+      <span className="text-[var(--text-primary)] font-medium">{p.label}</span>
       <span className="setting-value" aria-hidden="true">
         {p.value}
       </span>
@@ -42,6 +42,7 @@ export const Toggle = (p: { label: string; value: boolean; onChange: (v: boolean
   <Row label={p.label}>
     <input
       type="checkbox"
+      aria-label={p.label}
       checked={p.value}
       onChange={(e) => p.onChange(e.target.checked)}
       className="setting-switch"
@@ -52,7 +53,9 @@ export const Toggle = (p: { label: string; value: boolean; onChange: (v: boolean
 export const ColorInput = (p: { label: string; value: string; onChange: (v: string) => void }) => (
   <Row label={p.label}>
     <span className="setting-color">
-      <span aria-hidden="true">{p.value.toUpperCase()}</span>
+      <span aria-hidden="true" className="font-mono text-xs text-[var(--text-secondary)]">
+        {p.value.toUpperCase()}
+      </span>
       <input
         aria-label={p.label}
         type="color"
@@ -71,16 +74,19 @@ export const Select = <T extends string>(p: {
   onChange: (v: T) => void;
 }) => (
   <Row label={p.label}>
-    <select
-      value={p.value}
-      onChange={(e) => p.onChange(e.target.value as T)}
-      className="setting-select"
-    >
-      {p.options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <div className="relative inline-flex items-center">
+      <select
+        value={p.value}
+        aria-label={p.label}
+        onChange={(e) => p.onChange(e.target.value as T)}
+        className="setting-select"
+      >
+        {p.options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
   </Row>
 );

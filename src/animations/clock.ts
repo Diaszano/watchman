@@ -101,7 +101,7 @@ export const createClock = (): Animation => {
       }
 
       ctx.fillStyle = settings.color;
-      ctx.fillText(label, x, y);
+      ctx.fillText(label, Math.round(x), Math.round(y));
     },
   };
 };

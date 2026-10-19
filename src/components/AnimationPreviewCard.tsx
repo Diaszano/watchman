@@ -21,11 +21,18 @@ export const AnimationPreviewCard = ({
     type="button"
     aria-pressed={selected}
     onClick={onSelect}
-    className={`animation-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${selected ? 'is-selected' : ''}`}
+    className={`animation-card group relative flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-app)] ${selected ? 'is-selected' : ''}`}
   >
-    <span aria-hidden="true" className={`animation-art preview-${previewId ?? 'dvd'}`}>
-      <span className="preview-symbol">{icon}</span>
-      <span className="selection-indicator">{selected ? '✓' : '+'}</span>
+    <span
+      aria-hidden="true"
+      className={`animation-art preview-${previewId ?? 'dvd'} w-full transition-transform duration-300 group-hover:scale-[1.02]`}
+    >
+      <span className="preview-symbol select-none">{icon}</span>
+      <span
+        className={`selection-indicator transition-all ${selected ? 'shadow-sm' : 'opacity-60 group-hover:opacity-100'}`}
+      >
+        {selected ? '✓' : '+'}
+      </span>
     </span>
     <span className="card-caption">
       <span className="card-title">{title}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { useI18n } from '@/hooks/useI18n';
 import { animations, getAnimation } from '@/animations';
@@ -17,6 +17,7 @@ interface Props {
 
 const tabs = ['animation', 'oled', 'playlist', 'general'] as const;
 type SettingsTab = (typeof tabs)[number];
+const paletteStopIds = ['first', 'second', 'third', 'fourth'] as const;
 
 export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
   const { t } = useI18n();
@@ -182,7 +183,10 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
             <SettingsIcon />
           </span>
           <div>
-            <h2 id="settings-panel-title" className="text-lg font-semibold">
+            <h2
+              id="settings-panel-title"
+              className="text-base font-semibold text-[var(--text-primary)]"
+            >
               {t('settings.title')}
             </h2>
             <p className="settings-description">{t('settings.subtitle')}</p>
@@ -190,6 +194,16 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
         </div>
         <IconButton onClick={onClose} label={t('shortcuts.close')} icon={<CloseIcon />} />
       </div>
+
+      {isImageProcessing && (
+        <p
+          role="status"
+          aria-live="polite"
+          className="px-[22px] pt-3 text-xs text-[var(--text-secondary)]"
+        >
+          {t('settings.imageProcessing')}
+        </p>
+      )}
 
       <div role="tablist" aria-label={t('settings.title')} className="settings-tabs">
         {tabs.map((tab, index) => (
@@ -299,6 +313,32 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
                 onChange={(v) => s.set('color', v)}
               />
             )}
+            {s.animationId === 'solid' && <p className="setting-help">{t('anim.solid.note')}</p>}
+            {isRelevant('palette') && (
+              <>
+                <Select
+                  label={t('settings.palette')}
+                  value={s.colorPaletteId}
+                  options={(['watchman', 'aurora', 'sunset', 'ocean', 'custom'] as const).map(
+                    (palette) => ({ value: palette, label: t(`palette.${palette}`) }),
+                  )}
+                  onChange={(value) => s.set('colorPaletteId', value as typeof s.colorPaletteId)}
+                />
+                {s.colorPaletteId === 'custom' &&
+                  s.customColorPalette.map((color, index) => (
+                    <ColorInput
+                      key={paletteStopIds[index]}
+                      label={t(`settings.paletteStop.${index + 1}`)}
+                      value={color}
+                      onChange={(value) => {
+                        const colors = [...s.customColorPalette] as typeof s.customColorPalette;
+                        colors[index] = value;
+                        s.set('customColorPalette', colors);
+                      }}
+                    />
+                  ))}
+              </>
+            )}
           </>
         )}
         {activeTab === 'oled' && (
@@ -364,6 +404,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
               options={[
                 { value: 'dark', label: t('settings.theme.dark') },
                 { value: 'light', label: t('settings.theme.light') },
+                { value: 'system', label: t('settings.theme.system') },
               ]}
               onChange={(v) => s.set('theme', v)}
             />
@@ -378,6 +419,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
             />
             <Button
               className="settings-reset"
+              variant="secondary"
               disabled={isImageProcessing}
               onClick={() => void resetSettings()}
             >
@@ -424,7 +466,7 @@ export const SettingsPanel = ({ open, onClose, overlay = false }: Props) => {
                     type="checkbox"
                     checked={s.playlist.includes(a.id)}
                     onChange={() => togglePlaylist(a.id)}
-                    className="accent-sky-500"
+                    className="accent-purple-500"
                   />
                   {t(`anim.${a.id}`)}
                 </label>
@@ -468,31 +510,38 @@ const FileField = ({
   disabled?: boolean;
   onFile: (f: File) => void;
   onClear?: () => void;
-}) => (
-  <label className="setting-upload">
-    <span className="setting-label">{label}</span>
-    <span className="upload-actions">
-      {onClear && (
-        <button
-          type="button"
-          onClick={onClear}
+}) => {
+  const inputId = useId();
+  return (
+    <div className="setting-upload">
+      <label htmlFor={inputId} className="setting-label">
+        {label}
+      </label>
+      <span className="upload-actions">
+        {onClear && (
+          <button
+            type="button"
+            aria-label={`${clearLabel ?? 'clear'} ${label}`}
+            onClick={onClear}
+            disabled={disabled}
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-50 transition-colors"
+          >
+            {clearLabel ?? 'clear'}
+          </button>
+        )}
+        <input
+          id={inputId}
+          type="file"
+          accept="image/*"
           disabled={disabled}
-          className="text-xs text-neutral-500 hover:text-neutral-900 disabled:opacity-50 dark:text-white/50 dark:hover:text-white"
-        >
-          {clearLabel ?? 'clear'}
-        </button>
-      )}
-      <input
-        type="file"
-        accept="image/*"
-        disabled={disabled}
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          e.target.value = '';
-          if (f) onFile(f);
-        }}
-        className="setting-file"
-      />
-    </span>
-  </label>
-);
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) onFile(f);
+          }}
+          className="setting-file"
+        />
+      </span>
+    </div>
+  );
+};

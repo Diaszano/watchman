@@ -9,6 +9,8 @@ import { createNeon } from './neon';
 import { createShapes } from './shapes';
 import { createCustomLogo } from './customLogo';
 import { createCustomText } from './customText';
+import { createSolidColor } from './solidColor';
+import { createColorCycle } from './colorCycle';
 
 /** Registry. Add a module + one line here to extend — open/closed. */
 export const animations: AnimationMeta[] = [
@@ -61,6 +63,16 @@ export const animations: AnimationMeta[] = [
     id: 'text',
     create: createCustomText,
     controls: ['speed', 'size', 'opacity', 'brightness', 'color'],
+  },
+  {
+    id: 'solid',
+    create: createSolidColor,
+    controls: ['brightness', 'color'],
+  },
+  {
+    id: 'colorCycle',
+    create: createColorCycle,
+    controls: ['speed', 'brightness', 'palette'],
   },
 ];
 
