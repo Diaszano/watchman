@@ -23,7 +23,7 @@ describe('custom logo animation', () => {
     const images: Array<{ src: string }> = [];
     vi.stubGlobal(
       'Image',
-      vi.fn(function Image() {
+      vi.fn(function mockImage() {
         const image = { src: '', complete: false, naturalWidth: 0 };
         images.push(image);
         return image;
@@ -58,7 +58,7 @@ describe('custom logo animation', () => {
     const image = { src: 'blob:test', complete: true, naturalWidth: 100, naturalHeight: 100 };
     vi.stubGlobal(
       'Image',
-      vi.fn(function Image() {
+      vi.fn(function mockImage() {
         return image;
       }),
     );

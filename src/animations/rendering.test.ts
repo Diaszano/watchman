@@ -150,7 +150,7 @@ describe('animation rendering cost', () => {
     const formatter = { format: vi.fn(() => '12:34:56') };
     const dateTimeFormatSpy = vi
       .spyOn(Intl, 'DateTimeFormat')
-      .mockImplementation(function MockDateTimeFormat() {
+      .mockImplementation(function mockDateTimeFormat() {
         return formatter as unknown as Intl.DateTimeFormat;
       });
 
