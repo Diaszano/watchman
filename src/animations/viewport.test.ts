@@ -138,7 +138,7 @@ describe('viewport bounds and small screen adaptation', () => {
     for (const imgProps of aspectImages) {
       vi.stubGlobal(
         'Image',
-        vi.fn(function Image() {
+        vi.fn(function mockImage() {
           return { src: 'blob:logo', complete: true, ...imgProps };
         }),
       );
